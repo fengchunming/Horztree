@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="TaxMapper">
+    <resultMap id="BaseResultMap" type="com.an.fm.entity.Tax">
+        <id column="tax_id" property="taxId" jdbcType="BIGINT"/>
+        <result column="tax_code" property="taxCode" jdbcType="VARCHAR"/>
+        <result column="tax_name" property="taxName" jdbcType="VARCHAR"/>
+        <result column="tax_rate" property="taxRate" jdbcType="NUMERIC"/>
+        <result column="tax_type" property="taxType" jdbcType="VARCHAR"/>
+        <result column="status" property="status" jdbcType="VARCHAR"/>
+        <result column="enter_at" property="enterAt" jdbcType="TIMESTAMP"/>
+    </resultMap>
+    <sql id="Example_Where_Clause">
+        <where>
+            <if test="_SH != null and _SH != ''">
+                ( tax_name ilike concat('%',#{_SH},'%') OR tax_code ilike concat('%',#{_SH},'%') )
+            </if>
+            <if test="moduleName != null and moduleName != ''">and module_name ilike concat('%',#{moduleName},'%')</if>
+            <if test="target != null and target != ''">and target ilike concat('%',#{target},'%')</if>
+        </where>
+    </sql>
+
+    <sql id="Base_Column_List">
+        tax_id, tax_code, tax_name, tax_rate, tax_type, status
+    </sql>
+    <select id="selectByExample" resultMap="BaseResultMap" parameterType="map">
+        select
+        <include refid="Base_Column_List"/>
+        from "ag"."T_FI_TAX"
+        <include refid="Example_Where_Clause"/>
+
+
+    </select>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long">
+        select
+        <include refid="Base_Column_List"/>
+        from "ag"."T_FI_TAX"
+        where tax_id = #{taxId,jdbcType=BIGINT}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        update "ag"."T_FI_TAX"
+        set status = 'trash',enter_at = now()
+        where tax_id = #{taxId,jdbcType=BIGINT}
+    </delete>
+
+    <insert id="insert" parameterType="com.an.fm.entity.Tax">
+        insert into "ag"."T_FI_TAX" (tax_code, tax_name,
+        tax_rate, tax_type, enter_at, status
+        )
+        values (#{taxCode,jdbcType=VARCHAR}, #{taxName,jdbcType=VARCHAR},
+        #{taxRate,jdbcType=NUMERIC}, #{taxType,jdbcType=VARCHAR}, now(), #{status,jdbcType=VARCHAR}
+        )
+        <selectKey resultType="int" keyProperty="taxId">
+            select currval('"ag"."T_FI_TAX_tax_id_seq"') AS taxId
+        </selectKey>
+    </insert>
+
+    <select id="countByExample" parameterType="map" resultType="java.lang.Integer">
+        select count(*) from "ag"."T_FI_TAX"
+        <include refid="Example_Where_Clause"/>
+    </select>
+
+    <update id="updateByPrimaryKey" parameterType="com.an.fm.entity.Tax">
+        update "ag"."T_FI_TAX"
+        set tax_code = #{taxCode,jdbcType=VARCHAR},
+        tax_name = #{taxName,jdbcType=VARCHAR},
+        tax_rate = #{taxRate,jdbcType=NUMERIC},
+        tax_type = #{taxType,jdbcType=VARCHAR},
+        status = #{status,jdbcType=VARCHAR},
+        enter_at = now()
+        where tax_id = #{taxId,jdbcType=BIGINT}
+    </update>
+
+    <select id="selectTaxKV" resultType="map">
+        select tax_code k,tax_name v from "ag"."T_FI_TAX" where status = 'enabled'
+    </select>
+</mapper>

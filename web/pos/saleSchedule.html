@@ -1,0 +1,232 @@
+<!DOCTYPE HTML> 
+<html> 
+<head> 
+<script>
+$(function() {
+	App.SaleSchedule = App.Model.extend({
+		urlRoot : 'rest/mm/saleSchedule',
+		idAttribute : 'billCode',
+		edit : function(){
+			this.fetch();
+			this.editor.setData( this );
+			App.saleScheduleDetailList.load('rest/mm/saleScheduleDetailList/'+ this.get('billCode'));
+		},
+		success : function(model,response){
+			model.set(response);
+			App.saleScheduleGrid.save();
+		}
+	})
+	
+	App.SaleScheduleList = App.Collection.extend({
+		urlRoot : 'rest/mm/saleScheduleList',
+		model : App.SaleSchedule,
+		columns : [
+			        {label:'单号',key:'billCode'},
+				    {label:'日期',key:'startDate'},
+				    {label:'时间',key:'startTime'},
+				    {label:'状态',key:'status',local:'status'}
+				]
+	})
+	
+	App.SaleScheduleFormView = App.FormView.extend({
+		toolbar : ['sync','create','trash','save','hide'],
+		sync : function(){
+			var that = this;
+			$.ajax({
+			    contentType: 'application/json',
+			    dataType: 'json',
+			    type: 'POST',
+			    url: 'rest/mm/sendSaleSchedule/' + this.model.get('billCode'),
+			    success : function(data){
+			    	;
+			    }
+			});
+		}
+	})
+	
+	App.SaleScheduleGrid = App.Grid.extend({
+		collection: new App.SaleScheduleList,
+		editorView: App.SaleScheduleFormView,
+		toolbar : ['create'],
+		querybar : '.queryBar'
+	});
+	
+	App.saleScheduleView = new App.SaleScheduleGrid();
+	
+	
+	/*
+	* 明细
+	*/
+	App.SaleScheduleRow = App.Row.extend({
+		listen : function(){
+			var view = this;
+			$('td[name=pn]',this.$el).autocomplete({
+			      source: function( request, response ) {
+			        $.ajax({
+			          url: 'rest/mm/goodsAutocomplete',
+			          dataType: "json",
+			          data: {q: request.term,limit: 20},
+			          success: function( data ) {
+			             response( $.map( data, function( item ) {
+			                 return {
+			                   label: item.pn + " - " + item.name,
+			                   value: item
+			                 }
+			             }));
+			          }
+			        });
+			      },
+			      select: function( event, ui ) {
+			    	 	var goods = ui.item.value;
+	 	    			goods.newPrice = goods.standardSalePrice;
+	           			view.model.set(goods);
+			      },
+			      change: function (event, ui) {
+			            if (!ui.item) {
+		 	    			var id = view.model.id;
+		 	    			view.model.clear();
+		 	    			view.model.set({'id':id});
+			            }
+			      }
+			});
+			
+			$('td[name=newPrice], td[name=newMemberPrice]',this.$el).focusout(function(){
+				view.model.set($(this).attr('name'),parseFloat($(this).text()));
+			});
+		}
+	})
+	
+	App.SaleScheduleDetail = App.Model.extend({
+		urlRoot : 'rest/mm/saleScheduleDetail',
+		idAttribute: 'id',
+		rowView: App.SaleScheduleRow
+	})
+	
+	App.SaleScheduleDetailList = App.Collection.extend({
+		model : App.SaleScheduleDetail,
+		columns : [
+					{label:'&nbsp;',key:'id', type:'checkbox'},
+				    {label:'商品编号',key:'pn',editable:true},
+				    {label:'商品名称',key:'name'},
+				    {label:'原售价',key:'standardSalePrice'},
+				    {label:'原会员价',key:'oldMemberPrice'},
+				    {label:'新售价',key:'newPrice',editable:true},
+				    {label:'新会员价',key:'newMemberPrice'},
+				]
+	})
+	
+	App.saleScheduleDetailList = new App.SaleScheduleDetailList();
+	App.SaleScheduleGrid = App.Grid.extend({
+		el : '#tab_2',
+		toolbar: ['append','remove'],
+		collection : App.saleScheduleDetailList,
+		save : function(){
+			var param = [];
+			_.each(this.collection.toJSON(),function(item){
+				item.startDateTime = $('#startDate').val() + " "+ $('#startTime').val();
+				param.push(item);
+			})
+			$.ajax({
+			    contentType: 'application/json',
+			    dataType: 'json',
+			    data : JSON.stringify(param),
+			    type: 'POST',
+			    precessData : false,
+			    url: 'rest/mm/saleScheduleDetail/' + $("#billCode").val(),
+			    success : function(data){
+			    	App.saleScheduleGrid.collection.fetch();
+			    }
+			});
+		}
+	})	
+	
+	App.saleScheduleGrid = new App.SaleScheduleGrid();
+});
+</script>
+</head>
+<body>
+<div id="article">
+	<div class="toolBar"></div>
+	<div class="dataGrid">
+		<table class="app"><thead></thead><tbody></tbody></table>
+	</div>
+	<div class="statusBar"></div>
+		<form class="queryBar">
+    <ul>
+        <li>
+			<label>单据号：</label>
+        	<input type="text" name="billCode">       
+        </li>
+        <li>
+        	<label>日期：</label>
+        	<input type="text" class="datepicker" name="billDate">
+        	<button class="search"><i></i>查询</button>
+        </li>
+    </ul>
+    </form>
+</div>
+
+<div class="navPanel">
+	<div class="toolBar"></div>
+	<div class="editorPanel">
+	<div id="tabs" >
+	    <ul>
+	        <li><a href="#tab_1"><span>基本信息</span></a></li>
+	        <li><a href="#tab_2"><span>调价明细</span></a></li>
+	    </ul>
+	    <form method="post" name="norEditForm">
+		<div id="tab_1">
+			<ol>
+				<li>
+					<label>单号:</label>
+				    <input type="text" name="billCode" id="billCode" required readonly/>
+				</li>
+				<li>
+					<label>开始日期:</label>
+					<input type="text" class="datepicker" name="startDate" id="startDate" required>
+				</li>
+				<li>
+					<label>结束日期:</label>
+					<input type="text" class="datepicker" name="endDate" id="endDate" required>
+				</li>
+				<li>
+					<label>开始时间:</label>
+				    <input type=time name="startTime" id="startTime" required>
+				</li>
+				<li>
+					<label>结束时间:</label>
+				    <input type=time name="endTime" id="endTime" required>
+				</li>
+				<li>
+					<label>有效日:</label>
+				    <input type=checkbox name=dayOfWeek value=1><span>周一</span>
+				    <input type=checkbox name=dayOfWeek value=2><span>周二</span>
+				    <input type=checkbox name=dayOfWeek value=3><span>周三</span>
+				    <input type=checkbox name=dayOfWeek value=4><span>周四</span>
+				    <input type=checkbox name=dayOfWeek value=5><span>周五</span>
+				    <input type=checkbox name=dayOfWeek value=6><span>周六</span>
+				    <input type=checkbox name=dayOfWeek value=0><span>周日</span>
+				</li>
+				<li>
+					<label>备注:</label>
+				    <textarea name="remark"></textarea>
+				</li>
+				<li>
+					<label>状态:</label>
+				    <select name="status" data-local="status"></select>
+				</li>
+			</ol>
+		</div>
+		</form>
+		<div id="tab_2">
+			<table class="app">
+			<thead></thead>
+			<tbody></tbody>
+			</table>
+			<div class="leftPanel ui-buttonset" style="margin-top:20px;"></div>
+		</div>
+	</div>
+</div>
+</div>
+</body>
+</html>

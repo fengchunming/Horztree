@@ -1,0 +1,130 @@
+<!DOCTYPE HTML> 
+<html> 
+<head> 
+<script>
+$(function() {
+	App.Trade = App.Model.extend({
+		urlRoot : 'rest/scm/trade',
+		idAttribute: 'billCode',
+		edit : function(){
+			App.tradeDetailList.load('rest/scm/tradeDetail/'+ this.get('billCode'));
+		}
+	})
+	
+	App.Trades = App.Collection.extend({
+		sortCol: 'sale_stamp',
+		sortDirect: 'desc',
+		urlRoot : 'rest/scm/tradeList',
+		model : App.Trade,
+		columns : [
+		   		    {label:'组织编号',key:'org.orgCode',sort:'org_code'},
+		   		    {label:'组织名称',key:'org.orgCode',local:'sys/loadStoreKV.do'},
+		   		 	{label:'订单号',key:'billCode',sort:'bill_code'},
+		   			{label:'外部订单号',key:'origin_bill_code',sort:'origin_bill_code'},
+				    {label:'交易日',key:'billDate',sort:'bill_date'},
+				    {label:'下单时间',key:'saleStamp',sort:'sale_stamp'},
+				    {label:'金额',key:'amount',sort:'amount'},
+				    {label:'订购人',key:'ship_name',sort:'ship_name'}
+				]
+	})
+	
+	App.TradeFormView = App.FormView.extend({
+		toolbar : ['create','save','check','print','trash','hide']
+	})
+
+	App.TradeGrid = App.Grid.extend({
+		collection: new App.Trades,
+		editorView: App.SaleFormView,
+		toolbar : ['create'],
+		querybar : '.queryBar'
+	});
+	App.tradeGrid = new App.TradeGrid();
+	
+	
+	App.TradeDetailList = App.Collection.extend({
+		columns : [
+	        {label:'商品名称',key:'name'},
+		    {label:'商品编号',key:'pn'},
+		    {label:'价格',key:'standardSalePrice'},
+		    {label:'单位',key:'goodsUnit.uomCode',local: 'base/kv/uom'},
+		    {label:'数量',key:'quantity'},
+		    {label:'小计',key:'saleTotal'}
+		]
+	});
+	App.tradeDetailList =  new App.TradeDetailList;
+	App.TradeDetailGrid = App.Grid.extend({
+		el : '#tab-2',
+		collection :  App.tradeDetailList
+	})
+	
+	App.tradeDetailGrid = new App.TradeDetailGrid;
+});
+</script>
+</head>
+<body>
+<div id="article">
+	<div class="toolBar"></div>
+	<div class="dataGrid">
+		<table class="app"><thead></thead><tbody></tbody></table>
+	</div>
+	<div class="statusBar"></div>
+	
+	<form class="queryBar queryPanel">
+    <ul>
+        <li>
+			<label>单据号：</label>
+        	<input type="text" name="billCode">       
+        </li>
+        <li>
+        	<label>营业日期：</label>
+        	<input type="text" class="datepicker" name="billDate">
+        	<button class="search"><i></i>查询</button>
+        </li>
+        <li>  
+         	<label>组织：</label>
+        	<select name="orgCode" data-local="sys/loadStoreKV.do">
+        	<option value=""></option>
+        	</select>
+        </li>
+    </ul>
+    </form>
+</div>
+
+<div class="navPanel">
+	<div class="toolBar"></div>
+	<div class="editorPanel">
+	<div id="tabs">
+	    <ul>
+	        <li><a href="#tab_1"><span>服务跟踪</span></a></li>
+	        <li><a href="#tab_2"><span>跟踪明细</span></a></li>
+	    </ul>
+		<div id="tab_1">
+			<form name="norEditForm" id="norEditForm">
+			<ol>
+			<li>
+				<label>单号:</label>
+			    <input type="text" name="billNo" placeholder="单号"/>
+			</li>
+			<li>
+				<label>用户名:</label>
+			    <input type="text" name="userName" placeholder="会员账号"/>
+			</li>
+			<li>
+				<label>备注:</label>
+			    <textarea name="remark" style="height:200px; width:500px;"></textarea>
+			</li>
+			</ol>
+			</form>
+		</div>
+		<div id="tab_2">
+	   		<table class="app">
+				<thead></thead>
+			    <tbody></tbody>
+			</table>
+			<div class="page"></div>
+	 	</div>
+  </div>
+</div>
+</div>
+</body>
+</html>

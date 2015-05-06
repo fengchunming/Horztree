@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="CRM.MemberMapper">
+    <resultMap id="BaseResultMap" type="com.an.crm.entity.Member">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="user_name" property="userName" jdbcType="VARCHAR"/>
+        <result column="nick_name" property="nickName" jdbcType="VARCHAR"/>
+        <result column="member_type" property="memberType" jdbcType="INTEGER"/>
+        <result column="avatar" property="avatar" jdbcType="VARCHAR"/>
+        <result column="password" property="password" jdbcType="VARCHAR"/>
+        <result column="level_id" property="level" jdbcType="INTEGER"/>
+        <result column="point" property="point" jdbcType="NUMERIC"/>
+        <result column="balance" property="balance" jdbcType="NUMERIC"/>
+        <result column="real_name" property="realName" jdbcType="VARCHAR"/>
+        <result column="gender" property="gender" jdbcType="VARCHAR"/>
+        <result column="address" property="address" jdbcType="VARCHAR"/>
+        <result column="region" property="region" jdbcType="VARCHAR"/>
+        <result column="mobile" property="mobile" jdbcType="VARCHAR"/>
+        <result column="telephone" property="telephone" jdbcType="VARCHAR"/>
+        <result column="email" property="email" jdbcType="VARCHAR"/>
+        <result column="zip_code" property="zipCode" jdbcType="VARCHAR"/>
+        <result column="birthday" property="birthday" jdbcType="DATE"/>
+        <result column="status" property="status" jdbcType="VARCHAR"/>
+        <result column="enter_at" property="enterAt" jdbcType="TIMESTAMP"/>
+        <result column="regist_at" property="registAt" jdbcType="TIMESTAMP"/>
+        <result column="login_at" property="loginAt" jdbcType="TIMESTAMP"/>
+
+        <result column="qq_id" property="qqId" jdbcType="VARCHAR"/>
+        <result column="qq_name" property="qqName" jdbcType="VARCHAR"/>
+        <result column="qq_desc" property="qqDesc" typeHandler="com.an.core.mybatis.handlers.JsonTypeHandler"/>
+
+        <result column="renren_id" property="renrenId" jdbcType="VARCHAR"/>
+        <result column="renren_name" property="renrenName" jdbcType="VARCHAR"/>
+        <result column="renren_desc" property="renrenDesc" typeHandler="com.an.core.mybatis.handlers.JsonTypeHandler"/>
+
+        <result column="weibo_id" property="weiboId" jdbcType="VARCHAR"/>
+        <result column="weibo_name" property="weiboName" jdbcType="VARCHAR"/>
+        <result column="weibo_desc" property="weiboDesc" typeHandler="com.an.core.mybatis.handlers.JsonTypeHandler"/>
+
+        <result column="wechat_id" property="wechatId" jdbcType="VARCHAR"/>
+        <result column="wechat_name" property="wechatName" jdbcType="VARCHAR"/>
+        <result column="wechat_desc" property="wechatDesc" typeHandler="com.an.core.mybatis.handlers.JsonTypeHandler"/>
+
+    </resultMap>
+    <sql id="Example_Where_Clause">
+        <where>
+            <if test="userName != null and userName != ''">upper(user_name) like concat('%',upper(#{userName}),'%')</if>
+            <if test="mobile != null and mobile != ''">and mobile like concat('%',#{mobile},'%')</if>
+            <if test="email != null and email != ''">and upper(email) like concat('%',upper(#{email}),'%')</if>
+            <if test="realName != null and realName != ''">and upper(real_name) like concat('%',upper(#{realName}),'%')</if>
+            <if test="status != null and status != ''">and status =#{status}</if>
+            <if test="sdate != null and sdate != ''">and regist_at >= #{sdate,jdbcType=DATE}</if>
+            <if test="edate != null and edate != ''">and regist_at &lt;= #{edate,jdbcType=DATE}</if>
+        </where>
+    </sql>
+    <select id="countByExample" parameterType="map" resultType="java.lang.Integer">
+        select count(1) from CRM_MEMBER
+        <include refid="Example_Where_Clause"/>
+    </select>
+
+    <sql id="Base_Column_List">
+        id, user_name, password, level_id, point, balance, real_name, address, region, mobile,
+        telephone, email, zip_code, birthday, status, enter_at, member_type, avatar, gender, qq_id,
+        qq_name, qq_desc, weibo_id, weibo_name, weibo_desc, wechat_id, wechat_name, wechat_desc,
+        renren_id, renren_name, renren_desc, login_at, regist_at, nick_name
+    </sql>
+
+    <select id="selectByExample" resultMap="BaseResultMap" parameterType="map">
+        select
+        <include refid="Base_Column_List"/>
+        from CRM_MEMBER
+        <include refid="Example_Where_Clause"/>
+        <if test="_BY != null">order by ${_BY}</if>
+    </select>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long">
+        select
+        <include refid="Base_Column_List"/>
+        from CRM_MEMBER
+        where id = #{id,jdbcType=BIGINT}
+    </select>
+    <select id="selectKV" resultType="java.util.HashMap">
+        select id as k, user_name as v from CRM_MEMBER
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        delete from CRM_MEMBER
+        where id = #{id,jdbcType=BIGINT}
+    </delete>
+
+    <insert id="insert" parameterType="com.an.crm.entity.Member">
+        insert into CRM_MEMBER ( user_name, password,
+        level_id, point, balance,
+        real_name, address, region,
+        mobile, telephone, email,
+        zip_code, birthday, status,
+        enter_at, member_type)
+        values ( #{userName,jdbcType=VARCHAR}, #{password,jdbcType=VARCHAR},
+        #{level.levelId,jdbcType=INTEGER}, #{point,jdbcType=NUMERIC}, #{balance,jdbcType=NUMERIC},
+        #{realName,jdbcType=VARCHAR}, #{address,jdbcType=VARCHAR}, #{region,jdbcType=VARCHAR},
+        #{mobile,jdbcType=VARCHAR}, #{telephone,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR},
+        #{zipCode,jdbcType=VARCHAR}, #{birthday,jdbcType=DATE}, #{status,jdbcType=VARCHAR},
+        now(), #{memberType,jdbcType=INTEGER})
+    </insert>
+
+    <update id="updateByPrimaryKey" parameterType="com.an.crm.entity.Member">
+        update CRM_MEMBER
+        set user_name = #{userName,jdbcType=VARCHAR},
+        password = #{password,jdbcType=VARCHAR},
+        level_id = #{level.levelId,jdbcType=INTEGER},
+        point = #{point,jdbcType=NUMERIC},
+        balance = #{balance,jdbcType=NUMERIC},
+        real_name = #{realName,jdbcType=VARCHAR},
+        address = #{address,jdbcType=VARCHAR},
+        region = #{region,jdbcType=VARCHAR},
+        mobile = #{mobile,jdbcType=VARCHAR},
+        telephone = #{telephone,jdbcType=VARCHAR},
+        email = #{email,jdbcType=VARCHAR},
+        zip_code = #{zipCode,jdbcType=VARCHAR},
+        birthday = #{birthday,jdbcType=DATE},
+        status = #{status,jdbcType=VARCHAR},
+        enter_at = #{enterAt,jdbcType=TIMESTAMP},
+        member_type = #{memberType,jdbcType=INTEGER}
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+</mapper>

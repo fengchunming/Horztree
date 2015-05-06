@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="CRM.StrategyMapper">
+    <resultMap id="BaseResultMap" type="com.an.crm.entity.Strategy">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="name" property="name" jdbcType="VARCHAR"/>
+        <result column="type" property="type" jdbcType="VARCHAR"/>
+        <result column="task" property="task" jdbcType="VARCHAR"/>
+        <result column="clause" property="clause" typeHandler="com.an.core.mybatis.handlers.JsonTypeHandler"/>
+        <result column="effect" property="effect" typeHandler="com.an.core.mybatis.handlers.JsonTypeHandler"/>
+        <result column="groups" property="groups" typeHandler="com.an.core.mybatis.handlers.JsonTypeHandler"/>
+        <result column="include" property="include" jdbcType="VARCHAR"/>
+        <result column="exclude" property="exclude" jdbcType="VARCHAR"/>
+        <result column="status" property="status" jdbcType="CHAR"/>
+        <result column="expire_dt" property="expireDate" jdbcType="TIMESTAMP"/>
+        <result column="effect_dt" property="effectDate" jdbcType="TIMESTAMP"/>
+        <result column="enter_by" property="enterBy" jdbcType="INTEGER"/>
+        <result column="enter_at" property="enterAt" jdbcType="TIMESTAMP"/>
+        <result column="remark" property="remark" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+      id,name,task,type,clause,effect,include,exclude,status,groups,remark,enter_by,enter_at,effect_dt,expire_dt
+    </sql>
+    <sql id="Where_Clause">
+        <where>
+            status != 'd' and exists (select 1 from CRM_STRATEGY_GROUPS where CRM_STRATEGY.id = strategy_id and group_id in (#groups))
+            <if test="name != null and name != ''">and upper(name) like concat('%',upper(#{name}),'%')</if>
+            <if test="status != null and status != ''">and status =#{status}</if>
+            <if test="type != null and type != ''">and type =#{type}</if>
+            <if test="group != null and group !=''">
+                and exists (select 1 from CRM_STRATEGY_GROUPS where CRM_STRATEGY.id = strategy_id and group_id = #{group})
+            </if>
+            <if test="startTime != null and startTime != ''">
+                and enter_at &gt;= to_date(#{startTime},'yyyy-mm-dd')
+            </if>
+            <if test="endTime != null and endTime != ''">
+                and enter_at &lt;= to_date(#{endTime},'yyyy-mm-dd')+1
+            </if>
+        </where>
+    </sql>
+    <!-- 总数 -->
+    <select id="countByExample" resultType="int" parameterType="java.util.HashMap">
+        select count(1) from CRM_STRATEGY
+        <include refid="Where_Clause"/>
+    </select>
+
+    <!--列表查询 -->
+    <select id="selectByExample" resultMap="BaseResultMap" parameterType="java.util.HashMap">
+        select
+        <include refid="Base_Column_List"/>
+        from CRM_STRATEGY
+        <include refid="Where_Clause"/>
+        <if test="_BY != null">order by ${_BY}</if>
+    </select>
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+        select
+        <include refid="Base_Column_List"/>
+        from CRM_STRATEGY
+        where id = #{id,jdbcType=INTEGER}
+
+    </select>
+    <insert id="insert" parameterType="com.an.crm.entity.Strategy">
+        insert into CRM_STRATEGY (
+            name,clause,effect,include,exclude,status,remark,type,task,groups,
+            enter_by,enter_at,effect_dt,expire_dt
+        ) values (
+            #{name,jdbcType=VARCHAR},#{clause,typeHandler=com.an.core.mybatis.handlers.JsonTypeHandler},
+            #{effect,typeHandler=com.an.core.mybatis.handlers.JsonTypeHandler},
+            #{include,jdbcType=VARCHAR},#{exclude,jdbcType=VARCHAR},
+            #{status,jdbcType=VARCHAR},#{remark,jdbcType=VARCHAR},
+            #{type,jdbcType=VARCHAR},#{task,jdbcType=VARCHAR},
+            #{groups,typeHandler=com.an.core.mybatis.handlers.JsonTypeHandler},#userId,now(),
+            #{effectDate,jdbcType=TIMESTAMP},#{expireDate,jdbcType=TIMESTAMP}
+        )
+        <selectKey resultType="java.lang.Integer" keyProperty="id">
+            SELECT @@IDENTITY AS id
+        </selectKey>
+    </insert>
+    <update id="updateByPrimaryKey" parameterType="com.an.crm.entity.Strategy">
+        update CRM_STRATEGY set
+        name=#{name,jdbcType=VARCHAR},
+        clause=#{clause,typeHandler=com.an.core.mybatis.handlers.JsonTypeHandler},
+        effect=#{effect,typeHandler=com.an.core.mybatis.handlers.JsonTypeHandler},
+        include=#{include,jdbcType=VARCHAR},
+        exclude=#{exclude,jdbcType=VARCHAR},
+        status=#{status,jdbcType=VARCHAR},
+        remark=#{remark,jdbcType=VARCHAR},
+        type=#{type,jdbcType=VARCHAR},
+        task=#{task,jdbcType=VARCHAR},
+        groups=#{groups,typeHandler=com.an.core.mybatis.handlers.JsonTypeHandler},
+        enter_by=#userId,
+        enter_at=now(),
+        effect_dt=#{effectDate,jdbcType=TIMESTAMP},
+        expire_dt=#{expireDate,jdbcType=TIMESTAMP}
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+    <update id="deleteByPrimaeryKey" parameterType="java.lang.Integer">
+        update CRM_STRATEGY set
+        status = 'd'
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+
+
+    <delete id="removeGroup" parameterType="com.an.crm.entity.Strategy">
+        delete from CRM_STRATEGY_GROUPS
+        where strategy_id = #{id,jdbcType=INTEGER}
+    </delete>
+    <insert id="insertGroup" parameterType="com.an.crm.entity.Strategy">
+        insert into CRM_STRATEGY_GROUPS (group_id, strategy_id, enter_at, enter_by )
+        values
+        <foreach collection="groups" separator="," item="cid">
+            ( #{cid,jdbcType=INTEGER}, #{id,jdbcType=INTEGER}, now(), #userId)
+        </foreach>
+    </insert>
+</mapper>

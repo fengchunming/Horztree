@@ -1,0 +1,119 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <script>
+        $(function () {
+            App.Summary = App.Model.extend({
+                edit: function () {
+                    App.inventoryList.load({itemId: this.get('item_id')});
+                }
+            });
+
+            App.SummaryList = App.Collection.extend({
+                urlRoot: 'rest/wm/inventory/summary',
+//                autoLoad: false,
+                model: App.Summary,
+                columns: [
+                    {label: '编号', key: 'pn', sort: true, thcss:'width:70px'},
+                    {label: '名称', key: 'name', sort: true},
+                    {label: '仓库', key: 'warehouse', sort: true, local: 'sys/kv/group'},
+                    {label: '货主', key: 'belong.id', sort: true, local: 'sys/kv/org'},
+                    {label: '基准单位', key: 'sku_uom', local:'base/kv/uom', thcss: 'width:100px'},
+                    {label: '总库存', key: 'quantity', thcss: 'width:100px'}
+                ]
+            });
+
+            App.SummaryForm = App.FormView.extend({
+                toolbar: ['hide'],
+                size: {width:800}
+            });
+
+            App.SummaryGrid = App.Grid.extend({
+                collection: new App.SummaryList,
+                form: new App.SummaryForm,
+                toolbar: ['export'],
+                qel: '.queryBar',
+                export: function () {
+                    $.download('rest/wm/inventory/export', this.collection.param);
+                }
+            });
+            new App.SummaryGrid();
+
+
+            App.Inventory = App.Model.extend({
+                idAttribute: 'stockId'
+            });
+
+            App.InventoryList = App.Collection.extend({
+                urlRoot: 'rest/wm/inventory/list',
+                autoLoad: false,
+                model: App.Inventory,
+                columns: [
+                    {label: '仓库', key: 'location.warehouse',local:'sys/kv/group'},
+                    {label: '名称', key: 'name',thcss:'width:200px'},
+                    {label: '数量', key: 'realQuantity'},
+                    {label: '单位', key: 'uom.id', local: 'base/kv/uom'},
+                    {label: '规格', key: 'uom.packQuantity'},
+                    {label: '收货日期', key: 'receiptDate'}
+                ]
+            });
+            App.inventoryList = new App.InventoryList;
+
+            App.InventoryGrid = App.Grid.extend({
+                el: '.editorPanel',
+                collection: App.inventoryList
+            });
+            new App.InventoryGrid;
+        });
+    </script>
+</head>
+<body>
+<div id="article">
+    <form class="queryBar">
+        <ul>
+            <li>
+                <label>编号：</label>
+                <input name="pn">
+            </li>
+            <li>
+                <label>名称：</label>
+                <input name="goodsName">
+            </li>
+            <li>
+                <label>分类：</label>
+                <select name="category" data-local="mm/kv/category">
+                    <option value="">所有</option>
+                </select></li>
+            <li>
+                <label>仓库：</label>
+                <select name="warehouse" data-local="sys/kv/group">
+                    <option value="">所有</option>
+                </select>
+            </li>
+            <!--<li>-->
+                <!--<label>供应商：</label>-->
+                <!--<select name="supplier" data-local="sys/kv/supplier">-->
+                    <!--<option value="">所有</option>-->
+                <!--</select>-->
+            <!--</li>-->
+            <li>
+                <button class="search"><i></i>查询</button>
+                <button type="reset" class="reset"><i></i>重置</button>
+            </li>
+        </ul>
+    </form>
+    <div class="dataGrid">
+        <table class="app"></table>
+    </div>
+    <div class="page"></div>
+</div>
+
+<div class="navPanel">
+    <div class="toolBar"></div>
+    <div class="editorPanel">
+    <form><ul><li><input name="pn" disabled/><input name="name" style="width:300px" disabled/><input name="quantity" disabled/></li></ul></form>
+        <table class="app"></table>
+    </div>
+</div>
+</body>
+</html>

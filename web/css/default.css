@@ -1,0 +1,1207 @@
+html, body {
+    width: 100%;
+    height: 100%;
+    min-height: 800px;
+    overflow: hidden;
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    font-size: 65%;
+    font-family: tahoma, arial, sans-serif;
+}
+
+#header {
+    position: fixed;
+    height: 30px;
+    top: 0;
+    left: 0;
+    width: 100%;
+    z-index: 20;
+    background: #393939;
+    box-shadow: 0 1px 3px 0 #393939;
+}
+
+#userinfo {
+    float: right;
+    text-align: right;
+    font-size: 12px;
+    width: 220px;
+    color: #fff;
+    padding: 6px;
+}
+
+#shortcut {
+    top: 30px;
+    bottom: 0;
+    left: 0;
+    position: fixed;
+    width: 100px;
+    overflow: hidden;
+    color: #fff;
+    background: #393939 url(../images/logog.png) -10px bottom no-repeat;
+}
+
+#shortcut li {
+    padding-left: 6px;
+    border-bottom: solid 1px #111415;
+    border-top: solid 1px #646668;
+}
+
+#shortcut li:hover {
+    background-color: #0073ea;
+}
+
+#shortcut li a {
+    display: block;
+    width: 100%;
+    font-size: 12px;
+    color: #fff;
+    line-height: 28px;
+    text-align: left;
+    text-indent: 10px;
+}
+
+#container {
+    top: 30px;
+    margin: 0;
+    bottom: 0;
+    left: 100px;
+    position: fixed;
+    right: 0;
+    overflow: hidden;
+}
+
+a:focus {
+    outline: none;
+}
+
+a {
+    text-decoration: none;
+    cursor: pointer;
+    color: #222;
+}
+
+ol, ul, li, dl, dd, dt {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+h3 {
+    padding: 5px;
+    margin: 5px 0 0 10px;
+    color: #444;
+}
+
+#article {
+    position: absolute;
+    left: 5px;
+    bottom: 0;
+    right: 8px;
+    top: 0;
+    text-align: left;
+    border: 0;
+    overflow-y:auto;
+}
+
+#article .queryBar {
+    float: left;
+    width: 100%;
+    z-index: 10;
+}
+
+#article .queryBar ul {
+    width: 100%;
+    overflow: hidden;
+    padding-top: 4px;
+}
+
+.queryBar ul li {
+    float: left;
+    padding: 3px 0 0 5px;
+    height: 28px;
+}
+
+.queryBar label {
+    display: block;
+    float: left;
+    line-height: 25px;
+    text-align: right;
+}
+
+.queryPanel:hover {
+    overflow: visible;
+    height: auto;
+}
+
+.queryBar input {
+    width: 110px;
+}
+
+.queryBar input.mindatepicker, .queryBar input.maxdatepicker {
+    width: 80px;
+}
+
+.queryBar input[type=checkbox] {
+    width: 15px;
+    height: 15px;
+    box-shadow: none;
+    border: none;
+}
+
+.queryBar .small {
+    width: 40px;
+}
+
+#article .toolBar {
+    float: right;
+    padding-right: 10px;
+}
+
+#article .dataGrid {
+    margin-top: 3px;
+    float: left;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+.page {
+    clear: both;
+    float: left;
+    margin-top: 7px;
+    height: 27px;
+    overflow: hidden;
+}
+
+.clear {
+    clear: both;
+}
+
+.formPanel {
+    padding: 8px;
+}
+
+.formPanel .toolBar {
+    padding: 5px;
+}
+
+.attachPanel {
+    float: left;
+    overflow: hidden;
+}
+
+.attachPanel div {
+    overflow: hidden;
+    padding: 5px;
+}
+
+.attachPanel a {
+    color: #0073ea;
+    font-size: 12px;
+    float: left;
+}
+
+.attachPanel i.removeHandler {
+    background-position: -176px -98px;
+    margin-left: 10px;
+    cursor: pointer;
+}
+
+table.app {
+    width: 100%;
+    text-align: left;
+    font-size: 12px;
+    table-layout: fixed;
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+table.app th {
+    font-weight: normal;
+    color: #444;
+    height: 18px;
+    text-indent: 5px;
+    white-space: nowrap;
+    word-break: keep-all;
+    overflow: hidden;
+    padding: 3px;
+    max-width: 300px;
+    background: #ccc url("images/ui-bg_highlight-soft_75_cccccc_1x100.png") 50% 50% repeat-x;
+}
+
+table.app th.check {
+    cursor: pointer;
+    width: 28px;
+}
+
+table.app th.check span {
+    padding-left: 15px;
+    background: url(images/ui-icons_454545_256x240.png) -66px -146px;
+}
+
+table.app th.sort {
+    cursor: pointer;
+}
+
+table.app th.sort span {
+    padding-left: 15px;
+    background: url(images/ui-icons_454545_256x240.png) -128px -17px;
+}
+
+table.app th.asc span {
+    background-position: 0 -17px
+}
+
+table.app th.desc span {
+    background-position: -64px -17px;
+}
+
+table.app th span.asc {
+    background-position: 0 2px;
+}
+
+table.app th span.desc {
+    background-position: -64px 2px;
+}
+
+table.app tbody {
+    width: 100%;
+    text-align: left;
+    font-size: 12px;
+    border-collapse: collapse;
+    border: 0 solid #ddd;
+    overflow: auto;
+}
+
+table.app tr:nth-child(even) {
+    background-color: #FBFBFB;
+}
+
+table.app tr:nth-child(odd) {
+    background-color: #FFF;
+}
+
+table.app td {
+    text-indent: 5px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    color: #1f1f1f;
+    border: 1px solid #EEE;
+    cursor: default;
+    height: 25px;
+    user-select: none;
+    -webkit-user-select: none; /*webkit浏览器*/
+}
+
+table.app td input[type=checkbox], #article table td input[type=radio] {
+    vertical-align: middle;
+    margin-top: 5px;
+    height: 13px;
+    border: none;
+    width: 13px;
+}
+
+table.app td .line-input {
+    width: 100%;
+    height: 25px;
+    border: 0;
+    padding: 0;
+    margin: 0 0 0 -5px;
+    text-indent: 4px;
+    box-shadow: none;
+    transition: none;
+}
+
+table.app tbody tr:hover td {
+    text-shadow: rgba(0, 0, 0, .4) 2px 2px 3px;
+}
+
+table.app td.checkline {
+    width: 20px;
+    padding-left: 5px;
+}
+
+table.app tr.ui-selected {
+    background: #0073ea;
+}
+
+table.app tr.ui-selected td {
+    color: #fff;
+}
+
+table.app .inline-img {
+    height: 27px;
+}
+
+.navPanel {
+    display: none;
+    position: absolute;
+}
+
+.side-panel {
+    width: 250px;
+    float: right;
+    margin-right: 20px;
+    max-height: 600px;
+    overflow-y: auto;
+}
+
+.slide-panel {
+    bottom: 0;
+    top: 0;
+    right: 0;
+    margin: 0;
+    background: #f9f9f7;
+    z-index: 11;
+    overflow: hidden;
+    border-left: solid 1px #e1e1e1;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.10);
+}
+
+.down-panel {
+    position: absolute;
+    display: block;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border-top: 1px solid #e1e1e1;
+    background: #f9f9f7;
+    overflow: hidden;
+}
+
+.right-panel {
+    display: block;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    background: #f9f9f7;
+    border-left: 1px solid #ddd;
+}
+
+.navPanel .toolBar {
+    padding: 5px 15px;
+    display: inline-flex;
+}
+
+.toolBar button {
+    min-width: 62px;
+}
+
+.navPanel.min .handle span {
+    background-position: -96px 0;
+}
+
+form fieldset {
+    border: 1px solid #c1c4d5;
+    border-radius: 3px;
+    float: left;
+    margin: 5px;
+}
+
+form .input-area {
+    display: inline-block;
+    max-height: 200px;
+    width: 196px;
+    min-height: 50px;
+    background: #fff;
+    padding: 3px;
+    border: 1px solid #e1e1e1;
+    cursor: pointer;
+    overflow-y: auto;
+}
+
+form {
+    overflow: hidden;
+}
+
+form ol {
+    padding-top: 10px;
+    float: left;
+}
+
+form ol li {
+    padding: 2px;
+}
+
+form ol li label {
+    display: inline-block;
+    width: 95px;
+    text-align: right;
+    padding-right: 5px;
+    height: 24px;
+    line-height: 24px;
+    vertical-align: top;
+}
+
+ol.left-align {
+    padding-left: 10px;
+}
+
+.left-align label {
+    width: auto;
+}
+
+.inline-form {
+    padding: 3px 0 0 0;
+    background: #FFF;
+    display: none;
+}
+
+.inline-form label {
+    text-indent: 7px;
+}
+
+form.horizontal ol li {
+    float: left;
+    width: 300px;
+    clear: none;
+}
+
+form.horizontal ol li input {
+    width: 100px;
+}
+
+.required {
+    color: RGB(180, 54, 0);
+}
+
+input, textarea {
+    transition: border linear 0.2s, box-shadow linear 0.2s;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+input {
+    height: 20px;
+    line-height: 18px;
+    border: 1px solid #e1e1e1;
+    font-size: 12px;
+    text-indent: 3px;
+}
+
+form ol li input {
+    width: 200px;
+}
+
+form ol li input[type=checkbox],
+form ol li input[type=radio] {
+    margin-top: 5px;
+    height: 13px;
+    border: none;
+    width: 13px;
+}
+
+input.error, select.error, textarea.error {
+    background-color: #FF8888 !important;
+}
+
+tr.error, li.error {
+    background-color: #FF8888 !important;
+}
+
+span.error {
+    color: #FF8888;
+    clear: left;
+    float: left;
+    padding-left: 110px;
+}
+
+.search_sh {
+    width: 200px;
+    height: 20px;
+    line-height: 18px;
+    margin: 2px;
+    border: 1px solid #d9d6c4;
+}
+
+.gridInput {
+    border: 0;
+}
+
+input[disabled], input[readonly], select[disabled], textarea[disabled] {
+    background-color: #eee;
+}
+
+input[required]:not([type="radio"]):not([type="checkbox"]), textarea[required], select[required] {
+    border-left: 1px solid #FF8888;
+}
+
+form select {
+    border: 1px solid #ccc;
+    height: 24px;
+}
+
+textarea {
+    border: 1px solid #e1e1e1;
+    min-width: 196px;
+    padding: 3px;
+    margin: 0;
+    font-size: 12px;
+}
+
+form input[type=file] {
+    border: none;
+}
+
+button {
+    cursor: pointer;
+    line-height: 16px;
+}
+
+label.ui-button {
+    cursor: pointer;
+    height: 21px;
+    line-height: 16px;
+}
+
+.ui-buttonset .ui-button {
+    outline: none;
+}
+
+i {
+    padding: 0 7px;
+    background: url(images/ui-icons_454545_256x240.png) -100px -224px;
+}
+
+i.white {
+    background-image: url(images/ui-icons_ffffff_256x240.png);
+}
+
+.ui-state-hover i, .ui-state-focus i {
+    background-image: url(images/ui-icons_222222_256x240.png);
+}
+
+.ui-tooltip {
+    padding: 3px 5px;
+    font: 13px "Helvetica Neue", Sans-Serif;
+    box-shadow: 0 0 7px black;
+}
+
+button.trash i {
+    background-position: -176px -97px;
+}
+
+button.reset i {
+    background-position: 0 -63px;
+}
+
+button.diag i {
+    background-position: -16px -177px;
+}
+
+button.edit i {
+    background-position: -64px -113px;
+}
+
+button.save i {
+    background-position: -96px -113px;
+}
+
+button.hide i {
+    background-position: -96px -129px;
+}
+
+button.create i {
+    background-position: -34px -97px;
+}
+
+button.copy i {
+    background-position: -176px -130px;
+}
+
+button.search i {
+    background-position: -160px -113px;
+}
+
+button.refresh i {
+    background-position: -64px -82px;
+}
+
+button.gear i {
+    background-position: -192px -114px;
+}
+
+button.append i {
+    background-position: -16px -130px;
+}
+
+button.remove i, button.remoteRemove i {
+    background-position: -48px -130px;
+}
+
+button.complete i, button.check i {
+    background-position: -64px -146px;
+}
+
+button.resolve i {
+    background-position: -16px -114px;
+}
+
+button.update i {
+    background-position: -50px -64px;
+}
+
+button.sync i {
+    background-position: -114px -81px;
+}
+
+button.inport i {
+    background-position: -224px -50px
+}
+
+button.export i {
+    background-position: -192px -50px
+}
+
+button.link i {
+    background-position: -240px -114px;
+}
+
+button.print i, button.print2 i {
+    background-position: -160px -98px
+}
+
+button.auto i {
+    background-position: -240px -130px
+}
+
+button.show i {
+    background-position: -130px -98px;
+}
+
+button.merge i {
+    background-position: -112px -98px;
+}
+
+button.undo i {
+    background-position: 0 -66px;
+}
+
+button.pause i, button.suspend i {
+    background-position: -16px -162px;
+}
+
+button.stop i {
+    background-position: -96px -162px;
+}
+
+button.activate i, button.play i {
+    background-position: 0 -162px;
+}
+
+button.lock i {
+    background-position: -192px -98px;
+}
+
+button.person i {
+    background-position: -144px -98px;
+}
+
+.contact i {
+    background-position: -192px -128px;
+}
+
+.unread i {
+    background-position: -80px -144px;
+}
+
+.number {
+    text-align: right;
+}
+
+.clear {
+    clear: both;
+}
+
+.navPanel .editorPanel {
+    position: absolute;
+    right: 5px;
+    bottom: 8px;
+    top: 30px;
+    left: 7px;
+    overflow-y: auto;
+    min-width: 400px;
+}
+
+.ui-tabs {
+    border: 0;
+    border-radius: 0;
+    background: #f9f9f7;
+    height: 98%;
+}
+
+.ui-widget-header .ui-state-active {
+    background: #f9f9f7;
+}
+
+.dialog-form {
+    display: none;
+}
+
+.input-form {
+    display: none;
+    position: absolute;
+    width: 230px
+}
+
+.dialog-form ol {
+    padding: 0;
+}
+
+.dialog-form label, .input-form label {
+    text-align: left;
+    padding: 0;
+}
+
+.multipleList {
+    background: #fff !important;
+    padding: 0 !important;
+}
+
+.floatEditor {
+    position: absolute;
+    overflow: hidden;
+    border: 1px solid #d9d6c4;
+    padding: 4px;
+}
+
+.floatEditor li {
+    width: 185px;
+    float: left;
+}
+
+.floatEditor li label {
+    width: 133px;
+    display: block;
+    float: left;
+    text-align: left;
+    padding-top: 5px;
+}
+
+/*Pagination*/
+.pagination {
+    height: 30px;
+}
+
+.pagination a {
+    text-decoration: none;
+    color: #222;
+    border-radius: 3px;
+}
+
+.pagination a, .pagination span {
+    display: block;
+    float: left;
+    padding: 2px 5px;
+    margin: 3px;
+    min-width: 1em;
+    text-align: center;
+    background-color: #eee;
+    font-size: 11px;
+    line-height: 15px
+}
+
+.pagination .current {
+    border-radius: 3px;
+    background: #0073ea;
+    color: white;
+}
+
+.pagination .current.prev, .pagination .current.next {
+    color: #999;
+    border-color: #999;
+    background: #fff;
+}
+
+.pagination .pagination_message {
+    color: #444;
+}
+
+span.ui-helper-hidden-accessible {
+    display: none;
+}
+
+#navigate {
+    margin: 3px 0 0 100px;
+    overflow: hidden;
+    float: left;
+}
+
+#navigate .ui-menu {
+    background: #393939;
+    border: none;
+    float: left;
+    box-shadow: 0 1px 3px 0 #393939;
+}
+
+.ui-menu .ui-menu {
+    padding: 5px;
+    width: 200px;
+}
+
+#navigate .ui-menu-item {
+    display: inline-block;
+    float: left;
+    margin: 0 3px;
+    border-radius: 2px;
+    padding: 0 7px;
+    color: #fff;
+    font-size: 13px;
+    white-space: nowrap;
+    line-height: 23px;
+}
+
+#navigate .ui-menu-icon {
+    background: none;
+}
+
+.ui-menu .ui-state-active, .ui-menu .ui-state-focus, .active {
+    border: none;
+    background: #0073ea;
+    color: white;
+}
+
+.ui-menu .ui-menu-item {
+    position: static;
+}
+
+.ui-menu .ui-menu-item i {
+    background: url(images/ui-icons_ffffff_256x240.png) -32px 0;
+    padding-left: 11px;
+}
+
+.ui-menu .ui-menu-item e, .ui-menu .ui-menu-item i {
+    display: none;
+}
+
+.ui-menu .ui-menu-item.active e, .ui-menu .ui-menu-item.active i {
+    display: inline;
+}
+
+.ui-tabs-panel {
+    margin-bottom: 10px;
+}
+
+.ui-button .ui-button-text {
+    padding: 0.3em 1em;
+}
+
+.ui-resizable-w {
+    width: 15px;
+    background: url(images/ui-icons_454545_256x240.png) 2px -224px no-repeat;
+}
+
+.ui-resizable-w .handle {
+    position: absolute;
+    width: 15px;
+    top: 35%;
+    height: 50px;
+    background-color: #EEE;
+    cursor: pointer;
+}
+
+.ui-resizable-w .handle:hover {
+    background-color: #0073ea;
+}
+
+.ui-resizable-w .handle:hover span {
+    background-image: url(images/ui-icons_ffffff_256x240.png);
+}
+
+.ui-resizable-w .handle span {
+    margin-top: 17px;
+    width: 15px;
+    height: 16px;
+    display: block;
+    background: url(images/ui-icons_454545_256x240.png) -32px 0 no-repeat;
+}
+
+.ui-autocomplete {
+    max-height: 150px;
+    overflow-y: auto;
+    /* prevent horizontal scrollbar */
+    overflow-x: hidden;
+}
+
+.ui-progressbar {
+    position: relative;
+    height: 13px;
+}
+
+.progress-label {
+    position: absolute;
+    font-size: 12px;
+    left: 45%;
+    font-weight: bold;
+}
+
+/*
+ * resize table columns
+ */
+.draghandle {
+    position: absolute;
+    z-index: 5;
+    width: 5px;
+    cursor: e-resize;
+    margin-left: -5px;
+}
+
+.draghandle.dragged {
+    border-left: 1px solid #333;
+}
+
+.ui-state-disabled {
+    background-image: none;
+    opacity: 1;
+    filter: Alpha(Opacity=100);
+}
+
+.ui-autocomplete {
+    max-height: 200px;
+    overflow-y: auto;
+    /* prevent horizontal scrollbar */
+    overflow-x: hidden;
+}
+
+/* css for timepicker */
+.ui-timepicker-div .ui-widget-header {
+    margin-bottom: 8px;
+}
+
+.ui-timepicker-div dl {
+    text-align: left;
+    line-height: 21px
+}
+
+.ui-timepicker-div dl dt {
+    float: left;
+    clear: left;
+    padding: 0 0 0 5px;
+}
+
+.ui-timepicker-div dl dd {
+    margin: 0 10px 0 45%;
+}
+
+.ui-timepicker-div td {
+    font-size: 90%;
+}
+
+.ui-tpicker-grid-label {
+    background: none;
+    border: none;
+    margin: 0;
+    padding: 0;
+}
+
+.ui-timepicker-rtl {
+    direction: rtl;
+}
+
+.ui-timepicker-rtl dl {
+    text-align: right;
+    padding: 0 5px 0 0;
+}
+
+.ui-timepicker-rtl dl dt {
+    float: right;
+    clear: right;
+}
+
+.ui-timepicker-rtl dl dd {
+    margin: 0 45% 10px 10px;
+}
+
+/*密码强度*/
+
+.pstrength-bar, .pstrength-info {
+    margin-left: 109px;
+    font-size: 10px;
+    max-width: 204px
+}
+
+.with-close {
+    background: none;
+    border: none;
+}
+
+.with-close .ui-dialog-title {
+    display: none;
+}
+
+.with-close .ui-dialog-titlebar {
+    position: absolute;
+    background: none;
+    right: 0;
+    top: 0;
+    z-index: 999;
+    width: 20px;
+    height: 20px;
+    border: none;
+    padding: 0;
+}
+
+.with-close .ui-dialog-titlebar-close {
+    outline: none;
+}
+
+/*
+ * dragtable
+ *
+ * @Version 1.0.3
+ *
+ * default css
+ *
+ */
+table.app tr.ui-selected td:first-child i {
+    background: url(images/ui-icons_ffffff_256x240.png) -200px -80px no-repeat;
+}
+
+table.app tr.parent td:first-child i {
+    background-position: -32px -18px;
+    cursor: pointer;
+}
+
+table.app tr.expend td:first-child i {
+    background-position: -48px -18px;
+}
+
+table.app tr.level-2 td:first-child i {
+    margin-left: 20px;
+}
+
+table.app tr.level-3 td:first-child i {
+    margin-left: 40px;
+}
+
+table.app tr.level-4 td:first-child i {
+    margin-left: 60px;
+}
+
+table.app tr.level-5 td:first-child i {
+    margin-left: 80px;
+}
+
+table.app tr.level-6 td:first-child i {
+    margin-left: 100px;
+}
+
+.warning {
+    color: #FF8888;
+}
+
+.list {
+    padding: 20px 0;
+}
+
+.list li {
+    padding: 7px;
+}
+
+.list li span {
+    display: inline-block;
+    margin-left: 7px;
+    font-size: 11px;
+    color: #888;
+    font-weight: normal;
+}
+
+/* Make clicks pass-through */
+#nprogress {
+    pointer-events: none;
+}
+
+#nprogress .bar {
+    background: #29d;
+
+    position: fixed;
+    z-index: 1031;
+    top: 0;
+    left: 0;
+
+    width: 100%;
+    height: 2px;
+}
+
+/* Fancy blur effect */
+#nprogress .peg {
+    display: block;
+    position: absolute;
+    left: 0;
+    width: 100px;
+    height: 100%;
+    box-shadow: 0 0 10px #29d, 0 0 5px #29d;
+    opacity: 1.0;
+
+    -webkit-transform: rotate(3deg) translate(0px, -4px);
+    -ms-transform: rotate(3deg) translate(0px, -4px);
+    transform: rotate(3deg) translate(0px, -4px);
+}
+
+/* Remove these to get rid of the spinner */
+#nprogress .spinner {
+    display: block;
+    position: fixed;
+    z-index: 1031;
+    top: 7px;
+    left: 30px;
+}
+
+#nprogress .spinner-icon {
+    width: 18px;
+    height: 18px;
+    box-sizing: border-box;
+
+    border: solid 2px transparent;
+    border-top-color: #29d;
+    border-left-color: #29d;
+    border-radius: 50%;
+
+    -webkit-animation: nprogress-spinner 400ms linear infinite;
+    animation: nprogress-spinner 400ms linear infinite;
+}
+
+.nprogress-custom-parent {
+    overflow: hidden;
+    position: relative;
+}
+
+.nprogress-custom-parent #nprogress .spinner,
+.nprogress-custom-parent #nprogress .bar {
+    position: absolute;
+}
+
+@-webkit-keyframes nprogress-spinner {
+    0% {
+        -webkit-transform: rotate(0deg);
+    }
+    100% {
+        -webkit-transform: rotate(360deg);
+    }
+}
+
+@keyframes nprogress-spinner {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+@media screen and (max-width: 600px) {
+    #shortcut, #userinfo {
+        display: none;
+    }
+
+    #navigate {
+        margin-left: 0;
+    }
+
+    #container {
+        left: 0;
+    }
+
+}

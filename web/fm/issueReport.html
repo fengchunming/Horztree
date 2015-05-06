@@ -1,0 +1,64 @@
+<!DOCTYPE HTML> 
+<html> 
+<head> 
+<script>
+$(function() {
+	App.Report = App.Model.extend({
+		idAttribute: 'pn'
+	})
+	
+	App.ReportList = App.Collection.extend({
+		urlRoot : 'rest/fi/issueReport',
+		model : App.Report,
+		pageSize : 10000,
+		columns : [
+			{label:'商品编号',key:'goods_code',sort:'goods_code'},
+			{label:'商品名称',key:'goods_name'},
+			{label:'总件数',key:'quantity',sort:'quantity'},
+			{label:'成本价',key:'standard_cost_price'},
+			{label:'小计',key:'sub_total'},
+		]
+	})
+	
+	App.ReportGrid = App.Grid.extend({
+		querybar : '.queryBar',
+		toolbar: ['search','export'],
+		export: function(){
+			
+		},
+		collection: new App.ReportList
+	});
+	App.reportGrid = new App.ReportGrid;
+	convertLocal();
+});
+</script>
+</head>
+<body>
+<div id="article"> 
+	<form class="queryBar" style="width:1000px">
+	    <ul>
+	    	<li>
+				<label>日期范围:</label>
+			    <input type="text" class="datepicker" name="sdate_filter">
+			    <input type="text" class="datepicker" name="edate_filter">
+			</li>
+			<li>
+				<label>商品编号:</label>
+			    <input type="text" name="goods_code">
+			</li>
+			<li>
+			   <label>销售组织:</label>
+			   <select name="org_code" data-local="sys/kv/ecstore">
+			  		<option value=""></option>
+			   </select>
+			</li>
+	    </ul>
+	</form>
+	<div class="toolBar"></div>
+	<div class="dataGrid">
+		<table class="app"><thead></thead><tbody></tbody></table>
+	</div>
+	<div class="statusBar"></div>
+</div>
+</body>
+</html>

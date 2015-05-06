@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="ReturnReasonMapper">
+    <resultMap id="BaseResultMap" type="com.an.trade.entity.ReturnReason">
+        <id column="reason_id" property="reasonId" jdbcType="INTEGER"/>
+        <result column="code" property="code" jdbcType="VARCHAR"/>
+        <result column="reason" property="reason" jdbcType="VARCHAR"/>
+        <result column="status" property="status" jdbcType="VARCHAR"/>
+        <result column="enter_at" property="enterAt" jdbcType="TIMESTAMP"/>
+    </resultMap>
+    <sql id="Example_Where_Clause">
+        <where>
+           status != 'd'
+            <if test="_SH != null and _SH != ''"><![CDATA[
+    		and ( code = #{_SH} or status = #{_SH} )
+    	 ]]></if>
+        </where>
+    </sql>
+
+    <sql id="Base_Column_List">
+        reason_id, code, reason, status, enter_at
+    </sql>
+
+    <select id="selectByExample" resultMap="BaseResultMap" parameterType="map">
+        select
+        <include refid="Base_Column_List"/>
+        from "ag"."T_POS_RETURN_REASON"
+        <include refid="Example_Where_Clause"/>
+
+        <if test="_BY != null">order by ${_BY}</if>
+
+
+    </select>
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+        select
+        <include refid="Base_Column_List"/>
+        from "ag"."T_POS_RETURN_REASON"
+        where reason_id = #{reasonId,jdbcType=INTEGER}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+        update "ag"."T_POS_RETURN_REASON"
+        set status = 'trash',enter_at = now()
+        where reason_id = #{reasonId,jdbcType=INTEGER}
+    </delete>
+
+    <insert id="insert" parameterType="com.an.trade.entity.ReturnReason">
+        insert into "ag"."T_POS_RETURN_REASON" (reason_id, code, reason,
+        status, enter_at)
+        values (#{reasonId,jdbcType=INTEGER}, #{code,jdbcType=VARCHAR}, #{reason,jdbcType=VARCHAR},
+        #{status,jdbcType=VARCHAR}, now())
+
+        <selectKey resultType="java.lang.Integer" keyProperty="reasonId">
+            select currval('"ag"."T_POS_RETURN_REASON_reason_id_seq"') AS reasonId
+        </selectKey>
+    </insert>
+
+    <select id="countByExample" parameterType="map" resultType="java.lang.Integer">
+        select count(*) from "ag"."T_POS_RETURN_REASON"
+        <include refid="Example_Where_Clause"/>
+    </select>
+
+    <update id="updateByPrimaryKey" parameterType="com.an.trade.entity.ReturnReason">
+        update "ag"."T_POS_RETURN_REASON"
+        set code = #{code,jdbcType=VARCHAR},
+        reason = #{reason,jdbcType=VARCHAR},
+        status = #{status,jdbcType=VARCHAR},
+        enter_at = now()
+        where reason_id = #{reasonId,jdbcType=INTEGER}
+    </update>
+
+
+    <select id="selectReturnReasonKV" resultType="map">
+        select reason_id as k, reason as v
+        from "ag"."T_POS_RETURN_REASON" where status = 'enabled'
+    </select>
+</mapper>

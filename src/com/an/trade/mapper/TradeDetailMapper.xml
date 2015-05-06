@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="TradeDetailMapper">
+    <resultMap id="BaseResultMap" type="com.an.wm.entity.Item">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="bill_code" property="bill.billCode" jdbcType="VARCHAR"/>
+        <result column="bill_date" property="bill.billDate" jdbcType="DATE"/>
+        <result column="bill_id" property="bill.id" jdbcType="DATE"/>
+        <result column="group_id" property="groupId" jdbcType="VARCHAR"/>
+        <result column="goods_id" property="goodsId" jdbcType="INTEGER"/>
+        <result column="goods_name" property="name" jdbcType="VARCHAR"/>
+        <result column="barcode" property="barcode" jdbcType="VARCHAR"/>
+        <result column="uom" property="uom.id" jdbcType="INTEGER"/>
+        <result column="quantity" property="planQuantity" jdbcType="NUMERIC"/>
+        <result column="pack_quantity" property="uom.packQuantity" jdbcType="NUMERIC"/>
+        <result column="sub_total" property="saleTotal" jdbcType="NUMERIC"/>
+        <result column="weight" property="weight" jdbcType="NUMERIC"/>
+        <result column="status" property="status" jdbcType="VARCHAR"/>
+        <result column="enter_at" property="enterAt" jdbcType="TIMESTAMP"/>
+        <result column="sale_price" property="salePrice" jdbcType="NUMERIC"/>
+        <result column="category" property="category" jdbcType="INTEGER"/>
+    </resultMap>
+    <sql id="Example_Where_Clause">
+        <where>
+           status != 'd'
+            <if test="billId != null and billId != ''">
+                and bill_id = #{billId,jdbcType=VARCHAR}
+            </if>
+            <if test="billCode != null and billCode != ''">
+                and bill_code = #{billCode,jdbcType=VARCHAR}
+            </if>
+            <if test="pn != null and pn != ''">
+                and goods_code = #{pn,jdbcType=VARCHAR}
+            </if>
+        </where>
+    </sql>
+    <sql id="Base_Column_List">
+        id, bill_code, bill_date, bill_id, group_id, goods_id, goods_name,
+        uom, quantity, real_quantity, sub_total, weight, status, enter_at,
+        sale_price, category, barcode, pack_quantity
+    </sql>
+
+    <select id="selectByExample" resultMap="BaseResultMap" parameterType="java.util.HashMap">
+        select
+        <include refid="Base_Column_List"/>
+        from TRADE_BILL_DETAIL
+        <include refid="Example_Where_Clause"/>
+        <if test="_BY != null">order by ${_BY}</if>
+        <if test="_BY == null">order by id</if>
+    </select>
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long">
+        select
+        <include refid="Base_Column_List"/>
+        from TRADE_BILL_DETAIL
+        where id = #{id,jdbcType=BIGINT}
+    </select>
+
+    <select id="selectByBill" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+        select
+        <include refid="Base_Column_List"/>
+        from TRADE_BILL_DETAIL
+        where bill_id = #{value}
+    </select>
+
+    <select id="countByBill" resultType="java.lang.Integer" parameterType="java.lang.Integer">
+        select count(1)
+        from TRADE_BILL_DETAIL
+        where bill_id = #{value}
+    </select>
+
+    <select id="deleteByBill" parameterType="java.lang.Integer">
+        update MM_GOODS_GROUPS set stock_locked =
+            stock_locked - (select sum(quantity) from TRADE_BILL_DETAIL
+                            where TRADE_BILL_DETAIL.goods_id = MM_GOODS_GROUPS.goods_id
+                            and TRADE_BILL_DETAIL.group_id = MM_GOODS_GROUPS.group_id
+                            and TRADE_BILL_DETAIL.bill_id = #{value}
+                            and TRADE_BILL_DETAIL.status != '5')
+        where exists (select 1 from TRADE_BILL_DETAIL
+        where TRADE_BILL_DETAIL.goods_id = MM_GOODS_GROUPS.goods_id
+        and TRADE_BILL_DETAIL.group_id = MM_GOODS_GROUPS.group_id
+        and TRADE_BILL_DETAIL.bill_id = #{value} and TRADE_BILL_DETAIL.status != '5');
+
+        update TRADE_BILL_DETAIL
+        set status = '5'
+        where bill_id = #{value} and status != '5';
+    </select>
+
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        update TRADE_BILL_DETAIL
+        set status = '5',enter_at = now()
+        where id = #{id,jdbcType=BIGINT}
+    </delete>
+
+    <insert id="insert" parameterType="com.an.wm.entity.Item">
+        insert into TRADE_BILL_DETAIL (bill_code, bill_date, bill_type,
+        barcode, pn, goods_name, uom, pack_quantity,
+        quantity, real_quantity, sub_total, weight,
+        status, enter_at, cost_price,  sale_price)
+        values (#{bill.billCode,jdbcType=VARCHAR}, #{bill.billDate,jdbcType=DATE}, #{bill.type,jdbcType=VARCHAR},
+        #{barcode,jdbcType=VARCHAR}, #{pn,jdbcType=INTEGER},
+        #{name,jdbcType=VARCHAR}, #{uom.id,jdbcType=VARCHAR},
+        #{uom.packQuantity,jdbcType=NUMERIC},
+        #{planQuantity,jdbcType=NUMERIC}, #{realQuantity,jdbcType=NUMERIC},#{saleTotal,jdbcType=NUMERIC},
+        #{weight,jdbcType=NUMERIC}, #{status,jdbcType=VARCHAR}, now(), #{costPrice,jdbcType=NUMERIC},
+        #{salePrice,jdbcType=NUMERIC})
+    </insert>
+
+    <select id="countByExample" parameterType="java.util.HashMap" resultType="java.lang.Integer">
+        select count(*) from TRADE_BILL_DETAIL
+        <include refid="Example_Where_Clause"/>
+    </select>
+
+    <update id="updateByPrimaryKey" parameterType="com.an.wm.entity.Item">
+        update TRADE_BILL_DETAIL
+        set bill_code = #{bill.billCode,jdbcType=VARCHAR},
+        bill_date = #{bill.billDate,jdbcType=DATE},
+        bill_id = #{bill.id,jdbcType=INTEGER},
+        group_id = #{groupId,jdbcType=INTEGER},
+        <!--party_a_type = #{partyA.orgType,jdbcType=VARCHAR},-->
+        <!--party_b_code = #{partyB.orgCode,jdbcType=VARCHAR},-->
+        <!--party_b_type = #{partyB.orgType,jdbcType=VARCHAR},-->
+        goods_id = #{goodsId,jdbcType=INTEGER},
+        barcode = #{barcode,jdbcType=VARCHAR},
+        goods_name = #{name,jdbcType=VARCHAR},
+        quantity = #{uom.packQuantity,jdbcType=NUMERIC},
+        uom = #{uom.id,jdbcType=INTEGER},
+        quantity = #{planQuantity,jdbcType=NUMERIC},
+        real_quantity = #{realQuantity,jdbcType=NUMERIC},
+        sub_total = #{saleTotal,jdbcType=NUMERIC},
+        weight = #{weight,jdbcType=NUMERIC},
+        status = #{status,jdbcType=VARCHAR},
+        enter_at = now(),
+        cost_price = #{costPrice,jdbcType=NUMERIC},
+        sale_price = #{salePrice,jdbcType=NUMERIC},
+        deal_stamp = #{dealStamp,jdbcType=TIMESTAMP},
+        category = #{category,jdbcType=INTEGER}
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+
+
+    <select id="selectByOrigin" resultMap="BaseResultMap" parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List"/>
+        from TRADE_BILL_DETAIL
+        where origin_no = #{value,jdbcType=VARCHAR}
+    </select>
+
+    <update id="updateByOrigin" parameterType="com.an.wm.entity.Item">
+        update TRADE_BILL_DETAIL
+        set bill_code = #{bill.billCode,jdbcType=VARCHAR},
+        bill_date = #{bill.billDate,jdbcType=DATE},
+        bill_type = #{bill.type,jdbcType=VARCHAR},
+        party_a_code = #{bill.partyA.orgCode,jdbcType=VARCHAR},
+        party_a_type = #{bill.partyA.orgType,jdbcType=VARCHAR},
+        party_b_code = #{bill.partyB.orgCode,jdbcType=VARCHAR},
+        party_b_type = #{bill.partyB.orgType,jdbcType=VARCHAR},
+        goods_code = #{pn,jdbcType=VARCHAR},
+        barcode = #{barcode,jdbcType=VARCHAR},
+        goods_name = #{name,jdbcType=VARCHAR},
+        uom = #{uom.id,jdbcType=INTEGER},
+        plan_quantity = #{planQuantity,jdbcType=NUMERIC},
+        real_quantity = #{realQuantity,jdbcType=NUMERIC},
+        sub_total = #{saleTotal,jdbcType=NUMERIC},
+        weight = #{weight,jdbcType=NUMERIC},
+        status = #{status,jdbcType=VARCHAR},
+        enter_at = now(),
+        standard_cost_price = #{standardCostPrice,jdbcType=NUMERIC},
+        standard_sale_price = #{standardSalePrice,jdbcType=NUMERIC},
+        deal_stamp = #{bill.dealStamp,jdbcType=TIMESTAMP},
+        category = #{category.categoryCode,jdbcType=VARCHAR},
+        goods_type = #{goodsType,jdbcType=VARCHAR}
+        where origin_no = #{originNo,jdbcType=VARCHAR}
+    </update>
+
+</mapper>

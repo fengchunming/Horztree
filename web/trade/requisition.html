@@ -1,0 +1,244 @@
+<!DOCTYPE HTML> 
+<html> 
+<head> 
+<script>
+$(function() {
+	App.Requsition = App.Model.extend({
+		urlRoot : 'rest/scm/requsition',
+		idAttribute: 'billCode',
+		edit : function(){
+			App.requesitionDetailList.load({billCode: this.get('billCode')});
+		}
+	});
+	
+	App.RequsitionList = App.Collection.extend({
+		urlRoot : 'rest/scm/requesition/list',
+		model : App.Requsition
+	});
+	
+	App.RequesitionFormView = App.FormView.extend({
+		toolbar : ['check','print','create','trash','save','hide'],
+		check : function(){
+			if(confirm('是否确认请订单无误？')){
+				var that = this;
+				$.ajax({
+				    contentType: 'application/json',
+				    dataType: 'json',
+				    type: 'POST',
+				    precessData : false,
+				    url: 'rest/scm/checkRequsition/' + this.model.id,
+				    success : function(data){
+				    	that.model.fetch();
+				    }
+				});
+			}
+		},
+		print : function(){
+			$.printPage('rest/scm/requesitionReport/' + this.model.id + '.html');
+		}
+	})
+	
+	App.RequsitionGrid = App.Grid.extend({
+		collection: new App.RequsitionList,
+		editorView: App.RequesitionFormView,
+		toolbar : ['create'],
+		columns : [
+	        {label:'单号',key:'billCode', sort:'bill_code'},
+		    {label:'日期',key:'billDate', sort:'bill_date'},
+		    {label:'收货仓',key:'warehouse.orgCode', local:'sys/kv/warehouse'},
+		    {label:'金额',key:'amount'},
+		    {label:'预计收货日期',key:'planDate'},
+		    {label:'状态',key:'status',local:'billStatus', sort:true}
+		]
+	});
+	
+	App.requesitionView = new App.RequsitionGrid();
+	
+	
+	/*
+	* 明细
+	*/
+	App.RequesitionDetail = App.Model.extend({
+		urlRoot : 'rest/scm/requesitionDetail',
+		idAttribute: 'id'
+	});
+	
+	App.RequesitionDetailList = App.Collection.extend({
+		model : App.RequesitionDetail
+	});
+	
+	App.requesitionDetailList = new App.RequesitionDetailList();
+	
+	App.RequesitionRow = App.Row.extend({
+		initialize : function() {
+			this.model.bind('change', this.render, this);
+			this.model.bind('change', this.edit, this);
+			this.model.bind('destroy', this.remove, this);
+			this.render();
+		},
+		listen : function(){
+			var view = this;
+			$('td[name=pn]',this.$el).autocomplete({
+			      source: function( request, response ) {
+			        $.ajax({
+			          url: 'rest/mm/goodsAutocomplete/'+ $('#supplier').val(),
+			          dataType: "json",
+			          data: {q: request.term,limit: 20},
+			          success: function( data ) {
+			             response( $.map( data, function( item ) {
+			                 return {
+			                   label: item.pn + " - " + item.name,
+			                   value: item
+			                 }
+			             }));
+			          }
+			        });
+			      },
+			      select: function( event, ui ) {
+			    	 	var goods = ui.item.value;
+	 	    			goods.goodsUnit = {};
+	 	    			goods.goodsUnit.uomCode = goods.skuUom.uomCode;
+	           			view.model.set(goods);
+			      },
+			      change: function (event, ui) {
+			            if (!ui.item) {
+		 	    			var id = view.model.id;
+		 	    			view.model.clear();
+		 	    			view.model.set({'id':id});
+			            }
+			      }
+			});
+			
+			$('td[name=planQuantity]',this.$el).focusout(function(){
+				if($(this).text() == '' || isNaN($(this).text())){
+					view.render().edit();
+				}else {
+					view.model.set($(this).attr('name'),parseFloat($(this).text()));
+				}
+				App.requesitionGrid.saleTotal();
+			});
+			
+			$('input:checkbox', this.$el).click(function(){
+				view.model.check(this.checked);
+			});
+		}
+	})
+
+	App.RequesitionGrid = App.Grid.extend({
+		el : '#tab_2',
+		toolbar: ['append','remove'],
+		rowView: App.RequesitionRow,
+		collection : App.requesitionDetailList,
+		columns : [
+			{label:'&nbsp;',key:'id', type:'checkbox'},
+			{label:'商品编号',key:'pn',editable:true},
+	        {label:'商品名称',key:'name'},
+		    {label:'度量单位',key:'goodsUnit.uomCode',local: 'base/kv/uom'},
+		    {label:'请购数量',key:'planQuantity',editable:true}
+		],
+		save : function(){
+			$.ajax({
+			    contentType: 'application/json',
+			    dataType: 'json',
+			    data : JSON.stringify(this.collection.toJSON()),
+			    type: 'POST',
+			    precessData : false,
+			    url: 'rest/scm/requesitionDetail/' + $("#billCode").val(),
+			    success : function(data){
+					App.requesitionDetailList.url = 'rest/scm/requesitionDetailList/'+ $("#billCode").val(),
+					App.requesitionDetailList.fetch();
+			    }
+			});
+		}
+	})	
+	
+	App.requesitionGrid = new App.RequesitionGrid();
+});
+</script>
+</head>
+<body>
+<div id="article">
+	
+	<div class="toolBar">
+		
+		
+	</div>
+	<div class="dataGrid">
+		<table class="app"><thead></thead><tbody></tbody></table>
+	</div>
+	<div class="statusBar"></div>
+</div>
+
+<div class="navPanel">
+	<div class="toolBar">
+		
+		
+	</div>
+	<div class="editorPanel">
+	<div id="tabs" >
+	    <ul>
+	        <li><a href="#tab_1"><span>基本信息</span></a></li>
+	        <li><a href="#tab_2"><span>请购明细</span></a></li>
+	    </ul>
+		<div id="tab_1">
+		 <form method="post" name="norEditForm">
+		<fieldset>
+		<legend>基本信息</legend>
+			<ol>
+				<li>
+					<label>请购单号:</label>
+				    <input type="text" name="billCode" id="billCode" required readonly/>
+				</li>
+				<li>
+					<label>请购日期:</label>
+					<input type="text" class="datepicker" name="billDate" required>
+				</li>
+				<li>
+					<label>预定到货:</label>
+					<input type="text" class="datepicker" name="planDate">
+				</li>
+				<li>
+					<label>收货仓:</label>
+				    <select name="warehouse.orgCode" data-local="sys/kv/warehouse"></select>
+				</li>
+				<li>
+					<label>请购组织:</label>
+				    <select name="org.orgCode"><option value="0">默认</option></select>.
+				</li>
+			</ol>
+		</fieldset>
+		</form>
+		</div>
+		<div id="tab_2">
+			<table class="app">
+			<thead></thead>
+			<tbody></tbody>
+			</table>
+			<div class="leftPanel ui-buttonset" style="margin-top:20px;"></div>
+		</div>
+	</div>
+</div>
+</div>
+
+<div id="gear-dialog" title="高级查询" class="dialog-form">
+    <form id="gear-form">
+    <ol>
+    	<li>
+        <label>请购单号</label>
+        <input type="text" name="billCode" />
+        </li>
+        <li>
+        <label>请购日期</label>
+        <input type="text" class="datepicker" name="billDate"/>
+        </li>
+        <li>
+        <label>供应商</label>
+        <select name="supplier" data-local="sys/kv/supplier">
+        	<option value=""></option>
+        </select>
+        </li>
+    </ol>
+    </form>
+</div>
+</body>
+</html>

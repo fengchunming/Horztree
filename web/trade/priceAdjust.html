@@ -1,0 +1,224 @@
+<!DOCTYPE HTML> 
+<html> 
+<head> 
+<script>
+$(function() {
+	App.PriceAdjust = App.Model.extend({
+		urlRoot : 'rest/mm/priceAdjust',
+		idAttribute: 'billCode',
+		listen : function(){
+			this.fetch();
+			this.editor.setData( this );
+			App.priceAdjustDetailList.url = 'rest/mm/priceAdjustDetailList/'+ this.get('billCode');
+			App.priceAdjustDetailList.fetch();
+		},
+		success : function(model,response){
+			model.set(response);
+			App.priceAdjustGrid.save();
+		}
+	})
+	
+	App.PriceAdjustList = App.Collection.extend({
+		urlRoot : 'rest/mm/priceAdjustList',
+		model : App.PriceAdjust
+	})
+	
+	App.PriceAdjustFormView = App.FormView.extend({
+		toolbar : ['sync','create','trash','save','hide'],
+		sync : function(){
+			var that = this;
+			$.ajax({
+			    contentType: 'application/json',
+			    dataType: 'json',
+			    type: 'POST',
+			    url: 'rest/mm/sendPriceAdjust/' + this.model.get('billCode'),
+			    success : function(data){
+			    	;
+			    }
+			});
+		}
+	})
+	
+	App.PriceAdjustGrid = App.Grid.extend({
+		collection: new App.PriceAdjustList,
+		editorView: App.PriceAdjustFormView,
+		toolbar : ['create'],
+		columns : [
+	        {label:'单号',key:'billCode'},
+		    {label:'日期',key:'startDate'},
+		    {label:'时间',key:'startTime'},
+		    {label:'状态',key:'status',local:'status'}
+		],
+		search : function(){
+			alert(0);
+		}
+	});
+	
+	App.priceAdjustView = new App.PriceAdjustGrid();
+	
+	
+	/*
+	* 明细
+	*/
+	App.PriceAdjustDetail = App.Model.extend({
+		urlRoot : 'rest/mm/priceAdjustDetail',
+		idAttribute: 'id'
+	})
+	
+	App.PriceAdjustDetailList = App.Collection.extend({
+		model : App.PriceAdjustDetail
+	})
+	
+	App.priceAdjustDetailList = new App.PriceAdjustDetailList();
+	
+	App.PriceAdjustRow = App.Row.extend({
+		initialize : function() {
+			this.model.bind('change', this.render, this);
+			this.model.bind('change', this.edit, this);
+			this.model.bind('destroy', this.remove, this);
+			this.render();
+		},
+		listen : function(){
+			var view = this;
+			$('td[name=pn]',this.$el).autocomplete({
+			      source: function( request, response ) {
+			        $.ajax({
+			          url: 'rest/mm/goodsAutocomplete',
+			          dataType: "json",
+			          data: {q: request.term,limit: 20},
+			          success: function( data ) {
+			             response( $.map( data, function( item ) {
+			                 return {
+			                   label: item.pn + " - " + item.name,
+			                   value: item
+			                 }
+			             }));
+			          }
+			        });
+			      },
+			      select: function( event, ui ) {
+			    	 	var goods = ui.item.value;
+	           			view.model.set(goods);
+			      },
+			      change: function (event, ui) {
+			            if (!ui.item) {
+		 	    			var id = view.model.id;
+		 	    			view.model.clear();
+		 	    			view.model.set({'id':id});
+			            }
+			      }
+			});
+			
+			$('td[name=newPrice], td[name=newMinPrice], td[name=newMemberPrice]',this.$el).focusout(function(){
+				view.model.set($(this).attr('name'),parseFloat($(this).text()));
+			});
+			
+			$('input:checkbox', this.$el).click(function(){
+				view.model.check(this.checked);
+			});
+		}
+	})
+
+	App.PriceAdjustGrid = App.Grid.extend({
+		el : '#tab_2',
+		toolbar: ['append','remove'],
+		rowView: App.PriceAdjustRow,
+		collection : App.priceAdjustDetailList,
+		columns : [
+			{label:'&nbsp;',key:'id', type:'checkbox'},
+			{label:'商品编号',key:'pn',editable:true},
+	        {label:'商品名称',key:'name'},
+		    {label:'原售价',key:'standardSalePrice'},
+		    {label:'原最低价',key:'oldMinPrice'},
+		    {label:'原会员价',key:'oldMemberPrice'},
+		    {label:'新售价',key:'newPrice',editable:true},
+		    {label:'新最低价',key:'newMinPrice',editable:true},
+		    {label:'新会员价',key:'newMemberPrice',editable:true},
+		],
+		save : function(){
+			var param = [];
+			_.each(this.collection.toJSON(),function(item){
+				item.startDateTime = $('#startDate').val() + " "+ $('#startTime').val();
+				param.push(item);
+			})
+			$.ajax({
+			    contentType: 'application/json',
+			    dataType: 'json',
+			    data : JSON.stringify(param),
+			    type: 'POST',
+			    precessData : false,
+			    url: 'rest/mm/priceAdjustDetail/' + $("#billCode").val(),
+			    success : function(data){
+			    	App.priceAdjustGrid.collection.fetch();
+			    }
+			});
+		}
+	})	
+	
+	App.priceAdjustGrid = new App.PriceAdjustGrid();
+});
+</script>
+</head>
+<body>
+<div id="article">
+	
+	<div class="toolBar">
+		
+		
+	</div>
+	<div class="dataGrid">
+		<table class="app"><thead></thead><tbody></tbody></table>
+	</div>
+	<div class="statusBar"></div>
+</div>
+
+<div class="navPanel">
+	<div class="toolBar">
+		
+		
+	</div>
+	<div class="editorPanel">
+	<div id="tabs" >
+	    <ul>
+	        <li><a href="#tab_1"><span>基本信息</span></a></li>
+	        <li><a href="#tab_2"><span>调价明细</span></a></li>
+	    </ul>
+	    <form method="post" name="norEditForm">
+		<div id="tab_1">
+			<ol>
+				<li>
+					<label>单号:</label>
+				    <input type="text" name="billCode" id="billCode" required readonly/>
+				    <input type="hidden" name="id" data-default="0"/>
+				</li>
+				<li>
+					<label>开始日期:</label>
+					<input type="text" class="datepicker" name="startDate" id="startDate" required>
+				</li>
+				<li>
+					<label>开始时间:</label>
+				    <input type=time name="startTime" id="startTime" required>
+				</li>
+				<li>
+					<label>备注:</label>
+				    <textarea name="remark"></textarea>
+				</li>
+				<li>
+					<label>状态:</label>
+				    <select name="status" data-local="status" disabled></select>
+				</li>
+			</ol>
+		</div>
+		</form>
+		<div id="tab_2">
+			<table class="app">
+			<thead></thead>
+			<tbody></tbody>
+			</table>
+			<div class="leftPanel ui-buttonset" style="margin-top:20px;"></div>
+		</div>
+	</div>
+</div>
+</div>
+</body>
+</html>

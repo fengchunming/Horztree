@@ -1,0 +1,152 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <script>
+        $(function () {
+            App.Location = App.Model.extend({
+                urlRoot: 'rest/wm/location',
+                idAttribute: 'id',
+                defaults: {
+                    sectionType: 'warehouse'
+                }
+            });
+
+            App.LocationList = App.Collection.extend({
+                model: App.Location,
+                columns: [
+                    {label: '条码', key: 'barcode'},
+                    {label: '所在库', key: 'sectionCode'},
+                    {label: '周转率分类', key: 'abcType', local: 'abcType'},
+                    {label: '存储属性', key: 'storageType', local: 'storageType'},
+                    {label: '用途属性', key: 'usageType', local: 'usageType'},
+                    {label: '状态', key: 'status', local: 'status'}
+                ]
+            });
+
+            App.LocationForm = App.FormView.extend({
+                el: '#editor'
+            });
+
+            App.AutoForm = App.FormView.extend({
+                el: '#autoForm',
+                toolbar: [{'append': '增加号段'}, {'save': '生成'},  'hide'],
+                append: function () {
+                    this.$('ol').append(' <li><label>号段:</label>'
+                            + '<input name="begin" required>'
+                            + '<input name="end" required>'
+                            + '</li>');
+                },
+                save: function () {
+                    if (this.isValid()) {
+                        console.log(this.$form.serializeObject());
+                    }
+                }
+            });
+            App.autoForm = new App.AutoForm;
+
+            App.LocationGrid = App.Grid.extend({
+                collection: new App.LocationList,
+                form: new App.LocationForm,
+                qel: '.queryBar',
+                toolbar: ['create', {'auto': '批量生成'}],
+                auto: function () {
+                    App.autoForm.show();
+                }
+            });
+            new App.LocationGrid;
+        });
+    </script>
+</head>
+<body>
+<div id="article">
+    <form class="queryBar">
+        <ul>
+            <li>
+                <label>编号：</label>
+                <input name="code">
+            </li>
+            <li>
+                <button class="search"><i></i>查询</button>
+            </li>
+            <li class="toolBar"></li>
+        </ul>
+    </form>
+    <div class="dataGrid">
+        <table class="app"></table>
+    </div>
+    <div class="page"></div>
+</div>
+
+<div class="navPanel" id="editor">
+    <div class="toolBar"></div>
+    <div class="editorPanel">
+        <form>
+            <ol>
+                <li>
+                    <label>储位编码:</label>
+                    <input name="barcode" placeholder="请输入储位编码" required>
+                </li>
+                <li>
+                    <label>所在仓库:</label>
+                    <select name="sectionCode" data-local="sys/kv/warehouse"></select>
+                </li>
+                <li>
+                    <label>周转率:</label>
+                    <select name="abcType" data-local="abcType"></select>
+                </li>
+                <li>
+                    <label>存储属性:</label>
+                    <select name="storageType" data-local="storageType"></select>
+                </li>
+                <li>
+                    <label>用途属性:</label>
+                    <select name="usageType" data-local="usageType"></select>
+                </li>
+                <!--
+                <li>
+                    <label>承重(KG):</label>
+                    <input type="text" name="weight" placeholder="最大承重(0不限)">
+                </li>
+                <li>
+                    <label>容积(CM3):</label>
+                    <input type="text" name="volume" placeholder="容积(0不限)">
+                </li>
+                -->
+                <li>
+                    <label>储位状态:</label>
+                    <select name="useStatus" data-local="locationUseStatus"></select>
+                </li>
+                <li>
+                    <label>备注:</label>
+                    <input type="text" name="remark">
+                </li>
+                <li>
+                    <label>是否启用:</label>
+                    <select name="status" data-local="status"></select>
+                </li>
+            </ol>
+        </form>
+    </div>
+</div>
+
+
+<div class="navPanel" id="autoForm">
+    <div class="toolBar"></div>
+    <div class="editorPanel">
+        <form>
+            <ol>
+                <li>
+                    <label>号段:</label>
+                    <input name="begin" required>
+                    <input name="end" required>
+                </li>
+                <li>
+                    <label>所在仓库:</label>
+                    <select name="warehouseId" data-local="sys/kv/warehouse"></select>
+                </li>
+            </ol>
+        </form>
+    </div>
+</div>
+</body>
+</html>

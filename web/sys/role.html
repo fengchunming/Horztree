@@ -1,0 +1,207 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>角色管理</title>
+    <script>
+        $(function () {
+            App.Role = App.Model.extend({
+                urlRoot: 'rest/sys/role',
+                idAttribute: 'roleId',
+                edit: function () {
+                    App.userGrid.loadGranted(this.id);
+                    App.moduleGrid.loadGranted(this.id);
+                }
+            });
+
+            App.RoleForm = App.FormView.extend({
+                size: {
+                    width: 500
+                },
+                prepare: function (params) {
+                    params.users = App.userList.map(function (model) {
+                        return {userId: model.get('userId'), status: model.get('granted') ? 't' : 'f'};
+                    });
+                    params.modules = App.moduleList.map(function (model) {
+                        return {id: model.id, status: model.get('granted') ? 't' : 'f'};
+                    });
+                    return params;
+                }
+            });
+
+            App.RoleList = App.Collection.extend({
+                model: App.Role,
+                columns: [
+                    {label: '角色名称', key: 'roleName', thcss: 'width:150px;'},
+                    {label: '备注', key: 'remark', thcss: 'width:100px;'},
+                    {label: '状态', key: 'status', local: 'status', thcss: 'width:80px;'}
+                ]
+            });
+
+            App.RoleGrid = App.Grid.extend({
+                collection: new App.RoleList,
+                form: new App.RoleForm,
+                qel: '.queryBar',
+                toolbar: ['create']
+            });
+
+            App.roleGrid = new App.RoleGrid();
+
+            /*
+             * 用户
+             */
+            App.User = App.Model.extend({
+                idAttribute: 'userId'
+            });
+            App.UserList = App.Collection.extend({
+                urlRoot: 'rest/sys/user/list',
+                pageSize: 0,
+                model: App.User,
+                columns: [
+                    {label: '员工号', key: 'staffCode'},
+                    {label: '姓名', key: 'realName'},
+                    {label: '用户名', key: 'userName'},
+                    {label: '授权', key: 'granted', type: 'checkbox', thcss: 'width:50px'}
+                ]
+            });
+            App.userList = new App.UserList();
+            App.UserGrid = App.Grid.extend({
+                el: '#tab_3',
+                collection: App.userList,
+                loadGranted: function (id) {
+                    if (id) {
+                        $.ajax({
+                            contentType: 'application/json',
+                            dataType: 'json',
+                            type: 'GET',
+                            url: 'rest/sys/grantedUser/' + id,
+                            success: function (data) {
+                                App.userList.each(function (item) {
+                                    item.set('granted', _.contains(data, item.get('userId')));
+                                })
+                            }
+                        });
+                    } else {
+                        this.collection.each(function (item) {
+                            if (item.get('granted')) {
+                                item.set('granted', false);
+                            }
+                        })
+                    }
+
+                }
+            });
+
+            App.userGrid = new App.UserGrid();
+
+            /*
+             * 明细
+             */
+            App.ModuleList = App.Collection.extend({
+                urlRoot: 'rest/sys/module/list',
+                pageSize: 0,
+                type: 'tree',
+                columns: [
+                    {label: '功能', key: 'name', thcss: 'width:200px'},
+                    {label: '别名', key: 'url'},
+                    {label: '授权', key: 'granted', type: 'checkbox', thcss: 'width:50px'}
+                ],
+                parse: function (data) {
+                    var ts = this;
+                    _.each(data.list, function (item) {
+                        item['granted'] = _.contains(ts.cache, item['id']);
+                    });
+                    return data.list;
+                }
+            });
+
+            App.moduleList = new App.ModuleList;
+
+            App.ModuleGrid = App.Grid.extend({
+                el: '#tab_2',
+                collection: App.moduleList,
+                loadGranted: function (id) {
+                    if (id) {
+                        $.ajax({
+                            contentType: 'application/json',
+                            dataType: 'json',
+                            type: 'GET',
+                            url: 'rest/sys/grantedModule/' + id,
+                            success: function (data) {
+                                App.moduleList.cache = data;
+                                App.moduleList.each(function (item) {
+                                    item.set('granted', _.contains(data, item.get('id')));
+                                });
+                                return data;
+                            }
+                        });
+                    } else {
+                        this.collection.cache = [];
+                        this.collection.each(function (item) {
+                            if (item.get('granted')) {
+                                item.set('granted', false);
+                            }
+                        })
+                    }
+                }
+            });
+            App.moduleGrid = new App.ModuleGrid();
+        });
+    </script>
+</head>
+<body>
+<div id="article">
+    <form class="queryBar">
+        <ul>
+            <li>
+                <label>角色名称:</label>
+                <input type="text" name="roleName"/>
+            </li>
+            <li>
+                <button class="search"><i></i>查询</button>
+            </li>
+            <li class="toolBar"></li>
+        </ul>
+    </form>
+    <div class="dataGrid">
+        <table class="app"></table>
+    </div>
+    <div class="page"></div>
+</div>
+<div class="navPanel">
+    <div class="toolBar"></div>
+    <div class="editorPanel">
+        <div id="tabs">
+            <ul>
+                <li><a href="#tab_1"><span>角色管理</span></a></li>
+                <li><a href="#tab_2"><span>权限</span></a></li>
+                <li><a href="#tab_3"><span>用户</span></a></li>
+            </ul>
+            <div id="tab_1">
+                <form id="norEditForm" class="edit" method="post">
+                    <ol>
+                        <li>
+                            <label>角色名:</label>
+                            <input type="text" name="roleName" required/>
+                        </li>
+                        <li>
+                            <label>是否启用:</label>
+                            <select name="status" data-local="status"></select>
+                        </li>
+                        <li>
+                            <label>角色说明:</label>
+                            <input type="text" name="remark"/>
+                        </li>
+                    </ol>
+                </form>
+            </div>
+            <div id="tab_2">
+                <table class="app"></table>
+            </div>
+            <div id="tab_3">
+                <table class="app"></table>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

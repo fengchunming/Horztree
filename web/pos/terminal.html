@@ -1,0 +1,110 @@
+<!DOCTYPE HTML> 
+<html> 
+<head> 
+<script>
+$(function() {
+	App.Terminal = App.Model.extend({
+		urlRoot : 'rest/pos/terminal',
+		idAttribute: 'terminalId'
+	})
+	
+	App.Terminals = App.Collection.extend({
+		urlRoot : 'rest/pos/terminalList',
+		sort : 'terminal_code',
+		model : App.Terminal,
+		columns : [
+		   		    {label:'设备编号',key:'terminalCode',sort:'terminal_code'},
+				    {label:'所在门店',key:'store.orgCode',local:'sys/loadStoreKV.do', sort:'org_code'},
+				    {label:'设备类型',key:'terminalType',local:'terminalType', sort:'terminal_type'},
+				    {label:'IP地址',key:'ipAddress'},
+				    {label:'连接方式',key:'connectionType'},
+				    {label:'状态',key:'status',local:'status', sort:'status'}
+				]
+	})
+	
+	App.TerminalForm = App.FormView.extend({
+		toolbar:  ['create','save','sync','trash','hide'],
+		sync : function(){
+			$.ajax({
+			    contentType: 'application/json',
+			    dataType: 'json',
+			    type: 'POST',
+			    url: 'rest/pos/sendTerminal/'+ this.model.id
+			});
+		}
+	})
+
+	App.TerminalGrid = App.Grid.extend({
+		collection: new App.Terminals,
+		form: new  App.TerminalForm,
+		toolbar : ['create'],
+		qel: '.queryBar'
+	});
+	
+	App.terminalTable = new App.TerminalGrid();
+});
+</script>
+</head>
+<body>
+<div id="article">
+    <form class="queryBar">
+    <ul>
+        <li>
+        	<label>设备编号：</label>
+        	<input type="text" name="terminalCode"/>
+        </li>
+        <li>
+        	<label>门店：</label>
+        	<select name="orgCode" data-local="sys/loadStoreKV.do">
+        		<option value=""></option>
+        	</select>
+        	<button class="search"><i></i>查询</button>
+        </li>
+    </ul>
+    </form>
+	<div class="toolBar"></div>
+	<div class="dataGrid">
+		<table class="app"><thead></thead><tbody></tbody></table>
+	</div>
+	<div class="statusBar"></div>
+</div>
+
+<div class="navPanel">
+	<div class="toolBar"></div>
+	<div class="editorPanel">
+	<form id="terminalEditForm" method="post">
+	<ol>
+		<li>
+			<label>终端编码:</label>
+		    <input type="text" name="terminalCode" placeholder="请输入终端名称" required/>
+		</li>
+		<li>
+			<label>终端类型:</label>
+		    <select name="terminalType" data-local="terminalType"></select>
+		</li>
+		<li>
+			<label>IP地址:</label>
+		    <input type="text" name="ipAddress" placeholder="IP地址"/>
+		</li>
+		<li>
+			<label>端口:</label>
+		    <input type="text" name="portNo" placeholder="设备端口号"/>
+		</li>
+		<li>
+			<label>连接方式:</label>
+		    <select name="connectionType"><option value="ftp">FTP</option></select>
+		</li>
+		<li>
+			<label>门店:</label>
+		    <select name="store.orgCode" data-local="sys/loadStoreKV.do"></select>
+		</li>
+		<li>
+			<label>终端状态:</label>
+		    <select name="status" data-local="status"></select>
+		</li>
+	</ol>
+	</form>
+	</div>
+</div>
+</body>
+</html>

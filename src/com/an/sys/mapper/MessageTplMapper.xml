@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="SYS.MessageTemplateMapper">
+    <resultMap id="BaseResultMap" type="com.an.sys.entity.Message">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="title" property="title" jdbcType="VARCHAR"/>
+        <result column="type" property="type" jdbcType="CHAR"/>
+        <result column="category" property="category" jdbcType="CHAR"/>
+        <result column="param" property="param" jdbcType="VARCHAR"/>
+        <result column="priority" property="priority" jdbcType="VARCHAR"/>
+        <result column="note" property="note" jdbcType="VARCHAR"/>
+        <result column="code" property="code" jdbcType="VARCHAR"/>
+        <result column="task_url" property="taskUrl" jdbcType="VARCHAR"/>
+
+        <result column="to_role" property="toRole" typeHandler="com.an.core.mybatis.handlers.JsonTypeHandler"/>
+        <result column="to_dept" property="toDept" typeHandler="com.an.core.mybatis.handlers.JsonTypeHandler"/>
+        <result column="to_user" property="toUser" typeHandler="com.an.core.mybatis.handlers.JsonTypeHandler"/>
+
+        <result column="status" property="status" jdbcType="CHAR"/>
+        <result column="remind_left" property="remindLeft" jdbcType="INTEGER"/>
+        <result column="create_at" property="createAt" jdbcType="TIMESTAMP"/>
+        <result column="merch_id" property="merchId" jdbcType="INTEGER" />
+    </resultMap>
+
+    <sql id="Example_Where_Clause">
+        <where>
+            status != 'd'
+            <if test="type != null and type != ''">
+                and type =  #{type,jdbcType=VARCHAR}
+            </if>
+            <if test="status != null and status != ''">
+                and status = #{status,jdbcType=VARCHAR}
+            </if>
+            <if test="code != null and code != ''">
+                and code = #{code,jdbcType=VARCHAR}
+            </if>
+             <if test="title != null and title != ''">
+                and title = #{code,jdbcType=VARCHAR}
+            </if>
+        </where>
+    </sql>
+
+    <sql id="Base_Column_List">
+        id, title, param, task_url, note, type, category, priority, code,
+        status, create_at, remind_left, create_by, to_role, to_dept, to_user, merch_id
+    </sql>
+
+    <select id="selectByExample" resultMap="BaseResultMap" parameterType="java.util.HashMap">
+        select
+        <include refid="Base_Column_List"/>
+        from SYS_MESSAGE_TEMPLATE
+        <include refid="Example_Where_Clause"/>
+
+        <if test="_BY != null">order by ${_BY}</if>
+    </select>
+
+    <select id="countByExample" parameterType="java.util.HashMap" resultType="java.lang.Integer">
+        select count(*) from SYS_MESSAGE_TEMPLATE
+        <include refid="Example_Where_Clause"/>
+    </select>
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+        select
+        <include refid="Base_Column_List"/>
+        from SYS_MESSAGE_TEMPLATE
+        where id = #{id,jdbcType=INTEGER}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+        delete from SYS_MESSAGE_TEMPLATE
+        where id = #{id,jdbcType=INTEGER}
+    </delete>
+
+    <insert id="insert" parameterType="com.an.sys.entity.Message">
+
+        insert into SYS_MESSAGE_TEMPLATE (
+            param, task_url,  title, note, type, category, priority, code,
+            status, to_role, to_dept, to_user, create_at, remind_left, create_by,  merch_id)
+        values (
+            #{param,jdbcType=VARCHAR}, #{taskUrl,jdbcType=VARCHAR}, #{title,jdbcType=VARCHAR},
+            #{note,jdbcType=VARCHAR}, #{type,jdbcType=CHAR},#{category,jdbcType=CHAR},
+            #{priority,jdbcType=INTEGER},#{code,jdbcType=VARCHAR}, #{status,jdbcType=CHAR},
+            #{toRole,typeHandler=com.an.core.mybatis.handlers.JsonTypeHandler},
+            #{toDept,typeHandler=com.an.core.mybatis.handlers.JsonTypeHandler},
+            #{toUser,typeHandler=com.an.core.mybatis.handlers.JsonTypeHandler},
+            now(), #{remindLeft,jdbcType=INTEGER},  #userId,  #merchId )
+
+        <selectKey resultType="java.lang.Integer" keyProperty="id">
+            SELECT @@IDENTITY AS id
+        </selectKey>
+    </insert>
+
+    <update id="updateByPrimaryKey" parameterType="com.an.sys.entity.Message">
+        update SYS_MESSAGE_TEMPLATE
+        set title = #{title,jdbcType=VARCHAR},
+        param = #{param,jdbcType=VARCHAR},
+        task_url = #{taskUrl,jdbcType=VARCHAR},
+        note = #{note,jdbcType=VARCHAR},
+        type = #{type,jdbcType=CHAR},
+        category = #{category,jdbcType=CHAR},
+        priority = #{priority,jdbcType=INTEGER},
+        code = #{code,jdbcType=VARCHAR},
+        status = #{status,jdbcType=CHAR},
+        create_at = now(),
+        remind_left = #{remindLeft,jdbcType=INTEGER},
+        to_role = #{toRole,typeHandler=com.an.core.mybatis.handlers.JsonTypeHandler},
+        to_dept = #{toDept,typeHandler=com.an.core.mybatis.handlers.JsonTypeHandler},
+        to_user = #{toUser,typeHandler=com.an.core.mybatis.handlers.JsonTypeHandler},
+        create_by = #userId,
+        merch_id = #{merchId,jdbcType=INTEGER}
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+
+     <select id="isCodeExist" resultType="Integer" parameterType="com.an.sys.entity.Message">
+		select count(*)
+		from SYS_MESSAGE_TEMPLATE where merch_id =#merchId and code = #{code}
+		<if test="id != null">
+            and id != #{id}  
+       </if>
+	</select>
+</mapper>

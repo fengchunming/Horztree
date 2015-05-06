@@ -1,0 +1,150 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <script>
+        $(function () {
+            App.Store = App.Model.extend({
+                urlRoot: 'rest/sys/org/ecstore',
+                idAttribute: 'id'
+            });
+
+            App.Stores = App.Collection.extend({
+                sortCol: 'org_code',
+                sortDirect: 'asc',
+                model: App.Store,
+                columns: [
+                    {label: '编号', key: 'orgCode', sort: 'org_code'},
+                    {label: '店名', key: 'orgName', sort: 'org_name'},
+                    {label: '店铺类型', key: 'type', local: 'ecstoreType'},
+                    {label: '开店日期', key: 'openDate', sort: 'open_date'},
+                    {label: '配送仓', key: 'warehouse.orgCode', local: 'sys/kv/warehouse'},
+                    {label: '地址', key: 'address'},
+                    {label: '状态', key: 'status', local: 'status', sort: 'status'}
+                ]
+            });
+
+            App.StoreForm = App.FormView.extend({
+                size: {width: 800},
+                toolbar: ['create', 'save', 'trash', 'hide']
+            });
+
+            App.StoreGrid = App.Grid.extend({
+                collection: new App.Stores,
+                form: new App.StoreForm,
+                toolbar: ['create'],
+                qel: '.queryBar'
+            });
+
+            App.storeGrid = new App.StoreGrid();
+        });
+    </script>
+</head>
+<body>
+<div id="article">
+    <form class="queryBar">
+        <ul>
+            <li>
+                <label>编号:</label>
+                <input type="text" name="orgCode"/>
+            </li>
+            <li>
+                <label>名称:</label>
+                <input type="text" name="orgName"/>
+            </li>
+            <li>
+                <label>状态:</label>
+                <select name="status" data-local="status"></select>
+            </li>
+            <li>
+                <button class="search"><i></i>查询</button>
+            </li>
+            <li class="toolBar"></li>
+        </ul>
+    </form>
+    <div class="dataGrid">
+        <table class="app"></table>
+    </div>
+    <div class="page"></div>
+</div>
+
+<div class="navPanel">
+    <div class="toolBar"></div>
+    <div class="editorPanel">
+        <form>
+            <fieldset style="width:350px">
+                <legend>店铺基本信息</legend>
+                <ol>
+                    <li>
+                        <label>组织号:</label>
+                        <input type="text" name="orgCode" required/>
+                    </li>
+                    <li>
+                        <label>组织名称:</label>
+                        <input type="text" name="orgName" placeholder="请输入店铺名称" required/>
+                    </li>
+                    <li>
+                        <label>店铺类型:</label>
+                        <select name="type" data-local="ecstoreType"></select>
+                    </li>
+                    <li>
+                        <label>开店日期:</label>
+                        <input type="text" class="datepicker" name="openDate" placeholder="请输入营业开始日期"/>
+                    </li>
+                    <li>
+                        <label>闭店日期:</label>
+                        <input type="text" class="datepicker" name="closeDate" placeholder="请输入营业截止日期"/>
+                    </li>
+                    <li>
+                        <label>配货仓:</label>
+                        <select name="warehouse.orgCode" data-local="sys/kv/warehouse">
+                            <option value="">请选择</option>
+                        </select>
+                    </li>
+                    <li>
+                        <label>门店状态:</label>
+                        <select name="status" data-local="status"></select>
+                    </li>
+                    <li>
+                        <label>验证码:</label>
+                        <input type="text" name="token"/>
+                    </li>
+                    <li>
+                        <label>同步时间:</label>
+                        <input type="text" name="syncStamp" disabled/>
+                    </li>
+                    <li>
+                        <label>商家号:</label>
+                        <input type="text" name="partnerNo"/>
+                    </li>
+                    <li>
+                        <label>密钥:</label>
+                        <input type="text" name="secrect"/>
+                    </li>
+                </ol>
+            </fieldset>
+            <fieldset style="width:350px">
+                <legend>发货信息</legend>
+                <ol>
+                    <li>
+                        <label>联系人/组织名称:</label>
+                        <input type="text" name="linkman" placeholder="联系人/组织名称"/>
+                    </li>
+                    <li>
+                        <label>发货地址:</label>
+                        <textarea name="address" placeholder="请输入发货地址" style="height:100px"></textarea>
+                    </li>
+                    <li>
+                        <label>服务电话:</label>
+                        <input type="text" name="telephone" placeholder="请输入联系电话"/>
+                    </li>
+                    <li>
+                        <label>邮编:</label>
+                        <input type="text" name="zipCode" placeholder="请输入邮编"/>
+                    </li>
+                </ol>
+            </fieldset>
+        </form>
+    </div>
+</div>
+</body>
+</html>

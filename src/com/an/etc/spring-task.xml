@@ -1,0 +1,22 @@
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:task="http://www.springframework.org/schema/task"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+		http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+		http://www.springframework.org/schema/task
+		http://www.springframework.org/schema/task/spring-task-4.0.xsd">
+
+
+    <bean id="messageNotify" class="com.an.sys.service.MessageService"/>
+
+    <task:scheduled-tasks scheduler="myScheduler">
+        <!--
+        <task:scheduled ref="springJobTest" method="doSomething" fixed-delay="60000" initial-delay="1000"/>
+        <task:scheduled ref="springJobTest" method="doSomething" fixed-rate="5000"/>
+        <task:scheduled ref="springJobTest" method="doSomething" cron="*/5 * * * * MON-FRI"/>
+        -->
+        <task:scheduled ref="messageNotify" method="newNotify" fixed-delay="60000" initial-delay="3000"/>
+    </task:scheduled-tasks>
+
+    <task:scheduler id="myScheduler" pool-size="10"/>
+
+</beans>

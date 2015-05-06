@@ -1,0 +1,133 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <script>
+        $(function () {
+            _LocalKV.FeedbackType = {
+                "develop": '网站',
+                "service": '服务',
+                "complaints": '投诉'
+            };
+            _LocalKV.FeedbackStatus = {
+                "t": '新',
+                "r": '已读',
+                "d": '删'
+            };
+            App.Feedback = App.Model.extend({
+                urlRoot: 'rest/crm/feedback',
+                idAttribute: 'id'
+            });
+
+            App.FeedbackList = App.Collection.extend({
+                model: App.Feedback,
+                sortCol: 'enterAt',
+                sortDirect: 'desc',
+                columns: [
+                    {label: '网点', key: 'group', thcss: 'width:100px', local: 'sys/kv/owngroup'},
+                    {label: '类型', key: 'type', thcss: 'width:70px', local: 'FeedbackType'},
+                    {label: '内容', key: 'content'},
+                    {label: '会员', key: 'memberId', local: 'crm/kv/member', thcss: 'width:70px'},
+                    {label: '联系方式', key: 'linkman', thcss: 'width:70px'},
+                    {label: '日期', key: 'enterAt', sort: true, thcss: 'width:70px'},
+                    {label: '状态', key: 'status', thcss: 'width:40px',local:'FeedbackStatus'}
+                ]
+            });
+
+            App.FeedbackForm = App.FormView.extend({
+                size: {width: 700},
+                toolbar: [{'check':'已读'},'trash', 'hide'],
+                check: function(){
+                    this.model.set('status','r');
+                    this.model.save();
+                }
+            });
+
+            App.FeedbackGrid = App.Grid.extend({
+                qel: '.queryBar',
+                form: new App.FeedbackForm,
+                collection: new App.FeedbackList,
+                toolbar: []
+            });
+
+            new App.FeedbackGrid();
+        });
+    </script>
+</head>
+<body>
+<div id="article">
+    <form class="queryBar">
+        <ul>
+            <li>
+                <label>会员：</label>
+                <input type="text" name="member"/>
+            </li>
+            <li><label>类型：</label>
+                <select name="store" data-local="FeedbackType">
+                    <option value="">所有</option>
+                </select>
+            </li>
+            <li><label>状态：</label>
+                <select name="status">
+                    <option value="t">新</option>
+                    <option value="r">已读</option>
+                    <option value="">所有</option>
+                </select>
+            </li>
+            <li><label>网点：</label>
+                <select name="group" data-local="sys/kv/owngroup">
+                    <option value="">所有</option>
+                </select>
+            </li>
+            <li><label>日期：</label>
+                <input class="mindatepicker" name="startTime" size="10"/>
+                -
+                <input class="maxdatepicker" name="endTime" size="10"/>
+            </li>
+            <li>
+                <button class="search"><i></i>查询</button>
+                <button type="reset" class="reset"><i></i>清空</button>
+            </li>
+            <li class="toolBar"></li>
+        </ul>
+    </form>
+    <div class="dataGrid">
+        <table class="app"></table>
+    </div>
+    <div class="page"></div>
+</div>
+
+<div class="navPanel">
+    <div class="toolBar"></div>
+    <div class="editorPanel">
+        <form>
+            <ol>
+                <li>
+                    <label>网点：</label>
+                    <select name="group" data-local="sys/kv/owngroup" disabled>
+                        <option value="">所有</option>
+                    </select>
+                </li>
+                <li>
+                    <label>联系人:</label>
+                    <input name="linkman" type="text" disabled/>
+                    <label>联系方式 :</label>
+                    <input name="linkInfo" type="text" disabled/>
+                </li>
+                <li>
+                    <label>会员ID :</label>
+                    <input name="userName" type="text" disabled/>
+                    <label>时间 :</label>
+                    <input name="enterAt" type="text" disabled/>
+                </li>
+                <li>
+                    <label>内容 :</label>
+                    <textarea name="content" placeholder="请输入留言内容" readonly
+                              style="width:508px;height:120px;resize:none;"></textarea>
+                </li>
+            </ol>
+        </form>
+    </div>
+</div>
+</body>
+</html>
+        

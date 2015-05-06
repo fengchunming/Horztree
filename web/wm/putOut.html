@@ -1,0 +1,258 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <script>
+        $(function () {
+            App.WorkBill = App.Model.extend({
+                urlRoot: 'rest/wb/OT',
+                idAttribute: 'id',
+                defaults: {type: 'OT',billDate: new Date().format('isoDate')},
+                edit: function () {
+                    if (this.isNew()) App.details.reset();
+                    else App.details.load('rest/wb/detail/' + this.id);
+                }
+            });
+
+            App.WorkBills = App.Collection.extend({
+                model: App.WorkBill,
+                columns: [
+                    {label: '出库单号', key: 'billCode', sort: true},
+                    {label: '出库日期', key: 'billDate', sort: true},
+                    {label: '出库仓', key: 'from.warehouse', local: 'sys/kv/warehouse'},
+                    {label: '货主', key: 'belong.id', local: 'sys/kv/org'},
+                    {label: '收货方', key: 'target.id', local: 'sys/kv/org'},
+                    {label: '联系方式', key: 'target.telephone'},
+                    {label: '操作人', key: 'dealBy'},
+                    {label: '状态', key: 'status', local: 'billStatus'}
+                ]
+            });
+
+            App.WBFormView = App.FormView.extend({
+                toolbar: ['create', 'save', 'print', 'check',  'trash', 'hide'],
+                size: {width: 900},
+                check: function () {
+                    if (confirm('是否确认发货单无误？')) {
+                        var ts = this;
+                        $.get('rest/wm/checkIssue/' + this.model.id, function () {
+                            ts.model.fetch();
+                        });
+                    }
+                },
+                prepare: function (param) {
+                    param.items = App.details.toJSON();
+                    return param;
+                },
+                print: function () {
+                    $.printPage('rest/wm/pickingReport/' + this.model.id + '.html');
+                }
+            });
+
+            App.WorkBillGrid = App.Grid.extend({
+                collection: new App.WorkBills,
+                form: new App.WBFormView,
+                qel: '.queryBar',
+                toolbar: ['create']
+            });
+            new App.WorkBillGrid();
+
+
+            /*
+             * 明细
+             */
+            App.DetailRow = App.Row.extend({
+                listen: function () {
+                    var view = this;
+                    this.$el.find('input[name=pn]').autocomplete({
+                        source: function (request, response) {
+                            $.ajax({
+                                url: 'rest/wm/item/list',
+                                dataType: "json",
+                                data: {supplier: +$('#supplier').val(), _SH: request.term, _LM: 50},
+                                success: function (data) {
+                                    response($.map(data.list, function (item) {
+                                        return {
+                                            label: item.pn + " - " + item.name,
+                                            value: item
+                                        }
+                                    }));
+                                }
+                            });
+                        },
+                        focus: function (event, ui) {
+                            $(this).val(ui.item.label);
+                            return false;
+                        },
+                        select: function (event, ui) {
+                            var goods = ui.item.value;
+                            goods.uom = goods.skuUom;
+                            view.model.set(goods);
+                        },
+                        change: function (event, ui) {
+                            if (!ui.item) {
+                                var id = view.model.id;
+                                view.model.clear();
+                                view.model.set({'id': id});
+                            }
+                        }
+                    });
+                }
+            });
+
+            App.Details = App.Collection.extend({
+                autoLoad: false,
+                columns: [
+                    {key: 'id', type: 'checkbox', thcss: 'width:25px'},
+                    {label: '商品编号', key: 'pn', type: 'text'},
+                    {label: '商品名称', key: 'name', thcss: 'width:250px'},
+                    {label: '单位', key: 'uom.id', local: 'base/kv/uom'},
+                    {label: '可用库存', key: 'planQuantity'},
+                    {label: '实发数量', key: 'realQuantity', type: 'number'}
+                ]
+            });
+
+            App.details = new App.Details();
+
+            App.WBDetailGrid = App.Grid.extend({
+                editable: true,
+                el: '#tab_2',
+                collection: App.details,
+                row: App.DetailRow,
+                toolbar: ['append', 'remove']
+            });
+            App.wbDetailGrid = new App.WBDetailGrid;
+
+            $('#belong').on('change', function () {
+                App.stockList.param['belong'] = $(this).val();
+            });
+        });
+    </script>
+</head>
+<body>
+<div id="article">
+    <form class="queryBar">
+        <ul>
+            <li>
+                <label>出库单号：</label>
+                <input type="text" name="billCode"/>
+            </li>
+            <li>
+                <label>状态：</label>
+                <select name="status" data-local="billStatus" data-value="0">
+                    <option value="">所有</option>
+                </select>
+            </li>
+            <li>
+                <label>出库日期：</label>
+                <input type="text" class="mindatepicker" name="sdate"/> -
+                <input type="text" class="maxdatepicker" name="edate"/>
+            </li>
+            <li>
+                <label>收货方：</label>
+                <select name="partner" data-local="sys/kv/org">
+                    <option value=""></option>
+                </select>
+            </li>
+            <li>
+                <button class="search"><i></i>查询</button>
+            </li>
+            <li class="toolBar"></li>
+        </ul>
+    </form>
+    <div class="dataGrid">
+        <table class="app"></table>
+    </div>
+    <div class="page"></div>
+</div>
+
+<div class="navPanel">
+    <div class="toolBar"></div>
+    <div class="editorPanel">
+        <div id="tabs">
+            <ul>
+                <li><a href="#tab_1"><span>单据信息</span></a></li>
+                <li><a href="#tab_2"><span>出库明细</span></a></li>
+                <!--<li><a href="#tab_3"><span>库存查询</span></a></li>-->
+            </ul>
+            <div id="tab_1">
+                <form>
+                    <ol>
+                        <li>
+                            <label>出库单号:</label>
+                            <input type="text" name="billCode" id="billCode" readonly>
+                        </li>
+                        <li>
+                            <label>出库日期:</label>
+                            <input type="text" name="billDate" placeholder="出库日期" required class="datepicker">
+                        </li>
+                        <li>
+                            <label>货主:</label>
+                            <select name="belong.id" id="belong" data-local="sys/kv/org"></select>
+                        </li>
+                        <li>
+                            <label>出库仓:</label>
+                            <select name="from.warehouse" data-local="sys/kv/warehouse"></select>
+                        </li>
+                        <li>
+                            <label>备注:</label>
+                            <textarea name="remark" style="width:250px;height:150px;"></textarea>
+                        </li>
+                        <li>
+                            <label>单据状态:</label>
+                            <select name="status" data-local="billStatus" disabled></select>
+                        </li>
+                    </ol>
+                    <ol>
+                        <li>
+                            <label>收货方:</label>
+                            <select name="target.id" data-local="sys/kv/org"></select>
+                        </li>
+                        <li>
+                            <label>联系人:</label>
+                            <input type="text" name="target.addr.linkman">
+                        </li>
+                        <li>
+                            <label>收货地址:</label>
+                            <textarea name="target.addr.addr" style="width:250px;height:100px;"></textarea>
+                        </li>
+                        <li>
+                            <label>邮编:</label>
+                            <input type="text" name="target.addr.zip">
+                        </li>
+                        <li>
+                            <label>联系方式:</label>
+                            <input type="text" name="target.addr.tel">
+                        </li>
+                    </ol>
+                </form>
+            </div>
+            <div id="tab_2">
+                <table class="app"></table>
+                <div class="toolBar"></div>
+            </div>
+            <!--<div id="tab_3">-->
+                <!--<div class="queryForm">-->
+                    <!--<form>-->
+                        <!--<label>商品</label>-->
+                        <!--<input type="text" name="pn">-->
+
+                        <!--<label>库区</label>-->
+                        <!--<select name="sectionCode" data-local="wm/kv/section" style="width:100px">-->
+                            <!--<option value=""></option>-->
+                        <!--</select>-->
+
+                        <!--<label>储位</label>-->
+                        <!--<select name="locationCode" data-local="wm/kv/section" style="width:100px">-->
+                            <!--<option value=""></option>-->
+                        <!--</select>-->
+
+                        <!--<button type="submit" class="search"><i></i>查询</button>-->
+                        <!--<span class="toolBar"></span>-->
+                    <!--</form>-->
+                <!--</div>-->
+                <!--<table class="app"></table>-->
+            <!--</div>-->
+        </div>
+    </div>
+</div>
+</body>
+</html>

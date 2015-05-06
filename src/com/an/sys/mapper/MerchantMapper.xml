@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="MerchantMapper">
+    <resultMap id="BaseResultMap" type="com.an.sys.entity.Merchant">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="merch_code" property="merchCode" jdbcType="VARCHAR"/>
+        <result column="merch_name" property="merchName" jdbcType="VARCHAR"/>
+        <result column="merch_type" property="merchType" jdbcType="VARCHAR"/>
+        <result column="english_name" property="englishName" jdbcType="VARCHAR"/>
+        <result column="short_name" property="shortName" jdbcType="VARCHAR"/>
+        <result column="service_area" property="serviceArea" jdbcType="VARCHAR"/>
+        <result column="type" property="type" jdbcType="CHAR"/>
+        <result column="legal_man" property="legalMan" jdbcType="VARCHAR"/>
+        <result column="charge_man" property="chargeMan" jdbcType="VARCHAR"/>
+        <result column="qq_no" property="qqNo" jdbcType="BIGINT"/>
+        <result column="wechat_no" property="wechatNo" jdbcType="VARCHAR"/>
+        <result column="is_ca" property="isCa" jdbcType="CHAR"/>
+        <result column="grade" property="grade" jdbcType="CHAR"/>
+        <result column="mode" property="mode" jdbcType="CHAR"/>
+        <result column="flag" property="flag" jdbcType="CHAR"/>
+        <result column="template" property="template" jdbcType="INTEGER"/>
+        <result column="status" property="status" jdbcType="CHAR"/>
+        <result column="address" property="address.addr" jdbcType="CHAR"/>
+        <result column="source" property="source" jdbcType="CHAR"/>
+        <result column="level" property="level" jdbcType="CHAR"/>
+        <result column="credits" property="credits" jdbcType="INTEGER"/>
+        <result column="settlement" property="settlement" jdbcType="CHAR"/>
+        <result column="billing_phone" property="billingPhone" jdbcType="VARCHAR"/>
+        <result column="billing_addr" property="billingAddr" jdbcType="VARCHAR"/>
+        <result column="id_no" property="idNo" jdbcType="VARCHAR"/>
+        <result column="license_no" property="licenseNo" jdbcType="VARCHAR"/>
+        <result column="tax_no" property="taxNo" jdbcType="VARCHAR"/>
+        <result column="org_no" property="orgNo" jdbcType="VARCHAR"/>
+        <result column="e_signature" property="eSignature" jdbcType="VARCHAR"/>
+        <result column="id_pic" property="idPic" jdbcType="VARCHAR"/>
+        <result column="tax_pic" property="taxPic" jdbcType="VARCHAR"/>
+        <result column="org_pic" property="orgPic" jdbcType="VARCHAR"/>
+        <result column="employee_no" property="employeeNo" jdbcType="INTEGER"/>
+        <result column="reg_capital" property="regCapital" jdbcType="INTEGER"/>
+        <result column="remark" property="remark" jdbcType="VARCHAR"/>
+        <result column="pay_time" property="payTime" jdbcType="TIMESTAMP"/>
+        <result column="create_oper" property="createOper" jdbcType="INTEGER"/>
+        <result column="create_dt" property="createDt" jdbcType="TIMESTAMP"/>
+        <result column="login_name" property="loginName" jdbcType="VARCHAR"/>
+        <result column="login_passwd" property="loginPassword" jdbcType="VARCHAR"/>
+        <result column="userMobile" property="userMobile" jdbcType="VARCHAR"/>
+        <result column="userEmail" property="userEmail" jdbcType="VARCHAR"/>
+        <result column="real_name" property="realName" jdbcType="VARCHAR"/>
+        <result column="root" property="root" jdbcType="INTEGER"/>
+    </resultMap>
+
+    <sql id="Example_Where_Clause">
+        <where>
+            m.status != 'd'
+            <if test="merchName != null and merchName != ''">
+                and merch_name like concat('%',#{merchName},'%')
+            </if>
+        </where>
+    </sql>
+    <sql id="Base_Column_List">
+        id, merch_code, merch_name, english_name, short_name, province, city, district, service_area,
+        address, zipcode, type, legal_man, charge_man, mobile, email, qq_no, wechat_no, tel, root,
+        fax, is_ca, grade, mode, flag, status, source, level, credits, settlement, billing_phone,
+        billing_addr, id_no, license_no, tax_no, org_no, e_signature, id_pic, tax_pic, org_pic,
+        employee_no, reg_capital, remark, pay_time, create_oper, create_dt, merch_type,template
+    </sql>
+    <select id="selectByExample" resultMap="BaseResultMap" parameterType="java.util.HashMap">
+        select
+        m.id, m.merch_code, m.merch_name, m.english_name, m.short_name, m.province, m.city, m.district, m.service_area,
+        m.address, m.zipcode, m.type, m.legal_man, m.charge_man, m.mobile, m.email, m.qq_no, m.wechat_no, m.tel,
+        m.fax, m.is_ca, m.grade, m.mode, m.flag, m.status, m.source, m.level, m.credits, m.settlement, m.billing_phone,
+        m.billing_addr, m.id_no, m.license_no, m.tax_no, m.org_no, m.e_signature, m.id_pic, m.tax_pic, m.org_pic,
+        m.employee_no, m.reg_capital, m.remark, m.pay_time, m.create_oper, m.create_dt, m.merch_type,m.template,
+        u.login_name, u.login_passwd, u.real_name, u.mobile userMobile, u.email userEmail,u.id userId, m.root
+        from SYS_MERCHANT m left join SYS_USER u on m.id = u.merch_id and u.flag = 0
+        <include refid="Example_Where_Clause"/>
+        <if test="_BY != null">order by ${_BY}</if>
+    </select>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+        select
+        <include refid="Base_Column_List"/>
+        from SYS_MERCHANT
+        where id = #{id,jdbcType=INTEGER}
+    </select>
+    <select id="selectByCode" resultMap="BaseResultMap" parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List"/>
+        from SYS_MERCHANT
+        where merch_code = #{value,jdbcType=VARCHAR}
+    </select>
+    <select id="selectByName" resultMap="BaseResultMap" parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List"/>
+        from SYS_MERCHANT
+        where merch_name = #{value,jdbcType=VARCHAR}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+        delete from SYS_MERCHANT
+        where id = #{id,jdbcType=INTEGER}
+    </delete>
+    <insert id="insert" parameterType="com.an.sys.entity.Merchant">
+        insert into SYS_MERCHANT (merch_code, merch_name, merch_type,
+        english_name, short_name, province,
+        city, district, service_area,
+        address, zipcode, type,
+        legal_man, charge_man, mobile,
+        email, qq_no, wechat_no,
+        tel, fax, is_ca, grade,
+        mode, flag, status, source,
+        level, credits, settlement,
+        billing_phone, billing_addr, id_no,
+        license_no, tax_no, org_no,
+        e_signature, id_pic, tax_pic,
+        org_pic, employee_no, reg_capital,
+        remark, pay_time, create_oper,
+        create_dt, template, root ,enter_at)
+        values (#{merchCode,jdbcType=VARCHAR},
+        #{merchName,jdbcType=VARCHAR},#{merchType,jdbcType=VARCHAR},
+        #{englishName,jdbcType=VARCHAR}, #{shortName,jdbcType=VARCHAR}, #{province,jdbcType=SMALLINT},
+        #{address.region,jdbcType=SMALLINT}, #{district,jdbcType=SMALLINT}, #{serviceArea,jdbcType=VARCHAR},
+        #{address.addr,jdbcType=VARCHAR}, #{address.zip,jdbcType=VARCHAR}, #{type,jdbcType=CHAR},
+        #{legalMan,jdbcType=VARCHAR}, #{chargeMan,jdbcType=VARCHAR}, #{address.mobile,jdbcType=VARCHAR},
+        #{address.email,jdbcType=VARCHAR}, #{qqNo,jdbcType=BIGINT}, #{wechatNo,jdbcType=VARCHAR},
+        #{address.tel,jdbcType=VARCHAR}, #{address.fax,jdbcType=VARCHAR}, #{isCa,jdbcType=CHAR}, #{grade,jdbcType=CHAR},
+        #{mode,jdbcType=CHAR}, #{flag,jdbcType=CHAR}, #{status,jdbcType=CHAR}, #{source,jdbcType=CHAR},
+        #{level,jdbcType=CHAR}, #{credits,jdbcType=INTEGER}, #{settlement,jdbcType=CHAR},
+        #{billingPhone,jdbcType=VARCHAR}, #{billingAddr,jdbcType=VARCHAR}, #{idNo,jdbcType=VARCHAR},
+        #{licenseNo,jdbcType=VARCHAR}, #{taxNo,jdbcType=VARCHAR}, #{orgNo,jdbcType=VARCHAR},
+        #{eSignature,jdbcType=VARCHAR}, #{idPic,jdbcType=VARCHAR}, #{taxPic,jdbcType=VARCHAR},
+        #{orgPic,jdbcType=VARCHAR}, #{employeeNo,jdbcType=INTEGER}, #{regCapital,jdbcType=INTEGER},
+        #{remark,jdbcType=VARCHAR}, #{payTime,jdbcType=TIMESTAMP}, #userId,
+        now(),#{template,jdbcType=INTEGER}, #{root, jdbcType=INTEGER},now())
+        <selectKey resultType="java.lang.Integer" keyProperty="id">
+            SELECT @@IDENTITY AS id
+        </selectKey>
+    </insert>
+
+    <select id="countByExample" parameterType="java.util.HashMap" resultType="java.lang.Integer">
+        select count(*) from SYS_MERCHANT m left join SYS_USER u on m.id = u.merch_id and u.flag = 0
+        <include refid="Example_Where_Clause"/>
+    </select>
+
+    <update id="updateByPrimaryKey" parameterType="com.an.sys.entity.Merchant">
+        update SYS_MERCHANT
+        set merch_code = #{merchCode,jdbcType=VARCHAR},
+        merch_name = #{merchName,jdbcType=VARCHAR},
+        merch_type = #{merchType,jdbcType=VARCHAR},
+        english_name = #{englishName,jdbcType=VARCHAR},
+        short_name = #{shortName,jdbcType=VARCHAR},
+        province = #{province,jdbcType=SMALLINT},
+        city = #{address.region,jdbcType=SMALLINT},
+        district = #{district,jdbcType=SMALLINT},
+        service_area = #{serviceArea,jdbcType=VARCHAR},
+        address = #{address.addr,jdbcType=VARCHAR},
+        zipcode = #{address.zip,jdbcType=VARCHAR},
+        type = #{type,jdbcType=CHAR},
+        legal_man = #{legalMan,jdbcType=VARCHAR},
+        charge_man = #{chargeMan,jdbcType=VARCHAR},
+        mobile = #{address.mobile,jdbcType=VARCHAR},
+        email = #{address.email,jdbcType=VARCHAR},
+        qq_no = #{qqNo,jdbcType=BIGINT},
+        wechat_no = #{wechatNo,jdbcType=VARCHAR},
+        tel = #{address.tel,jdbcType=VARCHAR},
+        fax = #{address.fax,jdbcType=VARCHAR},
+        is_ca = #{isCa,jdbcType=CHAR},
+        grade = #{grade,jdbcType=CHAR},
+        mode = #{mode,jdbcType=CHAR},
+        flag = #{flag,jdbcType=CHAR},
+        status = #{status,jdbcType=CHAR},
+        source = #{source,jdbcType=CHAR},
+        level = #{level,jdbcType=CHAR},
+        credits = #{credits,jdbcType=INTEGER},
+        settlement = #{settlement,jdbcType=CHAR},
+        billing_phone = #{billingPhone,jdbcType=VARCHAR},
+        billing_addr = #{billingAddr,jdbcType=VARCHAR},
+        id_no = #{idNo,jdbcType=VARCHAR},
+        license_no = #{licenseNo,jdbcType=VARCHAR},
+        template = #{template,jdbcType=INTEGER},
+        tax_no = #{taxNo,jdbcType=VARCHAR},
+        org_no = #{orgNo,jdbcType=VARCHAR},
+        e_signature = #{eSignature,jdbcType=VARCHAR},
+        id_pic = #{idPic,jdbcType=VARCHAR},
+        tax_pic = #{taxPic,jdbcType=VARCHAR},
+        org_pic = #{orgPic,jdbcType=VARCHAR},
+        employee_no = #{employeeNo,jdbcType=INTEGER},
+        reg_capital = #{regCapital,jdbcType=INTEGER},
+        remark = #{remark,jdbcType=VARCHAR},
+        pay_time = #{payTime,jdbcType=TIMESTAMP},
+        root = #{root,jdbcType=INTEGER},
+        enter_at = now()
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+    <select id="selectKV" resultType="java.util.HashMap">
+        select id as k,merch_name as v
+        from SYS_MERCHANT where status = 't' and merch_type = '1'
+    </select>
+    <select id="selectTemplateKV" resultType="java.util.HashMap">
+        select id as k,merch_name as v
+        from SYS_MERCHANT where status = 't' and merch_type = '9'
+    </select>
+</mapper>

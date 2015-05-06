@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="TerminalMapper">
+  <resultMap id="BaseResultMap" type="com.an.pos.entity.Terminal">
+    <id column="terminal_id" jdbcType="INTEGER" property="terminalId" />
+    <result column="terminal_code" jdbcType="VARCHAR" property="terminalCode" />
+    <result column="terminal_type" jdbcType="VARCHAR" property="terminalType" />
+    <result column="ip_address" jdbcType="VARCHAR" property="ipAddress" />
+    <result column="port_no" jdbcType="VARCHAR" property="portNo" />
+    <result column="connection_type" jdbcType="VARCHAR" property="connectionType" />
+    <result column="status" jdbcType="VARCHAR" property="status" />
+    <result column="enter_at" jdbcType="TIMESTAMP" property="enterAt" />
+    <result column="org_code" jdbcType="VARCHAR" property="store.orgCode" />
+  </resultMap>
+  
+  <sql id="Base_Where_Clause">
+    <where>
+    	status not in ('trash')
+		<if test="_SH != null and _SH != ''">
+    	and ( terminal_code = #{_SH} )
+    	</if>
+		<if test="terminalCode != null and terminalCode != ''"> and terminal_code ilike concat('%',#{terminalCode},'%') </if>
+		<if test="orgCode != null and orgCode != ''"> and org_code = #{orgCode} </if>
+    </where>
+  </sql>
+
+  <sql id="Base_Column_List">
+    terminal_id, terminal_code, terminal_type, ip_address, port_no, connection_type, 
+    status, enter_at, org_code
+  </sql>
+  
+  <select id="selectByExample" parameterType="map" resultMap="BaseResultMap">
+    select
+    <include refid="Base_Column_List" />
+    from "ag"."T_POS_TERMINAL"
+    <include refid="Base_Where_Clause" />
+    
+	<if test="_BY != null"> order by ${_BY} </if>
+	<if test="_LM != null"> limit ${_LM} </if>
+	<if test="_ST != null"> offset ${_ST} </if>
+  </select>
+  
+  <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from "ag"."T_POS_TERMINAL"
+    where terminal_id = #{terminalId,jdbcType=INTEGER}
+  </select>
+  
+  <select id="selectByCode" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from "ag"."T_POS_TERMINAL"
+    where terminal_code = #{value}
+  </select>
+  
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+    update "ag"."T_POS_TERMINAL"
+    set status = 'trash'
+    where terminal_id = #{terminalId,jdbcType=INTEGER}
+  </delete>
+ 
+  <insert id="insert" parameterType="com.an.pos.entity.Terminal">
+    insert into "ag"."T_POS_TERMINAL" (terminal_code, terminal_type, 
+      ip_address, port_no, connection_type, 
+      status, enter_at, org_code )
+    values (#{terminalCode,jdbcType=VARCHAR}, #{terminalType,jdbcType=VARCHAR}, 
+      #{ipAddress,jdbcType=VARCHAR}, #{portNo,jdbcType=VARCHAR}, #{connectionType,jdbcType=VARCHAR}, 
+      #{status,jdbcType=VARCHAR}, now() , #{store.orgCode,jdbcType=VARCHAR}
+      )
+     <selectKey resultType="java.lang.Integer" keyProperty="terminalId" > 
+    	select currval('"ag"."T_POS_TERMINAL_terminal_id_seq"') AS terminalId 
+     </selectKey>
+  </insert>
+  
+  <select id="countByExample" parameterType="map" resultType="java.lang.Integer">
+    select count(1) from "ag"."T_POS_TERMINAL"
+    <include refid="Base_Where_Clause" />
+  </select>
+  
+  <update id="updateByPrimaryKey" parameterType="com.an.pos.entity.Terminal">
+    update "ag"."T_POS_TERMINAL"
+    set terminal_code = #{terminalCode,jdbcType=VARCHAR},
+      terminal_type = #{terminalType,jdbcType=VARCHAR},
+      ip_address = #{ipAddress,jdbcType=VARCHAR},
+      port_no = #{portNo,jdbcType=VARCHAR},
+      connection_type = #{connectionType,jdbcType=VARCHAR},
+      status = #{status,jdbcType=VARCHAR},
+      enter_at = now(),
+      org_code = #{store.orgCode,jdbcType=VARCHAR}
+    where terminal_id = #{terminalId,jdbcType=INTEGER}
+  </update>
+</mapper>

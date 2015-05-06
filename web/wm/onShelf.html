@@ -1,0 +1,283 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <script src="wm/widget/location.js"></script>
+    <script>
+        $(function () {
+            App.Receipt = App.Model.extend({
+                urlRoot: 'rest/wm/onshelfDetails',
+                idAttribute: 'billCode',
+                edit: function () {
+                    this.editor.setData(this);
+                    App.receiptDetailList.load('rest/bill/details/' + this.get('billCode'));
+                    App.onshelfDetailList.load('rest/bill/detailsByOrigin/' + this.get('billCode'));
+                },
+                success: function (data) {
+                    App.onshelfDetailList.load();
+                    App.receiptDetailList.load();
+                }
+            })
+
+            App.ReceiptList = App.Collection.extend({
+                urlRoot: 'rest/bill/list/receipt',
+                sortCol: 'enterAt',
+                sortDirect: 'desc',
+                model: App.Receipt,
+                columns: [
+                    {label: '收货单号', key: 'billCode', sort: 'bill_code', thcss: 'width:100px'},
+                    {label: '收货日期', key: 'realDate', sort: 'real_date', thcss: 'width:80px'},
+                    {label: '货主', key: 'originOrg.id', local: 'sys/kv/org', sort: 'org_id'},
+                    {label: '业务编号', key: 'custom1'},
+                    {label: '订单号', key: 'custom2'},
+                    {label: '仓库', key: 'warehouse.id', local: 'sys/kv/org', thcss: 'width:120px'},
+                    {label: '状态', key: 'status', local: 'billStatus', thcss: 'width:80px'},
+                ]
+            })
+
+            App.OnShelfFormView = App.FormView.extend({
+                toolbar: ['check', 'print', 'save', 'hide'],
+                prepare: function (param) {
+                    param.items = App.onshelfDetailList.toJSON();
+                    return param;
+                },
+                check: function () {
+                    if (confirm('是否确认该单据无误，操作不可退回！')) {
+                        $.ajax({
+                            contentType: 'application/json',
+                            dataType: 'json',
+                            type: 'POST',
+                            url: 'rest/wm/checkOnshelf/' + $("#billCode").val(),
+                            success: function (data) {
+                                $.sticky('已生成库存数据！');
+                                App.onshelfDetailList.load();
+                            }
+                        });
+                    }
+                },
+                print: function () {
+                    $.printPage('rest/wm/onshelfBillReport/' + this.model.id + '.html');
+                }
+            })
+
+            App.OnShelfBillGrid = App.Grid.extend({
+                collection: new App.ReceiptList,
+                editorView: App.OnShelfFormView,
+                qel: '.queryBar',
+                toolbar: ['create']
+            });
+
+            App.onshelfBillGrid = new App.OnShelfBillGrid();
+
+            /*
+             * 明细收货
+             */
+            App.ReceiptRow = App.Row.extend({
+                listen: function () {
+                    var model = this.model;
+//             this.$el.on('click', 'input[name="targetLocation.sectionCode"]', function () {
+//                 App.Plugin.location($(this), model);
+//             });
+                }
+            })
+
+            App.ReceiptDetail = App.Model.extend({
+                urlRoot: 'rest/scm/receiptDetail',
+                idAttribute: 'id',
+                rowView: App.ReceiptRow
+            })
+
+            App.ReceiptDetailList = App.Collection.extend({
+                model: App.ReceiptDetail,
+                pageSize: 0,
+                columns: [
+                    {label: '商品名称', key: 'name'},
+                    {label: '商品编号', key: 'pn'},
+                    {label: '单位', key: 'goodsUnit.id', local: 'base/kv/uom'},
+                    {label: '规格', key: 'goodsUnit.packQuantity'},
+                    {label: '目前库区', key: 'originLocation.sectionCode', local: 'wm/loadSectionKV.do'},
+                    {label: '待上', key: 'realQuantity'},
+                    {label: '已上', key: 'dualQuantity'},
+                    {label: '本次数量', key: 'quantity', type: 'number', thcss: 'width:50px'},
+                    {label: '库区', key: 'targetLocation.sectionCode', type: 'text'},
+                    {label: '储位', key: 'targetLocation.locationCode', type: 'text'},
+                    {label: '批次属性', key: 'lotAttr'}
+                ]
+            })
+
+            App.receiptDetailList = new App.ReceiptDetailList();
+
+            App.ReceiptDetailGrid = App.Grid.extend({
+                el: '#tab_2',
+                collection: App.receiptDetailList,
+                toolbar: [
+                    {'inport': '上架'}
+                ],
+                inport: function () {
+                    var items = [];
+                    _.each(this.collection.models, function (model) {
+                        if (model.get('quantity') > 0 && !_.isNull(model.get('targetLocation'))) {
+                            var item = model.toJSON();
+                            model.set({'adjustQuantity': null})
+                            model.set({'dualQuantity': model.get('dualQuantity') ? model.get('dualQuantity') + parseFloat(model.get('quantity')) : parseFloat(model.get('quantity'))});
+                            model.set({'quantity': null});
+                            model.set({'targetLocation': {}});
+                            item.planQuantity = item.quantity;
+                            item.realQuantity = item.quantity;
+                            delete item.quantity;
+                            item.originId = item.id;
+                            item.id = null;
+                            item.bill = null;
+                            item.status = 'input';
+                            items.push(item)
+                        }
+                    });
+                    if (items != null && items.length > 0) {
+                        App.detailView.append(items);
+                        $('#tabs').tabs({ active: 2 });
+                    } else {
+                        $.sticky('未发现有效的收货明细！');
+                    }
+                }
+            })
+            App.receiptDetailGrid = new App.ReceiptDetailGrid();
+
+            /*
+             * 上架明细
+             */
+            App.OnshelfDetailList = App.Collection.extend({
+                model: App.Model,
+                columns: [
+                    {key: 'id', type: 'checkbox'},
+                    {label: '上架单号', key: 'bill.billCode'},
+                    {label: '商品名称', key: 'name'},
+                    {label: '商品编号', key: 'pn'},
+                    {label: '单位', key: 'goodsUnit.id', local: 'base/kv/uom'},
+                    {label: '当前库区', key: 'originLocation.sectionCode', local: 'wm/loadSectionKV.do'},
+                    {label: '上架数量', key: 'planQuantity'},
+                    {label: '目标库区', key: 'targetLocation.sectionCode', local: 'wm/loadSectionKV.do'},
+                    {label: '目标货位', key: 'targetLocation.locationCode', local: 'wm/loadLocationKV.do'},
+                    {label: '批次属性', key: 'lotAttr', type: 'form'}
+                ]
+            })
+
+            App.onshelfDetailList = new App.OnshelfDetailList;
+
+            App.OnshelfDetailGrid = App.Grid.extend({
+                el: '#tab_3',
+                toolbar: ['remove'],
+                collection: App.onshelfDetailList
+            })
+
+            App.detailView = new App.OnshelfDetailGrid();
+        });
+    </script>
+</head>
+<body>
+<div id="article">
+    <form class="queryBar">
+        <ul>
+            <li>
+                <label>收货单号:</label>
+                <input type="text" name="billCode"/>
+            </li>
+            <li>
+                <label>状态:</label>
+                <select name="status" data-local="billStatus">
+                    <option value="">所有</option>
+                </select>
+            </li>
+            <li>
+                <label>客户:</label>
+                <select name="supplier" data-local="sys/kv/org">
+                    <option value=""></option>
+                </select>
+                <button class="search"><i></i>查询</button>
+            </li>
+            <li class="toolBar"></li>
+        </ul>
+    </form>
+    <div class="dataGrid">
+        <table class="app"></table>
+    </div>
+    <div class="page"></div>
+</div>
+
+<div class="navPanel">
+    <div class="toolBar"></div>
+    <div class="editorPanel">
+        <div id="tabs">
+            <ul>
+                <li><a href="#tab_1"><span>收货通知单</span></a></li>
+                <li><a href="#tab_2"><span>收货明细</span></a></li>
+                <li><a href="#tab_3"><span>上架明细</span></a></li>
+            </ul>
+            <div id="tab_1">
+                <form>
+                    <ol>
+                        <li>
+                            <label>收货单号:</label>
+                            <input type="text" name="billCode" id="billCode" readonly>
+                        </li>
+                        <li>
+                            <label>来源单据:</label>
+                            <select name="originBill.type" data-local="type" disabled></select>
+                        </li>
+                        <li>
+                            <label>来源单号:</label>
+                            <input type="text" name="originBill.billCode" disabled>
+                        </li>
+                        <li>
+                            <label>制单日期:</label>
+                            <input type="text" name="billDate" disabled>
+                        </li>
+                        <li>
+                            <label>业务编号:</label>
+                            <input type="text" name="customeNo1" disabled/>
+                        </li>
+                        <li>
+                            <label>订单号:</label>
+                            <input type="text" name="customeNo2" disabled/>
+                        </li>
+                        <li>
+                            <label>收货仓库:</label>
+                            <select name="warehouse.id" data-local="sys/kv/warehouse" disabled></select>
+                        </li>
+                        <li>
+                            <label>备注:</label>
+                            <textarea name="remark" style="width:250px;height:150px;" disabled></textarea>
+                        </li>
+                        <li>
+                            <label>单据状态:</label>
+                            <select name="status" data-local="billStatus" disabled></select>
+                        </li>
+                    </ol>
+                </form>
+            </div>
+            <div id="tab_2">
+                <table class="app"></table>
+                <div class="toolBar"></div>
+
+                <form id="location" name="targetLocation" class="input-form ui-widget ui-widget-content">
+                    <ol>
+                        <li>
+                            <label>库区</label>
+                            <select name="sectionCode" data-local="wm/filterSection.do?usageType=003"
+                                    id="targetSection"></select>
+                        </li>
+                        <li>
+                            <label>储位</label>
+                            <select name="locationCode" id="targetLocation"></select>
+                        </li>
+                    </ol>
+                    <div class="toolBar"></div>
+                </form>
+            </div>
+            <div id="tab_3">
+                <table class="app"></table>
+                <div class="toolBar"></div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

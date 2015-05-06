@@ -1,0 +1,91 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <script>
+        $(function () {
+            App.Org = App.Model.extend({
+                urlRoot: 'rest/sys/org/supplier',
+                idAttribute: 'orgCode'
+            });
+
+            App.OrgList = App.Collection.extend({
+                model: App.Org,
+                columns: [
+                    {label: '组织名称', key: 'orgName'},
+                    {label: '组织类型', key: 'orgType', local: 'orgType'},
+                    {label: '外部组织', key: 'outer', local: 'yn'},
+                    {label: '状态', key: 'status', local: 'status'}
+                ]
+            });
+
+            App.OrgTable = App.Grid.extend({
+                form: new App.FormView,
+                collection: new App.OrgList,
+                qel: '.queryBar',
+                toolbar: ['create']
+            });
+
+            new App.OrgTable();
+        });
+    </script>
+</head>
+<body>
+<div id="article">
+    <form class="queryBar">
+        <ul>
+            <li>
+                <label>组织名称：</label>
+                <input type="text" name="moduleName"/>
+            </li>
+            <li>
+                <label>组织代码：</label>
+                <input type="text" name="target"/>
+            </li>
+            <li>
+                <label>状态：</label>
+                <select name="status" data-local="status">
+                    <option value="">所有</option>
+                </select>
+            </li>
+            <li>
+                <label>组织类型：</label>
+                <select name="orgType" data-local="orgType">
+                    <option value="">所有</option>
+                </select>
+            </li>
+            <li>
+                <button class="search"><i></i>查询</button>
+            </li>
+            <li class="toolBar"></li>
+        </ul>
+    </form>
+    <div class="toolBar"></div>
+    <div class="dataGrid">
+        <table class="app"></table>
+    </div>
+    <div class="statusBar"></div>
+</div>
+
+<div class="navPanel">
+    <div class="toolBar"></div>
+    <div class="editorPanel">
+        <form>
+            <ol>
+                <li>
+                    <label>名称:</label>
+                    <input type="text" name="orgName" placeholder="请输入模块名称" required/>
+                </li>
+                <li>
+                    <label>状态:</label>
+                    <select name="status" data-local="status"></select>
+                </li>
+                <li>
+                    <label>说明:</label>
+                    <input type="text" name="remark"/>
+                </li>
+            </ol>
+        </form>
+    </div>
+</div>
+</body>
+</html>

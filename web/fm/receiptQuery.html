@@ -1,0 +1,202 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <script>
+        $(function () {
+            App.Receipt = App.Model.extend({
+                urlRoot: 'rest/bill/receipt',
+                idAttribute: 'billCode',
+                edit: function () {
+                    this.editor.setData(this);
+                    App.detailList.load('rest/bill/details/' + this.get('billCode'));
+                }
+            })
+
+            App.ReceiptList = App.Collection.extend({
+                urlRoot: 'rest/bill/list/receipt',
+                sortCol: 'enterAt',
+                sortDirect: 'desc',
+                model: App.Receipt,
+                columns: [
+                    {label: '单号', key: 'billCode', sort: 'bill_code', thcss: 'width:100px'},
+                    {label: '制单日期', key: 'billDate', thcss: 'width:80px'},
+                    {label: '货主', key: 'originOrg.id', local: 'sys/kv/org', sort: 'org_id'},
+                    {label: '发货组织', key: 'targetOrg.id', local: 'sys/kv/org', sort: 'target_org_id'},
+                    {label: '业务编号', key: 'custom1'},
+                    {label: '订单号', key: 'custom2'},
+                    {label: '收货日期', key: 'realDate', sort: 'real_date', thcss: 'width:80px'},
+                    {label: '仓库', key: 'warehouse.id', local: 'sys/kv/org', thcss: 'width:120px'},
+                    {label: '制单', key: 'purchaser.staffCode', thcss: 'width:80px'},
+                    {label: '状态', key: 'status', local: 'billStatus', thcss: 'width:80px'},
+                ]
+            })
+
+            App.ReceiptFormView = App.FormView.extend({
+                toolbar: [ 'print', 'hide'],
+                print: function () {
+                    $.printPage('rest/bill/print/receipt/' + this.model.id + '.html');
+                }
+            })
+
+            App.ReceiptGrid = App.Grid.extend({
+                collection: new App.ReceiptList,
+                editorView: App.ReceiptFormView,
+                qel: '.queryBar',
+                toolbar: []
+            });
+
+            new App.ReceiptGrid();
+
+            /*
+             * 明细
+             */
+            App.ReceiptDetailList = App.Collection.extend({
+                model: App.Model,
+                autoLoad: false,
+                pageSize: 0,
+                columns: [
+                    {label: '商品编号', key: 'pn', thcss: 'width:120px'},
+                    {label: '商品名称', key: 'name'},
+                    {label: '单位', key: 'goodsUnit.id', local: 'base/kv/uom', thcss: 'width:40px'},
+                    {label: '规格', key: 'goodsUnit.packQuantity', thcss: 'width:40px'},
+                    {label: '批次属性', key: 'lotAttr'},
+                    {label: '通知数量', key: 'planQuantity', thcss: 'width:50px'},
+                    {label: '实收数量', key: 'realQuantity', thcss: 'width:50px'}
+                ]
+            })
+
+            App.detailList = new App.ReceiptDetailList;
+            App.DetailGrid = App.Grid.extend({
+                el: '#tab_2',
+                toolbar: [],
+                collection: App.detailList
+            });
+
+            new App.DetailGrid();
+        });
+    </script>
+</head>
+<body>
+<div id="article">
+    <form class="queryBar">
+        <ul>
+            <li>
+                <label>收货单号:</label>
+                <input type="text" name="billCode"/>
+            </li>
+            <li>
+                <label>状态:</label>
+                <select name="status" data-local="billStatus" data-value="check"></select>
+            </li>
+            <li>
+                <label>业务编号:</label>
+                <input type="text" name="customeNo1"/>
+            </li>
+            <li>
+                <label>订单号:</label>
+                <input type="text" name="customeNo2"/>
+            </li>
+            <li>
+                <label>客户:</label>
+                <select name="supplier" data-local="sys/kv/org">
+                    <option value=""></option>
+                </select>
+                <button class="search"><i></i>查询</button>
+            </li>
+            <li class="toolBar"></li>
+        </ul>
+    </form>
+    <div class="dataGrid">
+        <table class="app"></table>
+    </div>
+    <div class="page"></div>
+</div>
+
+<div class="navPanel">
+    <div class="toolBar"></div>
+    <div class="editorPanel">
+        <div id="tabs">
+            <ul>
+                <li><a href="#tab_1"><span>基本信息</span></a></li>
+                <li><a href="#tab_2"><span>货物明细</span></a></li>
+            </ul>
+            <div id="tab_1">
+                <form>
+                    <fieldset>
+                        <ol>
+                            <li>
+                                <label>收货单号:</label>
+                                <input type="text" name="billCode" id="billCode" readonly>
+                            </li>
+                            <li>
+                                <label>制单日期:</label>
+                                <input type="text" name="billDate" placeholder="制单日期" disabled>
+                            </li>
+                            <li>
+                                <label>收货日期:</label>
+                                <input type="text" name="realDate" placeholder="收货日期" readonly>
+                            </li>
+                            <li>
+                                <label for="custom1">业务编号:</label>
+                                <input type="text" name="custom1" readonly>
+                            </li>
+                            <li>
+                                <label for="custom2">订单号:</label>
+                                <input type="text" name="custom2" readonly>
+                            </li>
+                            <li>
+                                <label>货主:</label>
+                                <select name="originOrg.id" data-local="sys/kv/org" disabled></select>
+                            </li>
+                            <li>
+                                <label>发货组织:</label>
+                                <select name="targetOrg.id" data-local="sys/kv/org" disabled></select>
+                            </li>
+                            <li>
+                                <label>收货仓:</label>
+                                <select name="warehouse.id" data-local="sys/kv/warehouse" disabled></select>
+                            </li>
+                            <li>
+                                <label>备注:</label>
+                                <textarea name="remark" style="width:230px;height:150px;" disabled></textarea>
+                            </li>
+                        </ol>
+                    </fieldset>
+                    <fieldset>
+                        <ol>
+                            <li>
+                                <label>来源单据:</label>
+                                <select name="originBill.type" data-local="type" disabled>
+                                    <option></option>
+                                </select>
+                            </li>
+                            <li>
+                                <label>来源单号:</label>
+                                <input type="text" name="originBill.billCode" readonly>
+                            </li>
+                            <li>
+                                <label for="amount">总金额:</label>
+                                <input type="text" name="amount" readonly class="amount">
+                            </li>
+                            <li>
+                                <label for="cost">其它成本:</label>
+                                <input type="text" name="cost" data-default="0" disabled>
+                            </li>
+
+                            <li>
+                                <label>单据状态:</label>
+                                <select name="status" data-local="billStatus" disabled></select>
+                            </li>
+                        </ol>
+                    </fieldset>
+                </form>
+            </div>
+            <div id="tab_2">
+                <table class="app"></table>
+                <div class="toolBar"></div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

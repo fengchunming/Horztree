@@ -1,0 +1,17 @@
+*{list-style: none; margin:0;padding:0; border:0; font-family:微软雅黑,黑体,tahoma,sans-serif; font-size:13px;}
+.container {line-height:20px; width:750px;  margin:0px auto; page-break-after: always;}
+#pagehead {width:100%; border-bottom:1px solid #888;float:left;}
+#nav {width:100%; margin-top:2px;}
+#productinfo {width:100%;border-bottom:1px solid #888;border-top:1px solid #888;border-collapse: collapse;}
+#productinfo thead{ border-bottom:1px solid #888;}
+#productinfo th{ font-size:12px;}
+.title {float:left;width:70px;clear:both;padding-right:10px;}
+.leftinfo{float:left;}
+.rightinfo{float:right;text-align:right;}
+.number{text-align:right;}
+
+.total {float:right; text-align:right }
+@page {margin:20px;
+    mso-header-margin:0;
+    mso-footer-margin:0;
+}

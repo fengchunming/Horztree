@@ -1,0 +1,108 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <script>
+        $(function () {
+            App.Payment = App.Model.extend({
+                defaults: {
+                    sort: 50,
+                    minLimit: 0,
+                    maxLimit: 0
+                },
+                urlRoot: 'rest/fm/payment'
+            });
+
+            App.Payments = App.Collection.extend({
+                model: App.Payment,
+                columns: [
+                    {label: 'ID', key: 'id', thcss: 'width:25px'},
+                    {label: '名称', key: 'name'},
+                    {label: '编号', key: 'code'},
+                    {label: '费率', key: 'rate'},
+                    {label: '最小额度', key: 'minLimit'},
+                    {label: '最大额度', key: 'maxLimit'},
+                    {label: '状态', key: 'status', local: 'status'}
+                ]
+            });
+
+            App.PaymentGrid = App.Grid.extend({
+                collection: new App.Payments,
+                form: new App.FormView,
+                qel: '.queryBar',
+                toolbar: ['create']
+            });
+
+            new App.PaymentGrid();
+        });
+    </script>
+</head>
+<body>
+<div id="article">
+    <form class="queryBar">
+        <ul>
+            <li><label>名称：</label>
+                <input type="text" name="name"/>
+            </li>
+            <li>
+                <button class="search"><i></i>查询</button>
+            </li>
+            <li class="toolBar"></li>
+        </ul>
+    </form>
+    <div class="dataGrid">
+        <table class="app"></table>
+    </div>
+    <div class="page"></div>
+</div>
+
+<div class="navPanel">
+    <div class="toolBar"></div>
+    <div class="editorPanel">
+        <form>
+            <ol>
+                <li>
+                    <label>名称：</label>
+                    <input type="text" name="name" placeholder="名称" required/>
+                </li>
+                <li>
+                    <label>编码：</label>
+                    <input type="text" name="code" placeholder="代码" required/>
+                </li>
+                <li>
+                    <label>费率:</label>
+                    <input type="number" name="rate" placeholder="支付手续费率" required/>
+                </li>
+                <li>
+                    <label>合作客户编码:</label>
+                    <input type="text" name="partnerNo" placeholder="合作客户编码"/>
+                </li>
+                <li>
+                    <label>密钥:</label>
+                    <input type="text" name="token" placeholder="密钥"/>
+                </li>
+                <li>
+                    <label>简介:</label>
+                    <textarea name="remark" placeholder="支付方式介绍" style="height:50px"></textarea>
+                </li>
+                <li>
+                    <label>最小额度限制:</label>
+                    <input type="number" name="minLimit" placeholder="支付最小额限制"/>
+                </li>
+                <li>
+                    <label>最大额度限制:</label>
+                    <input type="number" name="maxLimit" placeholder="支付最大额限制"/>
+                </li>
+                <li>
+                    <label>排序:</label>
+                    <input type="number" name="sort" placeholder="排序"/>
+                </li>
+                <li>
+                    <label>状态:</label>
+                    <select name="status" data-local="status"></select>
+                </li>
+            </ol>
+        </form>
+    </div>
+</div>
+</body>
+</html>

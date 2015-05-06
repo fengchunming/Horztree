@@ -1,0 +1,72 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <script src="js/lib/jquery.sha1.js"></script>
+    <script src="js/jquery.pstrength-min.1.2.js"></script>
+    <title>修改密码</title>
+    <style>
+        .pstrength-bar, .pstrength-info {
+            margin-left: 109px;
+            font-size: 10px;
+            max-width: 204px
+        }
+
+        #resetPassword ol li {
+            height: 30px;
+        }
+    </style>
+    <script>
+        $(function () {
+            $('.password').pstrength();
+            $('button').button();
+            $("#resetPassword").submit(function () {
+                var params = $(this).serializeObject();
+                if (params.newPasswd != params.rePasswd) {
+                    $.sticky("新密码两次输入不一致");
+                    return false;
+                }
+                params.newPasswd = $.sha1(App.Cache.User.userName + params.newPasswd);
+                params.oldPasswd = $.sha1($.sha1(App.Cache.User.userName + params.oldPasswd) + params.newPasswd);
+                delete params.rePasswd;
+                $.post('rest/sec/passwd', params, function () {
+                    $.sticky('密码修改成功！');
+                });
+                return false;
+            });
+        });
+    </script>
+</head>
+<body>
+<div id="article">
+    <div id="tabs">
+        <ul>
+            <li><a href="#tab_1"><span>账号信息</span></a></li>
+            <li><a href="#tab_2"><span>修改密码</span></a></li>
+        </ul>
+        <div id="tab_1"></div>
+        <div id="tab_2">
+            <form id="resetPassword">
+                <ol>
+                    <li>
+                        <label>原密码:</label>
+                        <input type="password" name="oldPasswd" placeholder="输入用户原密码" required/>
+                    </li>
+                    <li style="height:50px">
+                        <label>新密码:</label>
+                        <input type="password" name="newPasswd" class="password" placeholder="新密码" required/>
+                    </li>
+                    <li>
+                        <label>再输入一次:</label>
+                        <input type="password" name="rePasswd" placeholder="再次输入新密码" required/>
+                    </li>
+                    <li>
+                        <label></label>
+                        <button class="check" data-ope="check" type="submit"><i></i><span>确认</span></button>
+                    </li>
+                </ol>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

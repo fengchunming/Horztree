@@ -1,0 +1,66 @@
+<!DOCTYPE HTML> 
+<html> 
+<head> 
+<script>
+$(function() {
+	App.Stock = App.Model.extend({
+		idAttribute: 'pn'
+	})
+	
+	App.ReportList = App.Collection.extend({
+		urlRoot : 'rest/fi/stockReport',
+		model : App.Stock,
+		columns : [
+			{label:'商品编号',key:'goods_code',sort:'goods_code'},
+			{label:'商品名称',key:'goods_code',local:'mm/kv/goods'},
+			{label:'期初库存',key:'opening_inventory',sort:'opening_inventory'},
+			{label:'本期入库',key:'receipt',sort:'receipt'},
+			{label:'本期出库',key:'issue',sort:'issue'},
+			{label:'废弃',key:'trash',sort:'trash'},
+			{label:'盘点损益',key:'inventory',sort:'inventory'},
+			{label:'本期结余',key:'ending_inventory',sort:'ending_inventory'},
+		]
+	})
+	
+	App.ReportGrid = App.Grid.extend({
+		querybar : '.queryBar',
+		toolbar: [],
+		collection: new App.ReportList
+	});
+	App.reportGrid = new App.ReportGrid;
+	
+	convertLocal();
+
+});
+</script>
+</head>
+<body>
+<div id="article"> 
+	<form class="queryBar" style="width:1000px">
+	    <ul>
+	    	<li>
+				<label>日期范围:</label>
+			    <input type="text" class="datepicker" name="sdate_filter">
+			    <input type="text" class="datepicker" name="edate_filter">
+			</li>
+			<li>
+				<label>商品编号:</label>
+			    <input type="text" name="goods_code">
+			</li>
+			<li>
+			   <label>店铺:</label>
+			   <select name="org_code" data-local="sys/kv/ecstore">
+			  		<option value=""></option>
+			   </select>
+			    <button class="search"><i></i>生成报表</button>
+			</li>
+	    </ul>
+	</form>
+	<div class="toolBar"></div>
+	<div class="dataGrid">
+		<table class="app"><thead></thead><tbody></tbody></table>
+	</div>
+	<div class="statusBar"></div>
+</div>
+</body>
+</html>

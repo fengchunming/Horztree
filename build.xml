@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="activator" basedir="." default="deploy">
+    <property name="tomcat" value="/opt/tomcat"/>
+    <property name="build.dir" value="build"/>
+    <property name="lib.dir" value="web/WEB-INF/lib"/>
+    <property name="src.dir" value="src"/>
+    <property name="web.dir" value="web"/>
+    <property name="deploy.dir" value="/data/sites/horztree/ROOT"/>
+
+    <path id="classpath.build">
+        <fileset dir="${lib.dir}">
+            <include name="*.jar"/>
+        </fileset>
+    </path>
+
+    <target name="init">
+        <delete>
+            <fileset dir="${build.dir}" includes="**/*"/>
+        </delete>
+        <exec executable="git">
+            <arg line="pull"/>
+        </exec>
+        <mkdir dir="${build.dir}"/>
+        <mkdir dir="${build.dir}/classes"/>
+    </target>
+
+    <target name="compile" depends="init">
+        <javac srcdir="${src.dir}" destdir="${build.dir}/classes" fork="yes" includeantruntime="false" classpathref="classpath.build"/>
+        <copy todir="${build.dir}/classes">
+            <fileset dir="${src.dir}" excludes="**/*.java"/>
+        </copy>
+    </target>
+
+    <target name="deploy" depends="compile">
+        <copy todir="${deploy.dir}/WEB-INF/">
+            <fileset dir="${build.dir}">
+                <include name="**/*"/>
+            </fileset>
+        </copy>
+        <copy todir="${deploy.dir}">
+            <fileset dir="${web.dir}">
+                <include name="**/*"/>
+            </fileset>
+        </copy>
+
+        <echo message="restart tomcat"/>
+        <exec dir="${tomcat}/bin/" executable="/bin/sh">
+            <arg line="shutdown.sh"/>
+        </exec>
+        <sleep seconds="5"/>
+        <exec dir="${tomcat}/bin/" executable="/bin/sh">
+            <arg line="startup.sh"/>
+        </exec>
+        <sleep seconds="1"/>
+    </target>
+
+
+    <target name="remote-deploy">
+        <antcall target="copy-file"/>
+        <antcall target="restart-tomcat"/>
+    </target>
+    <target name="copy-file">
+        <scp port="22" trust="true" password="pwd" todir="user@host:/path-to-tomcat/webapps/appname">
+            <fileset dir="appname"/>
+        </scp>
+    </target>
+    <target name="restart-tomcat">
+        <echo message="restart tomcat"/>
+        <sshexec host="host" port="22" trust="true" username="user" password="pwd" verbose="false"
+                 command="/path-to-tomcat/bin/shutdown.sh;sleep 5;/path-to-tomcat/bin/startup.sh"/>
+        <sleep seconds="1"/>
+    </target>
+</project>

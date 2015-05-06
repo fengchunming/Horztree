@@ -1,0 +1,92 @@
+<!DOCTYPE HTML> 
+<html> 
+<head> 
+<script>
+$(function() {
+	App.Tax = App.Model.extend({
+		urlRoot : 'rest/fi/tax',
+		idAttribute: 'taxId'
+	})
+	
+	App.Taxs = App.Collection.extend({
+		urlRoot : 'rest/fi/taxList',
+		model : App.Tax,
+		columns : [
+		   		    {label:'名称',key:'taxName'},
+				    {label:'编号',key:'taxCode'},
+				    {label:'税率',key:'taxRate'},
+				    {label:'税种',key:'taxType',local:'taxType'},
+				    {label:'状态',key:'status',local:'status'}
+				]
+	})
+
+	App.TaxGrid = App.Grid.extend({
+		collection: new App.Taxs,
+		form: new  App.FormView,
+		toolbar : ['create','hide'],
+		sync : function(){
+			$.ajax({
+			    contentType: 'application/json',
+			    dataType: 'json',
+			    type: 'POST',
+			    url: 'rest/fi/sendTaxs'
+			});
+		}
+	});
+	
+	new App.TaxGrid();
+});
+</script>
+</head>
+<body>
+<div id="article">
+	
+	<div class="toolBar">
+		
+		
+	</div>
+	<div class="dataGrid">
+		<table class="app"><thead></thead><tbody></tbody></table>
+	</div>
+	<div class="statusBar"></div>
+</div>
+
+<div class="navPanel">
+	<div class="toolBar">
+		
+		
+	</div>
+	<div class="editorPanel">
+	<form id="taxEditForm" method="post">
+		<ol>
+			<li>
+				<label>税项名:</label>
+			    <input type="text" name="taxName" required placeholder=""/>
+			</li>
+			<li>
+				<label>编号:</label>
+			    <input type="text" name="taxCode" required placeholder=""/>
+			</li>
+			<li>
+				<label>税率:</label>
+			    <input type="text" name="taxRate"  placeholder="" required/>
+			</li>
+			<li>
+				<label>税种:</label>
+			   <select name="taxType" data-local="taxType"></select>
+			</li>
+			<li>
+				<label>状态:</label>
+			    <select name="status" data-local="status"></select>
+			</li>
+			<li>
+				<label>备注:</label>
+			    <input type="text" name="remark"/>
+			    <input type="hidden" name="taxId" data-default="0"/>
+			</li>
+		</ol>
+	</form>
+	</div>
+</div>
+</body>
+</html>

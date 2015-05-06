@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="CMS.CentrefoldMapper">
+    <resultMap id="BaseResultMap" type="com.an.cms.entity.Centrefold">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="position" property="position" jdbcType="VARCHAR"/>
+        <result column="name" property="name" jdbcType="VARCHAR"/>
+        <result column="type" property="type" jdbcType="VARCHAR"/>
+        <result column="content" property="content" jdbcType="VARCHAR"/>
+        <result column="enter_by" property="enterBy" jdbcType="INTEGER"/>
+        <result column="status" property="status" jdbcType="VARCHAR"/>
+        <result column="groups" property="groups" typeHandler="com.an.core.mybatis.handlers.JsonTypeHandler"/>
+        <result column="enter_at" property="enterAt" jdbcType="TIMESTAMP"/>
+    </resultMap>
+    <sql id="Example_Where_Clause">
+        <where>
+            status != 'd'
+            <if test="type != null and type != ''">and type = #{type,jdbcType=VARCHAR}</if>
+            <if test="position != null and position != ''">and position = #{position,jdbcType=VARHCAR}</if>
+        </where>
+    </sql>
+
+    <sql id="Base_Column_List">
+        id, position, name, content, groups, enter_by, status, type, enter_at
+    </sql>
+    
+    <select id="selectByExample" resultMap="BaseResultMap" parameterType="map">
+        select
+        <include refid="Base_Column_List"/>
+        from CMS_CENTREFOLD
+        <include refid="Example_Where_Clause"/>
+    </select>
+    
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long">
+        select
+        <include refid="Base_Column_List"/>
+        from CMS_CENTREFOLD
+        where id = #{id,jdbcType=INTEGER}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        update CMS_CENTREFOLD
+        set status = 'd',enter_at = now()
+        where id = #{id,jdbcType=INTEGER}
+    </delete>
+
+    <insert id="insert" parameterType="com.an.cms.entity.Centrefold">
+        insert into CMS_CENTREFOLD (position, name, type, groups,
+        content, enter_by, enter_at, status )
+        values
+        (
+        #{position,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR},#{type,jdbcType=VARCHAR},
+        #{groups,typeHandler=com.an.core.mybatis.handlers.JsonTypeHandler},
+        #{content,jdbcType=VARCHAR}, #userId, now(), #{status,jdbcType=VARCHAR}
+        )
+        <selectKey resultType="java.lang.Integer" keyProperty="id">
+            SELECT @@IDENTITY AS id
+        </selectKey>
+    </insert>
+
+    <select id="countByExample" parameterType="map" resultType="java.lang.Integer">
+        select count(*) from CMS_CENTREFOLD
+        <include refid="Example_Where_Clause"/>
+    </select>
+
+    <update id="updateByPrimaryKey" parameterType="com.an.cms.entity.Centrefold">
+        update CMS_CENTREFOLD
+        set position = #{position,jdbcType=VARCHAR},
+        name = #{name,jdbcType=VARCHAR},
+        type = #{type,jdbcType=VARCHAR},
+        content = #{content,jdbcType=VARCHAR},
+        enter_by = #userId,
+        groups = #{groups,typeHandler=com.an.core.mybatis.handlers.JsonTypeHandler},
+        status = #{status,jdbcType=VARCHAR},
+        enter_by = #{enterBy,jdbcType=INTEGER},
+        enter_at = now()
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+</mapper>

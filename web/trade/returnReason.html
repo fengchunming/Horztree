@@ -1,0 +1,71 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <script>
+        $(function () {
+            App.ReturnReason = App.Model.extend({
+                urlRoot: 'rest/trade/returnReason',
+                idAttribute: 'id'
+            });
+
+            App.ReturnReasons = App.Collection.extend({
+                model: App.ReturnReason,
+                columns: [
+                    {label: '原因', key: 'reason'},
+                    {label: '状态', key: 'status', local: 'status',thcss:'width:100px'}
+                ]
+            });
+
+            App.ReturnReasonGrid = App.Grid.extend({
+                collection: new App.ReturnReasons,
+                form: new App.FormView,
+                toolbar: ['create']
+            });
+
+            new App.ReturnReasonGrid();
+        });
+    </script>
+</head>
+<body>
+<div id="article">
+    <form class="queryBar">
+        <ul>
+            <li>
+                <label>分类：</label>
+                <select name="cate" style="width:203px;"></select>
+            </li>
+            <li>
+                <button class="search"><i></i>查询</button>
+            </li>
+            <li class="toolBar"></li>
+        </ul>
+    </form>
+    <div class="dataGrid">
+        <table class="app"></table>
+    </div>
+    <div class="page"></div>
+</div>
+
+<div class="navPanel">
+    <div class="toolBar"></div>
+    <div class="editorPanel">
+        <form>
+            <ol>
+                <li>
+                    <label>分类:</label>
+                    <select name="cate"></select>
+                </li>
+                <li>
+                    <label>原因:</label>
+                    <textarea name="reason" placeholder="原因简述" style="width:330px;height:120px;"></textarea>
+                </li>
+                <li>
+                    <label>状态:</label>
+                    <select name="status" data-local="status"></select>
+                </li>
+            </ol>
+        </form>
+    </div>
+</div>
+</body>
+</html>

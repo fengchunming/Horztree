@@ -1,0 +1,99 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <script>
+        $(function () {
+            App.Region = App.Model.extend({
+                urlRoot: 'rest/base/region',
+                idAttribute: 'id',
+                defaults: { sort: 50 },
+                edit: function () {
+                    $('#path').stepSelection('load', this.id);
+                }
+            });
+
+            App.RegionList = App.Collection.extend({
+                type: 'tree',
+                model: App.Region,
+                pageSize: 0,
+                columns: [
+                    {label: '区域', key: 'name'},
+                    {label: '网点', key: 'group', local:'sys/kv/group'}
+                ]
+            });
+
+            App.RegionTable = App.Grid.extend({
+                qel: '.queryBar',
+                form: new App.FormView,
+                collection: new App.RegionList,
+                toolbar: ['create']
+            });
+
+            new App.RegionTable();
+
+            $('#path').stepSelection({
+                urlRoot: 'rest/base/region/list',
+                callback: function (id) {
+                    $('#parent').val(id);
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+<div id="article">
+    <form class="queryBar">
+        <ul>
+            <li>
+                <label>地区名称：</label>
+                <input type="text" name="name"/>
+            </li>
+            <li>
+                <button class="search"><i></i>查询</button>
+            </li>
+            <li class="toolBar"></li>
+        </ul>
+    </form>
+    <div class="dataGrid">
+        <table class="app"></table>
+    </div>
+    <div class="page"></div>
+</div>
+
+<div class="navPanel">
+    <div class="toolBar"></div>
+    <div class="editorPanel">
+        <form>
+            <ol>
+                <li>
+                    <label>名称:</label>
+                    <input type="text" name="name" placeholder="名称" required/>
+                </li>
+
+                <li>
+                    <label>网点:</label>
+                    <select name="group" data-local="sys/kv/group"><option value="">不指定</option></select>
+                </li>
+                <li>
+                    <label>邮编:</label>
+                    <input type="text" name="zip"/>
+                </li>
+                <li style="height:30px;">
+                    <label>上级节点:</label>
+                    <input type="text" name="parent" id="parent" style="display:none"/>
+                    <input type="text" name="path" id="path" style="display:none"/>
+                </li>
+                <li>
+                    <label>排序:</label>
+                    <input type="number" name="sort" required max="99" min="0"/>
+                </li>
+                <li>
+                    <label>状态:</label>
+                    <select name="status" data-local="status"></select>
+                </li>
+            </ol>
+        </form>
+    </div>
+</div>
+</body>
+</html>

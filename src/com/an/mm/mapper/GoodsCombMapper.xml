@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="MM.GoodsCombMapper">
+    <resultMap id="BaseResultMap" type="com.an.mm.entity.Goods">
+        <id column="goods_id" property="goodsId" jdbcType="BIGINT"/>
+        <result column="goods_code" property="pn" jdbcType="VARCHAR"/>
+        <result column="description" property="description" jdbcType="VARCHAR"/>
+        <result column="goods_barcode" property="barcode" jdbcType="VARCHAR"/>
+        <result column="goods_name" property="name" jdbcType="VARCHAR"/>
+        <result column="goods_type" property="goodsType" jdbcType="CHAR"/>
+        <result column="title" property="title" jdbcType="VARCHAR"/>
+        <result column="tips" property="tips" jdbcType="VARCHAR"/>
+        <result column="images" property="images" typeHandler="com.an.core.mybatis.handlers.JsonTypeHandler"/>
+        <result column="category" property="category" typeHandler="com.an.core.mybatis.handlers.JsonTypeHandler"/>
+        <result column="shelf_life" property="shelfLife" jdbcType="INTEGER"/>
+        <result column="brand" property="brand" jdbcType="INTEGER"/>
+        <result column="unit" property="unit" jdbcType="VARCHAR"/>
+        <result column="sale_price" property="salePrice" jdbcType="NUMERIC"/>
+        <result column="stand_price" property="standPrice" jdbcType="NUMERIC"/>
+        <result column="market_price" property="marketPrice" jdbcType="NUMERIC"/>
+        <result column="status" property="status" jdbcType="VARCHAR"/>
+        <result column="weight" property="weight" jdbcType="NUMERIC"/>
+        <result column="org_code" property="belongTo.orgCode" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <resultMap id="ItemResultMap" type="com.an.wm.entity.Item">
+        <id column="id" property="itemId" jdbcType="INTEGER"/>
+        <result column="goods_id" property="goodsId" jdbcType="INTEGER"/>
+        <result column="pn" property="pn" jdbcType="VARCHAR"/>
+        <result column="name" property="name" jdbcType="VARCHAR"/>
+        <result column="quantity" property="realQuantity" jdbcType="NUMERIC"/>
+        <result column="adjust_quantity" property="adjustQuantity" jdbcType="NUMERIC"/>
+    </resultMap>
+
+    <sql id="Example_Where_Clause">
+        <where>
+            status != 'd'
+            <if test="_SH != null and _SH !=''">
+                and ( goods_code like concat('%',#{_SH},'%')
+                or goods_name like concat('%',#{_SH},'%') )
+            </if>
+            <if test="brand != null and brand !=''">
+                and brand = #{brand}
+            </if>
+            <if test="pn != null and pn !=''">
+                and goods_code like concat('%', #{pn}, '%')
+            </if>
+            <if test="barcode != null and barcode !=''">
+                and goods_barcode like concat('%', #{barcode}, '%')
+            </if>
+            <if test="name != null and name !=''">
+                and goods_name like concat('%', #{name}, '%')
+            </if>
+            <if test="status != null and status !=''">
+                and status = #{status}
+            </if>
+            <if test="category != null and category !=''">
+                and exists (select 1 from MM_CATEGORY_GOODS where MM_GOODS.goods_id = MM_CATEGORY_GOODS.goods_id and
+                category_id = #{category})
+            </if>
+        </where>
+    </sql>
+
+    <select id="selectLinkGoods" resultMap="BaseResultMap" parameterType="map">
+        select
+        a.goods_id, a.goods_code
+        from MM_GOODS a left join MM_GOODS_COMB b on a.goods_id = b.goods_id
+        where (a.goods_code = #{goodsCode} or b.item_id = #{itemId})
+        and exists (select 1 from MM_GOODS_GROUPS
+            where MM_GOODS_GROUPS.goods_id = a.goods_id and MM_GOODS_GROUPS.group_id = #{groupId} )
+    </select>
+
+    <select id="selectLinkItem" resultMap="ItemResultMap" parameterType="map">
+        select
+        a.id, b.goods_id, a.pn, a.name, a.quantity, b.quantity adjust_quantity
+        from WM_INVENTORY a left join MM_GOODS_COMB b
+        on  b.item_id = a.id
+        where (b.goods_id = #{goodsId}) and a.warehouse = #{groupId};
+    </select>
+
+    <select id="selectItems" resultMap="ItemResultMap" parameterType="map">
+        <if test="goodsId != null and goodsId !=''">
+            select
+            a.id, a.goods_id, a.pn, a.name, b.quantity
+            from WM_ITEM a, MM_GOODS_COMB b
+            where b.item_id = a.id
+            and b.goods_id = #{goodsId}
+        </if>
+        <if test="goodsCode != null and goodsCode !=''">
+            select
+            id, goods_id, pn, name, 1 as quantity
+            from WM_ITEM
+            where pn = #{goodsCode}
+        </if>
+    </select>
+
+    <select id="selectDirectItems" resultMap="ItemResultMap" parameterType="map">
+        select
+        a.id, a.goods_id, a.pn, a.name, b.quantity
+        from WM_ITEM a left join MM_GOODS_COMB b
+        on b.item_id = a.id
+        where ifnull(b.goods_id,#{goodsId}) = #{goodsId}
+        and pn = #{goodsCode}
+    </select>
+
+    <select id="selectByExample" resultMap="BaseResultMap" parameterType="map">
+        select
+        a.goods_id, a.goods_code, a.goods_barcode, a.goods_name,IFNULL(b.goods_id,concat('_',c.pn)) tips,a.category
+        from MM_GOODS a left join MM_GOODS_COMB b on a.goods_id = b.goods_id
+        left join WM_ITEM c on a.goods_code = c.pn
+        where a.status = 't'
+        <if test="status != null and status == 'undefined'">and b.goods_id is null and c.pn is null</if>
+        <if test="status != null and status == 'comb'">and b.goods_id is not null</if>
+        <if test="pn != null and pn !=''">
+            and (a.goods_code like concat('%', #{pn}, '%')
+            or a.goods_name like concat('%', #{pn}, '%'))
+        </if>
+        <if test="category != null and category !=''">
+            and exists (select 1 from MM_CATEGORY_GOODS where a.goods_id = MM_CATEGORY_GOODS.goods_id and category_id =
+            #{category})
+        </if>
+        <if test="_BY != null">order by ${_BY}</if>
+    </select>
+
+    <select id="countByExample" resultType="int" parameterType="map">
+        select count(1)
+        from MM_GOODS a left join MM_GOODS_COMB b on a.goods_id = b.goods_id
+        left join WM_ITEM c on a.goods_code = c.pn
+        where a.status = 't'
+        <if test="status != null and status == 'undefined'">and b.goods_id is null and c.pn is null</if>
+        <if test="status != null and status == 'comb'">and b.goods_id is not null</if>
+        <if test="pn != null and pn !=''">
+            and (a.goods_code like concat('%', #{pn}, '%')
+            or a.goods_name like concat('%', #{pn}, '%'))
+        </if>
+        <if test="category != null and category !=''">
+            and exists (select 1 from MM_CATEGORY_GOODS where a.goods_id = MM_CATEGORY_GOODS.goods_id and category_id =
+            #{category})
+        </if>
+    </select>
+
+    <insert id="insertItem" parameterType="com.an.wm.entity.Item">
+        insert into MM_GOODS_COMB (goods_id,item_id,quantity,enter_by)
+        values ( #{goodsId}, #{itemId}, #{realQuantity}, #userId )
+    </insert>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+        delete from MM_GOODS_COMB where goods_id = #{value}
+    </delete>
+
+</mapper>

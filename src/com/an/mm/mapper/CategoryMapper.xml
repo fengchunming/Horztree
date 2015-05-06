@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="MM.CategoryMapper">
+    <resultMap id="BaseResultMap" type="com.an.base.entity.Category">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="code" property="code" jdbcType="VARCHAR"/>
+        <result column="name" property="name" jdbcType="VARCHAR"/>
+        <result column="short_name" property="shortName" jdbcType="VARCHAR"/>
+        <result column="remark" property="remark" jdbcType="VARCHAR"/>
+        <result column="status" property="status" jdbcType="VARCHAR"/>
+        <result column="parent" property="parent" jdbcType="INTEGER"/>
+        <result column="step" property="step" jdbcType="INTEGER"/>
+        <result column="path" property="path" jdbcType="VARCHAR"/>
+        <result column="depth" property="depth" jdbcType="VARCHAR"/>
+        <result column="is_leaf" property="isLeaf" jdbcType="CHAR"/>
+        <result column="sort" property="sort" jdbcType="INTEGER"/>
+        <result column="barcode" property="barcode" jdbcType="VARCHAR"/>
+    </resultMap>
+
+    <sql id="Base_Where_Clause">
+        <where>
+            status != 'd'
+            <if test="code != null and code != ''">
+                and code like concat('%',#{code},'%')
+            </if>
+            <if test="name != null and name != ''">
+                and name like concat('%',#{name},'%')
+            </if>
+            <if test="parent != null ">and parent = #{parent, jdbcType=INTEGER}</if>
+            <if test="step != null and step > 0 ">and step = #{step}</if>
+        </where>
+    </sql>
+
+    <sql id="Base_Column_List">
+        id, code, name, short_name, remark, status, parent, path,
+        step, depth, is_leaf, sort, enter_dt, barcode, enter_by
+    </sql>
+
+    <select id="selectByExample" parameterType="java.util.Map" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from MM_CATEGORY
+        <include refid="Base_Where_Clause"/>
+        order by depth
+    </select>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from MM_CATEGORY
+        where id = #{id,jdbcType=INTEGER}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+        update MM_CATEGORY
+        set status = 'd', enter_dt = now()
+        where id = #{id,jdbcType=INTEGER}
+    </delete>
+
+    <insert id="insert" parameterType="com.an.base.entity.Category">
+        insert into MM_CATEGORY (code, name, path,
+        short_name, remark, status, parent, step, depth,
+        is_leaf, sort, enter_dt, barcode )
+        values (#{code,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, #{path,jdbcType=VARCHAR},
+        #{shortName,jdbcType=VARCHAR}, #{remark,jdbcType=VARCHAR}, #{status,jdbcType=VARCHAR},
+        #{parent,jdbcType=INTEGER}, #{step,jdbcType=INTEGER}, #{depth,jdbcType=VARCHAR},
+        #{isLeaf,jdbcType=CHAR}, #{sort,jdbcType=INTEGER},
+        now(), #{barcode,jdbcType=VARCHAR})
+        <selectKey resultType="java.lang.Integer" keyProperty="id">
+            SELECT @@IDENTITY AS id
+        </selectKey>
+    </insert>
+
+    <select id="countByExample" parameterType="java.util.Map" resultType="java.lang.Integer">
+        select count(1) from MM_CATEGORY
+        <include refid="Base_Where_Clause"/>
+    </select>
+
+    <update id="updateByPrimaryKey" parameterType="com.an.base.entity.Category">
+        update MM_CATEGORY
+        set name = #{name,jdbcType=VARCHAR},
+        short_name = #{shortName,jdbcType=VARCHAR},
+        remark = #{remark,jdbcType=VARCHAR},
+        status = #{status,jdbcType=VARCHAR},
+        parent = #{parent,jdbcType=INTEGER},
+        path =  #{path,jdbcType=VARCHAR},
+        step = #{step,jdbcType=INTEGER},
+        depth = #{depth,jdbcType=VARCHAR},
+        is_leaf = #{isLeaf,jdbcType=CHAR},
+        sort = #{sort,jdbcType=INTEGER},
+        enter_dt = now(),
+        barcode = #{barcode,jdbcType=VARCHAR}
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+
+    <select id="selectKV" resultType="java.util.HashMap">
+        select id as k, name as v, step from MM_CATEGORY
+        where status = 't'
+        <if test="step != null and step != ''">and step = #{step} </if>
+        <if test="isLeaf != null and isLeaf != ''">and is_leaf = #{isLeaf}</if>
+        order by depth
+    </select>
+
+
+    <update id="updateLeaf">
+        update MM_CATEGORY
+        set path = concat(#{path},#{id},','), step = #{step} + 1,
+        depth = concat(#{depth}, LPAD(#{sort}, 4, 0), LPAD(id, 4, 0))
+        where parent = #{id}
+    </update>
+
+</mapper>

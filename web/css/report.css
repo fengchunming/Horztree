@@ -1,0 +1,96 @@
+body{
+	margin:8px; font-size:14px;
+}
+
+ol,ul,li,dl,dd,dt {
+	list-style: none;
+	margin: 0;
+	padding: 0;
+}
+
+header {
+	width:100%; position:relative; height:50px;
+}
+
+div.title{
+	position:absolute; margin-top:0px; margin-left:0px; width:400px;
+}
+
+div.title h1{
+	font-size:24px; padding:0; margin:0
+}
+
+div.title span{
+	font-size:15px; padding:0; margin:0
+}
+
+div.billCode{
+	float:right;width:300px; text-align:right;
+}
+
+div.billCode img{
+	
+}
+
+div.printTime{
+	clear:right; float:right; width:300px; text-align:right; font-size:12px;
+}
+
+nav{
+	clear:both; width:100%; float:left;
+}
+
+nav ol{
+	float:left; width:44%;
+}
+
+nav ol li{
+	padding:1px; clear:both;
+}
+
+nav ol li label{
+	display:block;min-width:100px;text-align:right;
+	white-space:nowrap; float:left; padding-right:5px;
+	word-spacing:0px;
+}
+
+.let4{
+	word-spacing:6px;
+}
+.let3{
+	word-spacing:18px;
+}
+.let2{
+}
+
+article{
+	float:left; clear:both; width:100%; margin-top:15px;
+}
+
+article table{
+	width:100%; border-collapse: collapse; border-top:1px solid #000; border-bottom:1px solid #000;
+}
+
+article table tr{
+	border-bottom: 1px solid #888;
+}
+
+article table thead{
+	text-align:left; border-bottom: 1px solid #000;
+}
+
+article table tbody{
+	
+}
+
+article table tfoot{
+	
+}
+
+footer{
+	clear:both; margin-top:15px; float:left; width:100%;
+}
+
+footer div{
+	float:right; width:300px;
+}

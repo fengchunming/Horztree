@@ -1,0 +1,294 @@
+<!DOCTYPE HTML> 
+<html> 
+<head> 
+<title>快递对账</title> 
+<script>
+$(function() {
+	App.RowView = App.Row.extend({
+		listen : function(){
+			var model = this.model;
+			$('td[name=weight]',this.$el).focusout(function(){
+				if($(this).text() == '' || isNaN($(this).text()) ){
+					$(this).text(model.get('weight'));
+				}else{
+					model.set('weight',  parseFloat($(this).text()));
+				}
+			});
+			
+			$('td[name=shipCode],td[name=region]',this.$el).focusout(function(){
+				model.set($(this).attr('name'), $(this).text());
+			});
+		}
+	})
+	
+	App.Audit = App.Model.extend({
+		urlRoot : 'rest/fi/shipAudit',
+		idAttribute: 'id',
+		rowView : App.RowView,
+		edit : function(){},
+		locked : function(){
+			return this.get('status') == 'check';
+		}
+	})
+	
+	App.AuditList = App.Collection.extend({
+		urlRoot : 'rest/fi/shipAuditList',
+		model : App.Audit,
+		pageSize : 50,
+		columns : [
+			{label:'',key:'id', type:'checkbox', style:'width:22px'},
+			{label:'销售组织',key:'orgCode', local:'sys/kv/ecstore',sort:'org_code'},
+	        {label:'总金额',key:'amount'},
+	        {label:'真彩',key:'audit2',sort:'audit2'},
+	        {label:'佰宜',key:'audit3',sort:'audit3'},
+	        {label:'运费',key:'shipFee',sort:'ship_fee'},
+	        {label:'比例',key:'audit1',sort:'audit1'},
+	        {label:'顾客已付',key:'hadPaid'},
+		    {label:'实际重量',key:'weight', sort:'weight',editable:true},
+		    {label:'比例',key:'audit4',sort:'audit4'},
+	        {label:'报价',key:'dustFee'},
+		    {label:'物流',key:'shipment', sort:'shipment', local:'shipment'},
+		    {label:'运单号',key:'shipCode', sort:'ship_code',editable:true},
+		    {label:'发货日期',key:'shipDate' , sort:'ship_date'},
+		    {label:'地区',key:'region' , sort: 'region',editable:true},
+		    {label:'状态',key:'status',local:'billStatus',sort:'status'},
+		    {label:'订单号',key:'billCode',sort: 'bill_code',style:'width:200px'}
+		]
+	})
+	
+	App.auditList = new App.AuditList;
+	
+	App.AuditGrid = App.Grid.extend({
+		collection: App.auditList,
+		toolbar : ['save','trash','check', {'inport':'导入导出'}],
+		querybar : '.queryBar',
+		inport : function(){
+			App.importForm.show();
+		},
+		check : function(){
+			if(confirm('是否确认选中记录对账无误？')){
+				var ts = this;
+				$.ajax({
+					contentType: 'application/json',
+				    dataType: 'json',
+				    type: 'POST',
+				    data : JSON.stringify(ts.selectIds()),
+				    precessData : false,
+				    url: 'rest/fi/checkShipAudit',
+				    success : function(data){
+				    	App.auditList.load();
+				    }
+				});
+			}
+		},
+		save : function(){
+			$.ajax({
+			    contentType: 'application/json',
+			    dataType: 'json',
+			    data : JSON.stringify(this.collection.toJSON()),
+			    type: 'POST',
+			    precessData : false,
+			    url: 'rest/fi/saveShipAudit',
+			    success : function(data){
+			    	App.auditList.load();
+			    }
+			});
+		},
+		trash : function(){
+			if(confirm('确认删除所选记录？')){
+				var ts = this;
+				$.ajax({
+					contentType: 'application/json',
+				    dataType: 'json',
+				    type: 'POST',
+				    data : JSON.stringify(ts.selectIds()),
+				    precessData : false,
+				    url: 'rest/fi/trashShipAudit',
+				    success : function(data){
+				    	App.auditList.load();
+				    }
+				});
+			}
+		}
+	});
+
+	App.auditGrid = new App.AuditGrid;
+	
+	App.ImportForm = App.FormView.extend({
+		el : '#importForm',
+		toolbar : ['hide']
+	})
+	App.importForm = new App.ImportForm;
+	
+	App.ResultList = App.Collection.extend({
+		columns : [
+			{label:'文件名',key:'filename'},
+		    {label:'导入结果',key:'exception'}
+		]
+	})
+	
+	App.ResultGrid = App.Grid.extend({
+		el : '#tab_1',
+		toolbar : [],
+		collection: new App.ResultList,
+		trash : function(){
+			this.collection.reset();
+			this.$el.find('tbody').empty();
+		}
+	});
+	
+	App.resultGrid = new App.ResultGrid;
+	
+	$("#dataImport").html5Uploader({
+		name: "goods",
+		postUrl: "rest/fi/shipAuditImport",
+		onClientLoadStart : function(){
+			$.startLoading();
+		},
+		onSuccess : function(e, file, response){
+			$.stopLoading();
+			var item = {};
+			item.exception = response;
+			item.filename = file.name;
+			App.resultGrid.append(item);
+		},
+		onError : function(e, file, response){
+			$.stopLoading();
+			var item = JSON.parse(response);
+			item.filename = file.name;
+			App.resultGrid.append(item);
+		}
+	});
+	
+    $('#export').submit(function(){
+    	$('#headers').val(JSON.stringify($('form.headers').serializeObject()));
+    	$('#params').val(JSON.stringify($('form.queryPanel').serializeObject()));
+    });
+    
+    $('#exportCheckAll').click(function(){
+    	$('form.headers').find('input').prop('checked', $(this).prop('checked'));
+    })
+})
+</script>
+</head>
+<body>
+<div id="article">
+	<form class="queryBar queryPanel" style="width:900px">
+    <ul>
+       	<li>
+	        <label>运单号：</label>
+	        <input type="text" name="shipCode"/>
+        </li>
+       	<li>
+	        <label>状态：</label>
+	        <select name="status" data-local="billStatus"><option></option></select>
+        </li>
+    	<li>
+	        <label>交易日期：</label>
+	       	<input type="text" name="tsdate" class="datepicker"/>
+	       	<input type="text" class="datepicker" name="tedate"/>
+	       	<button class="search"><i></i>查询</button>
+       	</li>
+       	<li>
+	        <label>订单单号：</label>
+	       	<input type="text" name="billCode"/>
+       	</li>
+       	<li>
+	        <label>销售组织：</label>
+	        <select name="orgCode" data-local="sys/kv/ecstore"><option></option></select>
+        </li>
+        <li>
+	        <label>发货日期：</label>
+	       	<input type="text" name="fsdate" class="datepicker"/>
+	       	<input type="text" class="datepicker" name="fedate"/>
+       	</li>
+	</ul>
+	</form>
+	<div class="toolBar"></div>
+	<div class="dataGrid">
+		<table class="app"><thead></thead><tbody></tbody></table>
+	</div>
+	<div class="statusBar"></div>
+</div>
+	
+<div class="navPanel" id="importForm">
+	<div class="toolBar"></div>
+	<div class="editorPanel">
+	<div id="tabs">
+	    <ul>
+	        <li><a href="#tab_1"><span>导入</span></a></li>
+	        <li><a href="#tab_2"><span>导出</span></a></li>
+	    </ul>
+		<div id="tab_1">
+		    <form id="dataImport">
+				<span>
+					<input type="file" name="goodsFile">
+					<button type="submit" class="inport"><i></i>确认导入</button>
+				</span>
+				<span>
+				导入模板下载：<a href="/resource/goods-schema.xlsx">[点击下载]</a>
+				</span>
+			</form>
+				
+			<table class="app">
+				<thead></thead>
+			     <tbody></tbody>
+			 </table>
+		</div>
+		<div id="tab_2">
+		    <form class="headers">
+		    <ul><li>
+		        <label><input type="checkbox" id="exportCheckAll"> 全选</label>
+		        </li>
+		        <li>
+		        <label><input type="checkbox" name="billCode" value="订单号"> 订单号</label>
+		        </li>
+		        <li>
+		        <label><input type="checkbox" name="shipCode" value="运单号"> 运单号</label>
+		        </li>
+		        <li>
+		        <label><input type="checkbox" name="billDate" value="订单日期"> 订单日期</label>
+		        </li>
+		        <li>
+		        <label> <input type="checkbox" name="shipment" value="配送方式"> 配送方式</label>
+		        </li>
+		        <li>
+		        <label><input type="checkbox" name="amount" value="总金额"> 总金额</label>
+		         </li>
+		         <li>
+		         <label><input type="checkbox" name="orgCode" value="组织编号"> 组织编号</label>
+		        </li>
+		        <li>
+		        <label><input type="checkbox" name="shipFee" value="运费"> 运费</label>
+		        </li>
+		        <li>
+		        <label><input type="checkbox" name="audit2" value="真彩运费"> 真彩运费</label>
+		        </li>
+<li>
+		        <label><input type="checkbox" name="audit3" value="佰宜运费"> 佰宜运费</label>
+		        </li>
+		        <li>
+		        <label><input type="checkbox" name="hadPaid" value="顾客已付"> 已付运费</label>
+		        </li>
+		        <li>
+		        <label><input type="checkbox" name="weight" value="重量"> 重量</label>
+		         </li>
+		     	<li>
+		        <label> <input type="checkbox" name="region" value="地区"> 地区</label>
+		        </li>
+		     	<li>
+		        <label><input type="checkbox" name="remark" value="备注"> 备注</label>
+		        </li>
+		       </ul>
+		   </form>
+		   <form id="export" action="rest/fi/shipAuditExport" method="post">
+		         <button type="submit" class="export"><i></i>导出</button>
+		         <input type="hidden" name="headers" id="headers">
+		         <input type="hidden" name="params" id="params">
+			</form>
+	 	</div>
+	 </div>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,267 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <script>
+        $(function () {
+            App.Picking = App.Model.extend({
+                urlRoot: 'rest/wm/picking',
+                idAttribute: 'billCode',
+                edit: function () {
+                    this.fetch();
+                    this.formView.setData(this);
+                    App.details.url = 'rest/wm/pickingDetailList/' + this.get('billCode');
+                    App.details.fetch();
+                    if (this.get('status') == 'check') {
+                        $('button[data-ope=trash],button[data-ope=save],button[data-ope=check],#tab_2 div.ui-buttonset').hide();
+                    } else {
+                        $('button[data-ope=trash],button[data-ope=save],button[data-ope=check],#tab_2 div.ui-buttonset').show();
+                    }
+                },
+                success: function (model, response) {
+                    model.set(response);
+                    App.pickingDetailGrid.save();
+                }
+            })
+            App.PickingList = App.Collection.extend({
+                urlRoot: 'rest/wm/pickingList',
+                model: App.Picking
+            })
+
+            App.PickingForm = App.FormView.extend({
+                toolbar: [
+                    {'check': '确认发货'},
+                    'print',
+                    'new',
+                    'trash',
+                    'save',
+                    'hide'
+                ],
+                check: function () {
+                    if (confirm('是否确认该单据无误！')) {
+                        $.ajax({
+                            contentType: 'application/json',
+                            dataType: 'json',
+                            type: 'POST',
+                            url: 'rest/wm/checkPickingBill/' + $("#billCode").val(),
+                            success: function (data) {
+                                $.sticky('出库操作成功！');
+                            }
+                        });
+                    }
+                },
+                print: function () {
+                    $.printPage('rest/wm/pickingReport/' + this.model.id + '.html');
+                }
+            })
+
+            App.PickingListView = App.Grid.extend({
+                collection: new App.PickingList,
+                formView: App.PickingForm,
+                toolbar: ['search', 'gear', 'new'],
+                columns: [
+                    {label: '配货单号', key: 'billCode', sort: 'bill_code'},
+                    {label: '货主', key: 'target.orgCode', local: 'sys/kv/org'},
+                    {label: '发货日期', key: 'planDate', sort: 'plan_date'},
+                    {label: '状态', key: 'status', local: 'billStatus', sort: 'status'}
+                ]
+            });
+
+            new App.PickingListView;
+            $('#tabs').tabs();
+
+            /*
+             * 明细
+             */
+            App.Detail = App.Model.extend({
+                urlRoot: 'rest/wm/pickingDetail',
+                idAttribute: 'id'
+            })
+
+            App.DetailList = App.Collection.extend({
+                model: App.Detail
+            })
+
+            App.details = new App.DetailList();
+
+            App.PickingRowView = App.RowView.extend({
+                initialize: function () {
+                    this.model.bind('change', this.render, this);
+                    this.model.bind('change', this.edit, this);
+                    this.model.bind('destroy', this.remove, this);
+                    this.render();
+                },
+                edit: function () {
+                    var view = this;
+                    $('td[name=pn]', this.$el).autocomplete('rest/mm/goodsAutocomplete', {
+                        noresultsmsg: '无匹配数据',
+                        mustMatch: true,
+                        matchContains: true,
+                        formatItem: function (row, i, max) {
+                            return  row.name + " [" + row.pn + "]";
+                        },
+                        formatMatch: function (row, i, max) {
+                            return row.name + " " + row.pn;
+                        },
+                        formatResult: function (row) {
+                            return row.name;
+                        }
+                    }).result(function (event, data, formatted) {
+                        if (data) {
+                            data.goodsUnit = {};
+                            data.goodsUnit.uomCode = data.skuUom.uomCode;
+                            view.model.set(data);
+                        } else {
+                            var id = view.model.id;
+                            view.model.clear();
+                            view.model.set({'id': id});
+                        }
+                    });
+
+                    $('td[name=quantity]', this.$el).focusout(function () {
+                        if ($(this).text() == '' || isNaN($(this).text())) {
+                            view.render().edit();
+                        } else {
+                            view.model.set($(this).attr('name'), parseFloat($(this).text()));
+                        }
+                    });
+
+                    $('td :checkbox', this.$el).click(function () {
+                        view.model.check(this.checked);
+                    });
+                }
+            })
+
+            App.PickingDetailGrid = App.DetailView.extend({
+                el: '#tab_2',
+                toolbar: ['append', 'remove'],
+                rowView: App.PickingRowView,
+                collection: App.details,
+                columns: [
+                    {label: '&nbsp;', key: 'id', type: 'checkbox'},
+                    {label: '商品编号', key: 'pn', editable: true},
+                    {label: '商品名称', key: 'name'},
+                    {label: '度量单位', key: 'goodsUnit.uomCode', local: 'base/kv/uom'},
+                    {label: '计划数量', key: 'planQuantity'},
+                    {label: '实际数量', key: 'quantity', editable: true}
+                ],
+                save: function () {
+                    var param = [];
+                    _.each(this.collection.toJSON(), function (item) {
+                        param.push(item);
+                    })
+                    $.ajax({
+                        contentType: 'application/json',
+                        dataType: 'json',
+                        data: JSON.stringify(param),
+                        type: 'POST',
+                        precessData: false,
+                        url: 'rest/wm/pickingDetail/' + $("#billCode").val(),
+                        success: function (data) {
+                            App.details.fetch();
+                        }
+                    });
+                }
+            })
+
+            App.pickingDetailGrid = new App.PickingDetailGrid();
+
+
+        });
+    </script>
+</head>
+<body>
+<article class="mainPanel">
+    <div class="title">分拣</div>
+    <div class="toolBar">
+        <span class="leftPanel ui-buttonset"></span>
+        <span class="rightPanel ui-buttonset"></span>
+    </div>
+    <div class="dataGrid">
+        <table id="data-sheet"></table>
+    </div>
+    <div class="page"></div>
+    <div id="gear-dialog" title="高级查询" class="dialog-form">
+        <form id="gear-form">
+            <ol>
+                <li>
+                    <label>单号</label>
+                    <input type="text" name="billCode"/>
+                </li>
+                <li>
+                    <label>发货日期</label>
+                    <input type="date" name="issueDate"/>
+                </li>
+                <li>
+                    <label>状态</label>
+                    <select name="status" data-local="billStatus">
+                        <option value=""></option>
+                    </select>
+                </li>
+            </ol>
+        </form>
+    </div>
+</article>
+
+<nav class="navPanel">
+    <div class="toolBar">
+        <span class="leftPanel ui-buttonset"></span>
+        <span class="rightPanel ui-buttonset"></span>
+    </div>
+    <div class="editorPanel">
+        <div id="tabs">
+            <ul>
+                <li><a href="#tab_1"><span>基本信息</span></a></li>
+                <li><a href="#tab_2"><span>商品明细</span></a></li>
+            </ul>
+            <div id="tab_1">
+                <form name="norEditForm">
+                    <ol>
+                        <li>
+                            <label>分拣单号:</label>
+                            <input type=text name="billCode" id="billCode" placeholder="分拣单号" readonly/>
+                        </li>
+                        <li>
+                            <label>货主:</label>
+                            <select name="target.orgCode" data-local="sys/kv/org" disabled></select>
+                        </li>
+                        <li>
+                            <label>制单日期:</label>
+                            <input type="date" name="billDate" readonly/>
+                        </li>
+                        <li>
+                            <label>配送日期:</label>
+                            <input type="date" name="planDate"/>
+                        </li>
+                        <li>
+                            <label>配送仓库:</label>
+                            <select name="org.orgCode" data-local="sys/kv/warehouse"></select>
+                            <input type=hidden name="org.orgType"/>
+                        </li>
+                        <li>
+                            <label>备注:</label>
+                            <textarea name="remark" style="width:250px;height:150px;"></textarea>
+                        </li>
+                        <li>
+                            <label>状态:</label>
+                            <select name="status" data-local="billStatus" disabled></select>
+                        </li>
+                        <li>
+                            <label>配送员:</label>
+                            <input type="text" name="shipper"/>
+                        </li>
+                    </ol>
+                </form>
+            </div>
+            <div id="tab_2">
+                <table>
+
+                    <tbody id="detail-sheet"></tbody>
+                </table>
+
+                <div class="leftPanel ui-buttonset" style="margin-top:20px;"></div>
+            </div>
+        </div>
+    </div>
+</nav>
+</body>
+</html>

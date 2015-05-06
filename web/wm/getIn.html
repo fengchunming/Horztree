@@ -1,0 +1,272 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <script>
+        $(function () {
+            App.WorkBill = App.Model.extend({
+                urlRoot: 'rest/wb/IN',
+                idAttribute: 'id',
+                defaults: {type: 'IN', billDate: new Date().format('isoDate')},
+                edit: function () {
+                    if (this.isNew()) App.details.reset();
+                    else App.details.load('rest/wb/detail/' + this.id);
+                }
+            });
+
+            App.WorkBillList = App.Collection.extend({
+                sortCol: 'enterAt',
+                sortDirect: 'desc',
+                model: App.WorkBill,
+                columns: [
+                    {label: '单号', key: 'billCode', sort: true, thcss: 'width:100px'},
+                    {label: '制单日期', key: 'billDate', thcss: 'width:80px'},
+                    {label: '货主', key: 'belong.id', local: 'sys/kv/org', sort: true},
+                    {label: '发货组织', key: 'target.id', local: 'sys/kv/org', sort: 'target_id'},
+                    {label: '来源单据', key: 'origin.billCode'},
+                    {label: '收货仓', key: 'to.warehouse', local: 'sys/kv/group', thcss: 'width:120px'},
+                    {label: '收货人', key: 'dealBy', local: 'sys/kv/user', thcss: 'width:100px'},
+                    {label: '状态', key: 'status', local: 'billStatus', thcss: 'width:70px'}
+                ]
+            });
+
+            App.WBFormView = App.FormView.extend({
+                toolbar: ['create', 'inport', 'check', 'print', 'save', 'trash', 'hide'],
+                size: {width: 900},
+                prepare: function (param) {
+                    param.items = App.details.toJSON();
+                    return param;
+                },
+                check: function () {
+                    var model = this.model;
+                    if(!model.id){
+                        $.sticky('请先保存！');
+                        return;
+                    }
+                    if (confirm('是否确认该单据无误，此操作会根据收货单生成库存，且操作不可退回！')) {
+                        $.get('rest/wm/checkReceipt/' + model.id, function () {
+                            App.details.fetch();
+                            $.sticky('已生成库存数据！');
+                        });
+                    }
+                },
+                inport: function () {
+                    $("#receiptImport").click();
+                },
+                print: function () {
+                    $.printPage('rest/wm/print/receipt/' + this.model.id + '.html');
+                }
+            });
+
+            App.WorkBillGrid = App.Grid.extend({
+                collection: new App.WorkBillList,
+                form: new App.WBFormView,
+                qel: '.queryBar',
+                toolbar: ['create']
+            });
+
+            new App.WorkBillGrid();
+
+
+            /*
+             * 明细
+             */
+            App.DetailRow = App.Row.extend({
+                listen: function () {
+                    var view = this;
+                    this.$el.find('input[name=pn]').autocomplete({
+                        source: function (request, response) {
+                            $.ajax({
+                                url: 'rest/wm/item/list',
+                                dataType: "json",
+                                data: {supplier: +$('#supplier').val(), _SH: request.term, _LM: 50},
+                                success: function (data) {
+                                    response($.map(data.list, function (item) {
+                                        return {
+                                            label: item.pn + " - " + item.name,
+                                            value: item
+                                        }
+                                    }));
+                                }
+                            });
+                        },
+                        focus: function (event, ui) {
+                            $(this).val(ui.item.label);
+                            return false;
+                        },
+                        select: function (event, ui) {
+                            var goods = ui.item.value;
+                            goods.uom = goods.skuUom;
+                            view.model.set(goods);
+                        },
+                        change: function (event, ui) {
+                            if (!ui.item) {
+                                var id = view.model.id;
+                                view.model.clear();
+                                view.model.set({'id': id});
+                            }
+                        }
+                    });
+                }
+            });
+
+
+            App.WBDetail = App.Model.extend({
+                idAttribute: 'id',
+                locked: function () {
+                    return this.get('status') === '1'
+                }
+            });
+
+            App.WBDetailList = App.Collection.extend({
+                model: App.WBDetail,
+                autoLoad: false,
+                sortCol: 'enter_at',
+                sortDirect: 'asc',
+                pageSize: 0,
+                columns: [
+                    {key: 'id', type: 'checkbox', thcss: 'width:25px'},
+                    {label: '商品编号', key: 'pn', type: 'text', thcss: 'width:120px'},
+                    {label: '商品名称', key: 'name'},
+                    {label: '单位', key: 'uom.id', local: 'base/kv/uom', type: 'select', thcss: 'width:70px'},
+                    {label: '规格', key: 'uom.packQuantity', thcss: 'width:50px'},
+                    {label: '数量', key: 'realQuantity', type: 'number', thcss: 'width:60px'}
+                ]
+            });
+
+            App.details = new App.WBDetailList;
+
+            App.WBDetailGrid = App.Grid.extend({
+                el: '#tab_2',
+                editable: true,
+                row: App.DetailRow,
+                toolbar: ['append', 'remove'],
+                collection: App.details
+            });
+
+            new App.WBDetailGrid;
+
+            $("#receiptImport").html5Uploader({
+                name: "receipt",
+                url: function () {
+                    return "rest/wm/receiptImport/" + $('#billCode').val();
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+
+<div id="article">
+    <form class="queryBar">
+        <ul>
+            <li>
+                <label>收货单号：</label>
+                <input type="text" name="billCode"/>
+            </li>
+            <li>
+                <label>状态：</label>
+                <select name="status" data-local="billStatus" data-value="0">
+                    <option value="">所有</option>
+                </select>
+            </li>
+            <li>
+                <label>收货日期：</label>
+                <input type="text" class="mindatepicker" name="sdate"/> -
+                <input type="text" class="maxdatepicker" name="edate"/>
+            </li>
+            <li>
+                <label>来源单号：</label>
+                <input type="text" name="originBill"/>
+            </li>
+            <li>
+                <label>发货组织：</label>
+                <select name="target" data-local="sys/kv/org">
+                    <option value=""></option>
+                </select>
+            </li>
+            <li>
+                <button class="search"><i></i>查询</button>
+            </li>
+            <li class="toolBar"></li>
+        </ul>
+    </form>
+    <div class="dataGrid">
+        <table class="app"></table>
+    </div>
+    <div class="page"></div>
+</div>
+
+<div class="navPanel">
+    <div class="toolBar"></div>
+    <div class="editorPanel">
+        <div id="tabs">
+            <ul>
+                <li><a href="#tab_1"><span>基本信息</span></a></li>
+                <li><a href="#tab_2"><span>货物明细</span></a></li>
+            </ul>
+            <div id="tab_1">
+                <form>
+                    <ol>
+                        <li>
+                            <label>收货单号:</label>
+                            <input type="text" name="billCode" id="billCode" readonly>
+                        </li>
+                        <li>
+                            <label>收货日期:</label>
+                            <input type="text" name="billDate" placeholder="收货日期" required class="datepicker">
+                        </li>
+                        <li>
+                            <label>货主:</label>
+                            <select name="belong.id" data-local="sys/kv/org"></select>
+                        </li>
+                        <li>
+                            <label>发货组织:</label>
+                            <select name="target.id" data-local="sys/kv/org"></select>
+                        </li>
+                        <li>
+                            <label>收货仓:</label>
+                            <select name="to.warehouse" data-local="sys/kv/group"></select>
+                        </li>
+                        <li>
+                            <label>总金额:</label>
+                            <input type="text" name="amount" readonly class="amount">
+                        </li>
+                        <li>
+                            <label>来源单据:</label>
+                            <select name="origin.type" data-local="billType" disabled>
+                                <option></option>
+                            </select>
+                        </li>
+                        <li>
+                            <label>来源单号:</label>
+                            <input type="text" name="origin.billCode" readonly>
+                        </li>
+                    </ol>
+                    <ol>
+                        <li>
+                            <label>备注:</label>
+                            <textarea name="remark" style="width:230px;height:150px;"></textarea>
+                        </li>
+                        <li>
+                            <label>单据状态:</label>
+                            <select name="status" data-local="billStatus" disabled></select>
+                        </li>
+                        <li>
+                            <label>收货人:</label>
+                            <select name="dealBy" data-local="sys/kv/user"></select>
+                        </li>
+                    </ol>
+                </form>
+            </div>
+            <div id="tab_2">
+                <table class="app"></table>
+                <div class="toolBar"></div>
+                <div style="display:none;">
+                    <input type="file" name="stockFile" id="receiptImport">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

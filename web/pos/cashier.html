@@ -1,0 +1,110 @@
+<!DOCTYPE HTML> 
+<html> 
+<head> 
+<script>
+$(function() {
+	App.Cashier = App.Model.extend({
+		urlRoot : 'rest/pos/cashier',
+		idAttribute: 'staffCode'
+	})
+	
+	App.Cashiers = App.Collection.extend({
+		urlRoot : 'rest/pos/cashierList',
+		model : App.Cashier
+	})
+
+	App.CashierGrid = App.Grid.extend({
+		collection: new App.Cashiers,
+		form: new  App.FormView,
+		toolbar : ['create'],
+		columns : [
+   		    {label:'工号',key:'staffCode', local:'sys/loadUserKV.do'},
+		    {label:'操作员级别',key:'cashierType',local:'cashierType'}
+		],
+		sync : function(){
+			var models = [];
+			_.each(this.collection.models,function(item){
+				if(item.selected) {
+					models.push(item.toJSON());
+				}
+			});
+			
+			$.ajax({
+			    contentType: 'application/json',
+			    data: JSON.stringify(models),
+			    dataType: 'json',
+			    processData: false,
+			    type: 'POST',
+			    url: 'rest/pos/sendCashier'
+			});
+		}
+	});
+	
+	App.cashierTable = new App.CashierGrid();
+});
+</script>
+</head>
+<body>
+<div id="article">
+	
+	<div class="toolBar">
+		
+		
+	</div>
+	<div class="dataGrid">
+		<table class="app"><thead></thead><tbody></tbody></table>
+	</div>
+	<div class="statusBar"></div>
+</div>
+
+<div class="navPanel">
+	<div class="toolBar">
+		
+		
+	</div>
+	<div class="editorPanel">
+<form id="cashierEditForm" method="post">
+	<ol>
+		<li>
+			<label>员工:</label>
+		    <select name="staffCode" data-local="sys/loadUserKV.do"></select>
+		</li>
+		<li>
+			<label>操作员级别:</label>
+		    <select name="cashierType" data-local="cashierType"></select>
+		</li>
+		<li>
+			<label>特价操作:</label>
+		    <select name="canAmountDiscount" data-local="apply"></select>
+		</li>
+				<li>
+			<label>%折扣操作:</label>
+		    <select name="canPercentageDiscount" data-local="apply"></select>
+		</li>
+		<li>
+			<label>更正操作:</label>
+		    <select name="canVoid" data-local="apply"></select>
+		</li>
+		<li>
+			<label>退货操作:</label>
+		    <select name="canRefund" data-local="apply"></select>
+		</li>
+		<li>
+			<label>支付方式操作:</label>
+		    <select name="canTender" data-local="apply"></select>
+		</li>
+		<li>
+			<label>取消操作:</label>
+		    <select name="canCancelTransaction" data-local="apply"></select>
+		</li>
+
+		<li>
+			<label>启用状态:</label>
+		    <select name="status" data-local="status"></select>
+		</li>
+	</ol>
+</form>
+</div>
+</div>
+</body>
+</html>

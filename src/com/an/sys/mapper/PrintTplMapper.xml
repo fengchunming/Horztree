@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="PrintTplMapper">
+    <resultMap id="BaseResultMap" type="com.an.sys.entity.PrintTpl">
+        <id property="id" column="id"/>
+        <result property="type" column="bill_type" jdbcType="VARCHAR"/>
+        <result property="printer" column="printer" jdbcType="VARCHAR"/>
+        <result property="style" column="style" jdbcType="VARCHAR"/>
+        <result property="param" column="param" typeHandler="com.an.core.mybatis.handlers.JsonTypeHandler"/>
+        <result property="width" column="width" jdbcType="NUMERIC"/>
+        <result property="orient" column="orient" jdbcType="INTEGER"/>
+        <result property="height" column="height" jdbcType="NUMERIC"/>
+        <result property="top" column="top" jdbcType="NUMERIC"/>
+        <result property="left" column="left" jdbcType="NUMERIC"/>
+        <result property="page" column="page" jdbcType="VARCHAR"/>
+        <result property="orgCode" column="org_code" jdbcType="VARCHAR"/>
+        <result property="enterAt" column="enter_dt" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Where_Clause">
+        <where>
+            <if test="type != null and type !='' ">and bill_type = #{type}</if>
+            <if test="printer != null and printer != ''">and printer ilike concat('%',#{printer},'%')</if>
+        </where>
+    </sql>
+
+    <sql id="Column_List">
+        id,bill_type,printer,style,param,enter_dt,org_code,"width","height","top","left",page,orient
+    </sql>
+
+    <!-- 后台功能总数 -->
+    <select id="countByExample" resultType="int" parameterType="java.util.HashMap">
+        select count(1) from SYS_PRINT_TPL
+        <include refid="Where_Clause"/>
+    </select>
+
+    <!-- 后台功能列表查询 -->
+    <select id="selectByExample" resultMap="BaseResultMap" parameterType="java.util.HashMap">
+        select
+        <include refid="Column_List"/>
+        from SYS_PRINT_TPL
+        <include refid="Where_Clause"/>
+        <if test="_BY != null">order by ${_BY}</if>
+    </select>
+
+    <!-- 根据主键查询后台功能 -->
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap">
+        select
+        <include refid="Column_List"/>
+        from SYS_PRINT_TPL
+        where id = #{id}
+    </select>
+
+    <!-- 新增后台功能 -->
+    <insert id="insert" parameterType="com.an.sys.entity.PrintTpl">
+        insert into SYS_PRINT_TPL
+        (bill_type,printer,style,param,enter_dt,org_code,width,"height","top","left",page,orient)
+        values
+        ( #{type,jdbcType=VARCHAR},#{printer,jdbcType=VARCHAR},#{style,jdbcType=VARCHAR},
+        #{param,typeHandler=com.an.core.mybatis.handlers.JsonTypeHandler},now(),#{orgCode,jdbcType=VARCHAR},
+        #{width,jdbcType=NUMERIC},#{height,jdbcType=NUMERIC},#{top,jdbcType=NUMERIC},
+        #{left,jdbcType=NUMERIC},#{page,jdbcType=VARCHAR},#{orient,jdbcType=INTEGER} )
+        <selectKey resultType="java.lang.Integer" keyProperty="id">
+            SELECT @@IDENTITY AS id
+        </selectKey>
+    </insert>
+
+    <!-- 更新后台功能 -->
+    <update id="updateByPrimaryKey" parameterType="com.an.sys.entity.PrintTpl">
+        update SYS_PRINT_TPL set
+        bill_type = #{type,jdbcType=VARCHAR},
+        printer = #{printer,jdbcType=VARCHAR},
+        style = #{style,jdbcType=VARCHAR},
+        param = #{param,typeHandler=com.an.core.mybatis.handlers.JsonTypeHandler},
+        "width" = #{width,jdbcType=NUMERIC},
+        "height" = #{height,jdbcType=NUMERIC},
+        orient = #{orient,jdbcType=INTEGER},
+        "top" = #{top,jdbcType=NUMERIC},
+        "left" = #{left,jdbcType=NUMERIC},
+        page = #{page,jdbcType=VARCHAR},
+        enter_dt = now(),
+        org_code = #{orgCode,jdbcType=VARCHAR}
+        where id = #{id}
+    </update>
+
+    <!-- 删除后台功能 -->
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+        delete from SYS_PRINT_TPL where id = #{value}
+    </delete>
+</mapper>

@@ -1,0 +1,112 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>控制面板</title>
+    <script>
+        $(function () {
+            App.Setting = App.Model.extend({
+                idAttribute: 'id',
+                urlRoot: 'rest/sys/setting'
+            });
+
+            App.SettingForm = App.FormView.extend({
+                el: '.formPanel',
+                type: 'panel',
+                toolbar: ['save']
+            });
+
+            App.setting = new App.Setting();
+            App.settingForm = new App.SettingForm();
+            App.settingForm.setModel(App.setting);
+            App.setting.fetch();
+        })
+    </script>
+</head>
+<body>
+<div class="formPanel">
+    <div class="toolBar"></div>
+    <div id="tabs">
+        <ul>
+            <li><a href="#tab_1"><span>服务邮箱</span></a></li>
+            <li><a href="#tab_2"><span>短信网关</span></a></li>
+            <li><a href="#tab_3"><span>功能启用</span></a></li>
+        </ul>
+        <form>
+            <div id="tab_1">
+                <fieldset style="margin:20px;">
+                    <legend></legend>
+                    <ol>
+                        <li>
+                            <label>发件邮箱:</label>
+                            <input type="email" name="mailFrom" placeholder="如:example@mail.com"/>
+                        </li>
+                        <li>
+                            <label>smtp服务地址:</label>
+                            <input type="text" name="mailHost" placeholder="如:smtp.google.com"/>
+                        </li>
+                        <li>
+                            <label>smtp端口号:</label>
+                            <input type="text" name="mailPort" placeholder="如:25"/>
+                        </li>
+                        <li>
+                            <label>是否验证:</label>
+                            <select name="mailAuth" data-local='yn'></select>
+                        </li>
+                        <li>
+                            <label>TLS支持:</label>
+                            <select name="mailStarttlsEnabled" data-local='yn'></select>
+                        </li>
+                        <li>
+                            <label>用户名:</label>
+                            <input type="text" name="mailUsername" placeholder="请输入邮箱用户名"/>
+                        </li>
+                        <li>
+                            <label>密码:</label>
+                            <input type="text" name="mailPassword" placeholder="请输入邮箱密码"/>
+                        </li>
+                    </ol>
+                </fieldset>
+            </div>
+            <div id="tab_2">
+                <fieldset style="margin:20px;">
+                    <legend></legend>
+                    <ol>
+                        <li>
+                            <label>网关地址:</label>
+                            <input type="text" name="smsUrl"/>
+                        </li>
+                        <li>
+                            <label>用户名:</label>
+                            <input type="text" name="smsUser" placeholder="请输入用户名"/>
+                        </li>
+                        <li>
+                            <label>密码:</label>
+                            <input type="text" name="smsPwd" placeholder="请输入密码"/>
+                        </li>
+                    </ol>
+                </fieldset>
+            </div>
+            <div id="tab_3">
+                <fieldset style="margin:20px;">
+                    <legend></legend>
+                    <ol>
+                        <li>
+                            <label>启用移动平均价:</label>
+                            <select name="movingAveragePrice" data-local='yn'></select>
+                        </li>
+                        <li>
+                            <label>启用多单位:</label>
+                            <select name="multiUom" data-local='yn'></select>
+                        </li>
+                        <li>
+                            <label>启用最小库存预警:</label>
+                            <select name="minStockLine" data-local='yn'></select>
+                        </li>
+                    </ol>
+                </fieldset>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

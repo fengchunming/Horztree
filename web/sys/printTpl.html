@@ -1,0 +1,127 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <script>
+        $(function () {
+            App.PrintTpl = App.Model.extend({
+                urlRoot: 'rest/sys/printTpl',
+                idAttribute: 'id'
+            });
+
+            App.PrintTplList = App.Collection.extend({
+                model: App.PrintTpl,
+                columns: [
+                    {label: '单据类型', key: 'type', local: 'type'},
+                    {label: '打印机', key: 'printer'},
+                    {label: '样式', key: 'style'}
+                ]
+            });
+
+            App.PrintTplEditor = App.FormView.extend({
+                toolbar: [
+                    {'create': '新建', id: 'sys.printTpl.create'},
+                    'save',
+                    {'trash': '删除', id: 'sys.printTpl.trash'},
+                    'hide'
+                ]
+            });
+
+            App.PrintTplGrid = App.Grid.extend({
+                qel: '.queryBar',
+                form: new App.PrintTplEditor,
+                collection: new App.PrintTplList,
+                toolbar: [
+                    {'create': '新建', id: 'sys.printTpl.create'}
+                ]
+            });
+
+            new App.PrintTplGrid();
+
+//            if (LODOP != null && typeof(LODOP.VERSION) != "undefined") {
+//                for (var i = 0; i < LODOP.GET_PRINTER_COUNT(); i++) {
+//                    $('.printer').append("<option value='" + LODOP.GET_PRINTER_NAME(i) + "'>"
+//                            + LODOP.GET_PRINTER_NAME(i)
+//                            + "</option>");
+//                }
+//            }
+        });
+    </script>
+</head>
+<body>
+<div id="article">
+    <form class="queryBar" style="width:100%">
+        <ul>
+            <li>
+                <label>单据类型：</label>
+                <select name="type" data-local="type">
+                    <option value="">全部</option>
+                </select>
+            </li>
+            <li>
+                <label>打印机：</label>
+                <select name="printer" class="printer">
+                    <option></option>
+                </select>
+            </li>
+            <li>
+                <button class="search"><i></i>查询</button>
+            </li>
+            <li class="toolBar"></li>
+        </ul>
+    </form>
+
+    <div class="dataGrid">
+        <table class="app"></table>
+    </div>
+    <div class="page"></div>
+</div>
+
+<div class="navPanel">
+    <div class="toolBar"></div>
+    <div class="editorPanel">
+        <form>
+            <ol>
+                <li>
+                    <label>单据类型:</label>
+                    <select name="type" data-local="type" disabled></select>
+                </li>
+                <li>
+                    <label>打印机:</label>
+                    <select name="printer" class="printer">
+                        <option></option>
+                    </select>
+                </li>
+                <li>
+                    <label>纸张:</label>
+                    <select name="page" data-local="pager"></select>
+                </li>
+                <li>
+                    <label>打印方向:</label>
+                    <select name="orient" data-local="orient"></select>
+                </li>
+                <li>
+                    <label>宽度(mm):</label>
+                    <input type="number" name="width" min="0" step="0.1">
+                </li>
+                <li>
+                    <label>高度(mm):</label>
+                    <input type="number" name="height" min="0" step="0.1">
+                </li>
+                <li>
+                    <label>左边距(mm):</label>
+                    <input type="number" name="left" min="0" step="0.1">
+                </li>
+                <li>
+                    <label>上边距(mm):</label>
+                    <input type="number" name="top" min="0" step="0.1">
+                </li>
+                <li>
+                    <label>组织:</label>
+                    <select name="orgCode"></select>
+                </li>
+            </ol>
+        </form>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="PublicMapper">
+    <resultMap id="BaseResultMap" type="java.util.HashMap">
+        <id property="name" column="name"/>
+        <result property="option" column="val" typeHandler="com.an.core.mybatis.handlers.JsonTypeHandler"/>
+    </resultMap>
+
+    <select id="nextVal" parameterType="string" resultType="int">
+        select nextval(#{value})
+    </select>
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String">
+        select name,val from SYS_OPTION where name = #{value}
+    </select>
+
+    <!-- 新增角色 -->
+    <insert id="insert" parameterType="java.util.HashMap">
+        insert into SYS_OPTION (name,val,enter_by,enter_at)
+        values( #{name,jdbcType=VARCHAR},#{option,typeHandler=com.an.core.mybatis.handlers.JsonTypeHandler},#userId, now())
+    </insert>
+
+    <!-- 修改角色 -->
+    <update id="updateByPrimaryKey" parameterType="java.util.HashMap">
+        update SYS_OPTION set
+        val = #{option,typeHandler=com.an.core.mybatis.handlers.JsonTypeHandler},
+        enter_by=#userId, enter_at =now()
+        where name = #{name}
+    </update>
+
+    <!-- 删除角色 -->
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+        delete from SYS_OPTION
+        where name = #{value}
+    </delete>
+</mapper>

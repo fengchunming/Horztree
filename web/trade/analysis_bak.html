@@ -1,0 +1,265 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <link rel="stylesheet" href="css/jquery.jqplot.min.css"/>
+    <style>
+        div.canvas {
+            float: right;
+            height: 230px;
+            width: 80%;
+        }
+
+        div.canvas table {
+            width: auto;
+            border-collapse: separate;
+            border-spacing: 2px;
+            border-color: gray;
+        }
+
+        div.canvas table tr {
+            background-color: #fff;
+        }
+
+        div.canvas table td {
+            border: 0 solid #fff;
+            padding: 0;
+            height: auto;
+        }
+    </style>
+    <script src="js/jqplot/jquery.jqplot.min.js"></script>
+    <script src="js/jqplot/jqplot.logAxisRenderer.min.js"></script>
+    <script src="js/jqplot/jqplot.canvasTextRenderer.min.js"></script>
+    <script src="js/jqplot/jqplot.canvasAxisLabelRenderer.min.js"></script>
+    <script src="js/jqplot/jqplot.canvasAxisTickRenderer.min.js"></script>
+    <script src="js/jqplot/jqplot.dateAxisRenderer.min.js"></script>
+    <script src="js/jqplot/jqplot.categoryAxisRenderer.min.js"></script>
+    <script src="js/jqplot/jqplot.highlighter.min.js"></script>
+    <script>
+        $(function () {
+            App.ReportList = App.Collection.extend({
+                urlRoot: 'rest/trade/report',
+                columns: function () {
+                    var param = $('#paramForm').serializeObject();
+                    var cols = [];
+                    if (param.time_group)
+                        cols.push({label: '日期/时间', key: param.time_group, sort: param.time_group});
+                    if (param.goods_group)
+                        cols.push({label: '编号', key: param.goods_group, sort: param.goods_group});
+                    if (param.goods_group == 'goods')
+                        cols.push({label: '商品', key: param.goods_group, local: 'mm/kv/goods'});
+                    if (param.goods_group == 'category')
+                        cols.push({label: '分类', key: param.goods_group, local: 'mm/kv/category'});
+                    else if (param.goods_group == 'supplier')
+                        cols.push({label: '供应商', key: param.goods_group, local: 'sys/kv/org'});
+                    if (param.org_group)
+                        cols.push({label: '网点', key: param.org_group, sort: param.org_group, local: 'sys/kv/org'});
+
+                    if (!_.isUndefined(param.visit_count))
+                        cols.push({label: '客数', key: 'visit_count', sort: 'visit_count'});
+                    if (!_.isUndefined(param.amount))
+                        cols.push({label: '营业额', key: 'amount', sort: 'amount'});
+                    if (!_.isUndefined(param.total))
+                        cols.push({label: '明细汇总', key: 'total', sort: 'total'});
+                    if (!_.isUndefined(param.quantity))
+                        cols.push({label: '数量', key: 'quantity', sort: 'quantity'});
+                    if (!_.isUndefined(param.cost))
+                        cols.push({label: '成本', key: 'cost', sort: 'cost'});
+                    if (!_.isUndefined(param.gross))
+                        cols.push({label: '毛利', key: 'gross', sort: 'gross'});
+                    return cols;
+                },
+                parse: function (response) {
+                    if (!response.list.length) {
+                        $.sticky("未找到有效数据！");
+                        return;
+                    }
+                    var chart = [];
+                    var ticks = [];
+                    var labels = [];
+                    var param = $('.queryBar').serializeObject();
+
+                    if (param.goods_group)
+                        ticks = _.pluck(response.list, param.goods_group);
+
+                    if (param.org_group)
+                        ticks = _.pluck(response.list, param.org_group);
+
+                    if (param.time_group)
+                        ticks = _.pluck(response.list, param.time_group);
+
+                    if (!_.isUndefined(param.amount)) {
+                        labels.push({label: '营业额'});
+                        chart.push(_.zip(ticks, _.pluck(response.list, 'amount')))
+                    }
+
+                    if (!_.isUndefined(param.total)) {
+                        labels.push({label: '明细汇总'});
+                        chart.push(_.zip(ticks, _.pluck(response.list, 'total')))
+                    }
+
+                    if (!_.isUndefined(param.visit_count)) {
+                        labels.push({label: '客数'});
+                        chart.push(_.zip(ticks, _.pluck(response.list, 'visit_count')))
+                    }
+
+                    if (!_.isUndefined(param.quantity)) {
+                        labels.push({label: '数量'});
+                        chart.push(_.zip(ticks, _.pluck(response.list, 'quantity')))
+                    }
+
+                    if (!_.isUndefined(param.cost)) {
+                        labels.push({label: '成本'});
+                        chart.push(_.zip(ticks, _.pluck(response.list, 'cost')))
+                    }
+
+                    if (!_.isUndefined(param.gross)) {
+                        labels.push({label: '毛利'});
+                        chart.push(_.zip(ticks, _.pluck(response.list, 'gross')))
+                    }
+                    if (chart.length == 0) return response.list;
+                    $('#chart').empty().jqplot(chart, {
+                        seriesDefaults: {
+                            rendererOptions: {}
+                        },
+                        legend: {show: true},
+                        series: labels,
+                        axes: {
+                            xaxis: {
+                                renderer: $.jqplot.CategoryAxisRenderer,
+                                tickRenderer: $.jqplot.CanvasAxisTickRenderer,
+                                tickOptions: {
+                                    angle: -30,
+                                    formatString: '&nbsp;'
+                                }
+                            },
+                            yaxis: {
+                                tickOptions: {
+                                    formatString: '%.2f'
+                                }
+                            }
+                        },
+                        highlighter: {
+                            tooltipAxes: 'y',
+                            show: true
+                        }
+                    });
+                    return response.list;
+                }
+            });
+
+            App.ReportGrid = App.Grid.extend({
+                collection: new App.ReportList,
+                qel: '.queryBar'
+            });
+            App.reportGrid = new App.ReportGrid();
+        });
+    </script>
+</head>
+<body>
+<div id="article">
+    <div>
+        <form class="queryBar" method="post">
+            <fieldset style="width:400px;height:100px;">
+                <legend>过滤条件</legend>
+                <ul>
+                    <li>
+                        <label>日期范围：
+                            <input type="text" class="datepicker" name="sdate_filter">
+                            <input type="text" class="datepicker" name="edate_filter"></label>
+                    </li>
+                    <li>
+                        <label>商品分类：
+                            <select name="category_filter" data-local="mm/kv/category">
+                                <option value="">所有商品</option>
+                            </select></label>
+                    </li>
+                    <li>
+                        <label>商品：
+                            <select name="goods_filter" data-local="mm/kv/goods">
+                                <option value="">所有商品</option>
+                            </select></label>
+                    </li>
+                    <li style="clear:left;">
+                        <label>网点：
+                            <select name="group_filter" data-local="sys/kv/owngroup">
+                                <option value="">所有</option>
+                            </select></label>
+                    </li>
+                </ul>
+            </fieldset>
+            <fieldset style="width:200px;height:100px;">
+                <legend>分组条件</legend>
+                <ul>
+                    <li>
+                        <label>商品：
+                            <select name="goods_group">
+                                <option value="">不区分商品</option>
+                                <option value="category">按分类区分</option>
+                                <option value="goods">按商品区分</option>
+                                <option value="supplier">按供应商区分</option>
+                            </select></label>
+                    </li>
+                    <li>
+                        <label>时间：
+                            <select name="time_group">
+                                <option value="">不区分时间</option>
+                                <option value="day" selected>日期分组</option>
+                                <option value="year">年度分组</option>
+                                <option value="quarter">季度分组</option>
+                                <option value="month">月份分组</option>
+                                <option value="week">周分组</option>
+                                <option value="dow">周第几日</option>
+                                <option value="hour">时间段分组</option>
+                            </select></label>
+                    </li>
+                    <li>
+                        <label>网点：
+                            <select name="org_group">
+                                <option value="">不区分</option>
+                                <option value="org">区分分组</option>
+                            </select></label>
+                    </li>
+                </ul>
+            </fieldset>
+            <fieldset style="width:200px;height:100px;">
+                <legend>统计项</legend>
+                <ul>
+                    <li>
+                        <label>营业额:
+                            <input type="checkbox" name="amount" checked></label>
+                    </li>
+                    <li>
+                        <label>明细汇总:
+                            <input type="checkbox" name="total"></label>
+                    </li>
+                    <li>
+                        <label>单数:
+                            <input type="checkbox" name="visit_count"></label>
+                    </li>
+                    <li>
+                        <label>客单价:
+                            <input type="checkbox" name="price"></label>
+                    </li>
+                    <li>
+                        <label>成本:
+                            <input type="checkbox" name="cost"></label>
+                    </li>
+                    <li>
+                        <label>毛利:
+                            <input type="checkbox" name="gross"></label>
+                    </li>
+                </ul>
+            </fieldset>
+            <div style="float:left;padding-top: 80px;height:100px;">
+                <button type="submit">生成报表</button>
+            </div>
+
+            <div id="chart" class="canvas"></div>
+        </form>
+    </div>
+    <div style="top:120px" class="dataGrid">
+        <table class="app"></table>
+    </div>
+</div>
+</body>
+</html>

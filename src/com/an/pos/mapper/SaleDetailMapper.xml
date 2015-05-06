@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="SaleDetailMapper">
+    <resultMap id="BaseResultMap" type="com.an.wm.entity.Item">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="goods_code" property="pn" jdbcType="VARCHAR"/>
+        <result column="goods_barcode" property="barcode" jdbcType="VARCHAR"/>
+        <result column="goods_name" property="goodsName" jdbcType="VARCHAR"/>
+        <result column="goods_type" property="goodsType" jdbcType="VARCHAR"/>
+        <result column="category" property="category.categoryCode" jdbcType="VARCHAR"/>
+        <result column="output_tax_code" property="outputTax.taxCode" jdbcType="VARCHAR"/>
+        <result column="goods_unit" property="goodsUnit.uomCode" jdbcType="VARCHAR"/>
+        <result column="quantity" property="realQuantity" jdbcType="NUMERIC"/>
+        <result column="weight" property="weight" jdbcType="NUMERIC"/>
+        <result column="volume" property="volume" jdbcType="NUMERIC"/>
+        <result column="business_date" property="bill.billDate" jdbcType="DATE"/>
+        <result column="lot_code" property="lotCode" jdbcType="VARCHAR"/>
+        <result column="cost_total" property="costTotal" jdbcType="NUMERIC"/>
+        <result column="standard_cost_price" property="standardCostPrice" jdbcType="NUMERIC"/>
+        <result column="sale_unit_price" property="standardSalePrice" jdbcType="NUMERIC"/>
+        <result column="sub_total" property="saleTotal" jdbcType="NUMERIC"/>
+        <result column="status" property="status" jdbcType="VARCHAR"/>
+        <result column="sale_stamp" property="saleStamp" jdbcType="TIMESTAMP"/>
+        <result column="cashier_code" property="cashierCode" jdbcType="VARCHAR"/>
+        <result column="enter_at" property="enterAt" jdbcType="TIMESTAMP"/>
+        <result column="bill_code" property="bill.billCode" jdbcType="VARCHAR"/>
+        <result column="seq_no" property="seqNo" jdbcType="VARCHAR"/>
+        <result column="org_code" property="org.orgCode" jdbcType="VARCHAR"/>
+        <result column="org_type" property="org.orgType" jdbcType="VARCHAR"/>
+        <result column="terminal_code" property="terminalCode" jdbcType="VARCHAR"/>
+    </resultMap>
+    <sql id="Example_Where_Clause">
+        <where>
+           status != 'd'
+        </where>
+    </sql>
+    <sql id="Base_Column_List">
+        id, goods_code, goods_barcode, goods_name, goods_type, category, output_tax_code,
+        quantity, weight, volume, business_date, lot_code, standard_cost_price,
+        cost_total, sale_unit_price, sub_total, status, enter_at, goods_unit, bill_code,
+        seq_no, org_code, org_type, terminal_code, sale_stamp, cashier_code
+    </sql>
+    <select id="selectByExample" resultMap="BaseResultMap" parameterType="java.util.HashMap">
+        select
+        <include refid="Base_Column_List"/>
+        from "ag"."T_POS_SALE_DETAIL"
+        <include refid="Example_Where_Clause"/>
+    </select>
+
+    <select id="selectByCode" resultMap="BaseResultMap" parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List"/>
+        from "ag"."T_POS_SALE_DETAIL"
+        where bill_code = #{value} andstatus != 'd'
+    </select>
+
+    <select id="selectBySeqNo" resultMap="BaseResultMap" parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List"/>
+        from "ag"."T_POS_SALE_DETAIL"
+        where seq_no = #{value,jdbcType=VARCHAR} andstatus != 'd'
+    </select>
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long">
+        select
+        <include refid="Base_Column_List"/>
+        from "ag"."T_POS_SALE_DETAIL"
+        where id = #{id,jdbcType=BIGINT}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        update "ag"."T_POS_SALE_DETAIL"
+        set status = 'trash',enter_at = now()
+        where id = #{id,jdbcType=BIGINT}
+    </delete>
+    <insert id="insert" parameterType="com.an.wm.entity.Item">
+        insert into "ag"."T_POS_SALE_DETAIL" (goods_code,
+        goods_barcode, goods_name, goods_type,
+        category, output_tax_code,standard_cost_price, goods_unit, quantity, weight,
+        volume, business_date, lot_code,
+        cost_total, sale_unit_price, sub_total,
+        status, enter_at, bill_code, seq_no, org_code,
+        org_type, terminal_code, sale_stamp, cashier_code)
+        values (#{pn,jdbcType=VARCHAR},
+        #{barcode,jdbcType=VARCHAR}, #{goodsName,jdbcType=VARCHAR}, #{goodsType,jdbcType=VARCHAR},
+        #{category.categoryCode,jdbcType=VARCHAR}, #{outputTax.taxCode,jdbcType=VARCHAR},
+        #{standardCostPrice,jdbcType=NUMERIC},
+        #{goodsUnit.uomCode,jdbcType=VARCHAR}, #{realQuantity,jdbcType=NUMERIC}, #{weight,jdbcType=NUMERIC},
+        #{volume,jdbcType=NUMERIC}, #{businessDate,jdbcType=DATE}, #{lotCode,jdbcType=VARCHAR},
+        #{costTotal,jdbcType=NUMERIC}, #{standardSalePrice,jdbcType=NUMERIC}, #{saleTotal,jdbcType=NUMERIC},
+        'enabled', now(), #{bill.billCode,jdbcType=VARCHAR}, #{seqNo,jdbcType=VARCHAR},
+        #{org.orgCode,jdbcType=VARCHAR}, #{org.orgType,jdbcType=VARCHAR}, #{terminalCode,jdbcType=VARCHAR},
+        #{saleStamp,jdbcType=TIMESTAMP}, #{cashierCode,jdbcType=VARCHAR})
+    </insert>
+    <select id="countByExample" parameterType="java.util.HashMap" resultType="java.lang.Integer">
+        select count(*) from "ag"."T_POS_SALE_DETAIL"
+        <include refid="Example_Where_Clause"/>
+    </select>
+    <update id="updateByPrimaryKey" parameterType="com.an.wm.entity.Item">
+        update "ag"."T_POS_SALE_DETAIL"
+        set goods_code = #{pn,jdbcType=VARCHAR},
+        goods_barcode = #{barcode,jdbcType=VARCHAR},
+        goods_name = #{goodsName,jdbcType=VARCHAR},
+        goods_type = #{goodsType,jdbcType=VARCHAR},
+        category = #{category.categoryCode,jdbcType=VARCHAR},
+        output_tax_code = #{outputTax.taxCode,jdbcType=VARCHAR},
+        goods_unit = #{goodsUnit.uomCode,jdbcType=VARCHAR},
+        quantity = #{realQuantity,jdbcType=NUMERIC},
+        weight = #{weight,jdbcType=NUMERIC},
+        volume = #{volume,jdbcType=NUMERIC},
+        business_date = #{businessDate,jdbcType=DATE},
+        lot_code = #{lotCode,jdbcType=VARCHAR},
+        cost_total = #{costTotal,jdbcType=NUMERIC},
+        sale_unit_price = #{standardSalePrice,jdbcType=NUMERIC},
+        sub_total = #{saleTotal,jdbcType=NUMERIC},
+        enter_at = now(),
+        sale_stamp = #{saleStamp,jdbcType=TIMESTAMP},
+        cashier_code = #{cashierCode,jdbcType=VARCHAR},
+        bill_code = #{bill.billCode,jdbcType=VARCHAR},
+        org_code = #{org.orgCode,jdbcType=VARCHAR},
+        org_type = #{org.orgType,jdbcType=VARCHAR},
+        terminal_code = #{terminalCode,jdbcType=VARCHAR}
+        where seq_no = #{seqNo,jdbcType=VARCHAR}
+    </update>
+</mapper>

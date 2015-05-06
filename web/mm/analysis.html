@@ -1,0 +1,100 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <style>
+        .list {
+            float: left;
+            width: 350px;
+            margin: 15px;
+            height: 250px;
+            border: 1px solid #e4e4e4;
+            padding: 0;
+        }
+
+        .list dt {
+            border-bottom: 1px solid #e4e4e4;
+            background: #eee;
+            font-size: 12px;
+            padding: 4px 8px;
+            font-weight: bold;
+        }
+
+        .list dd {
+            border-bottom: 1px solid #eee;
+            font-size: 12px;
+            padding: 5px 7px;
+            line-height: 16px;
+        }
+    </style>
+    <script>
+        $(function () {
+            App.HotList = App.Collection.extend({
+                autoLoad: false,
+                columns: [
+                    {label: '商品', key: 'title'},
+                    {label: '总点击量', key: 'readTimes', thcss: 'width:100px', sort: true},
+                    {label: '日平均', key: 'type',  thcss: 'width:100px'},
+                    {label: '时间分布', key: 'createBy', thcss: 'width:100px'}
+                ]
+            });
+
+            App.HotGrid = App.Grid.extend({
+                el: '#tab_1',
+                collection: new App.HotList,
+                toolbar: []
+            });
+
+            new App.HotGrid();
+        });
+    </script>
+</head>
+<body>
+<div style="margin:10px;">
+    <dl id="task" class="list">
+        <dt>综合分析</dt>
+    </dl>
+
+    <dl id="notice" class="list">
+        <dt>搜索热度</dt>
+    </dl>
+
+    <dl class="list">
+        <dt>点击热度</dt>
+    </dl>
+
+    <dl id="warning" class="list">
+        <dt>收藏热度</dt>
+    </dl>
+</div>
+<div style="display:none">
+    <div id="tab_1">
+        <div class="dataGrid">
+            <table class="app"></table>
+        </div>
+        <div class="page"></div>
+    </div>
+    <div id="tab_2">
+        <div class="dataGrid">
+            <table class="app"></table>
+        </div>
+        <div class="page"></div>
+    </div>
+    <div id="tab_3">
+        <div class="dataGrid">
+            <table class="app"></table>
+        </div>
+        <div class="page"></div>
+    </div>
+    <div id="tab_4">
+        <div class="dataGrid">
+            <table class="app"></table>
+        </div>
+        <div class="page"></div>
+    </div>
+
+</div>
+</body>
+</html>
+
+
+

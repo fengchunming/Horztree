@@ -1,0 +1,143 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <script>
+        $(function () {
+            App.Module = App.Model.extend({
+                urlRoot: 'rest/sys/module',
+                idAttribute: 'id',
+                defaults: {sort: 50,leaf: true},
+                edit: function () {
+                    $('#path').stepSelection('load', this.id);
+                }
+            });
+
+            App.ModuleList = App.Collection.extend({
+                model: App.Module,
+                pageSize: 0,
+                type: 'tree',
+                columns: [
+                    {label: '名称', key: 'name', thcss: 'width:200px'},
+                    {label: '路径', key: 'url', thcss: 'width:300px'},
+                    {label: '说明', key: 'tips'},
+                    {label: '方式', key: 'method', local: 'http_method'},
+                    {label: '按钮ID', key: 'buttonId'},
+                    {label: '菜单', key: 'menu', local: 'yn', thcss: 'width:50px'},
+                    {label: '排序', key: 'sort', thcss: 'width:50px'},
+                    {label: '状态', key: 'status', local: 'status', thcss: 'width:50px'},
+                    {label: '创建时间', key: 'createAt'}
+                ]
+            });
+
+            App.ModuleEditor = App.FormView.extend({
+                size: {width: 500},
+                toolbar: ['create', 'save', 'trash', 'hide']
+            });
+
+            App.ModuleTable = App.Grid.extend({
+                qel: '.queryBar',
+                form: new App.ModuleEditor,
+                collection: new App.ModuleList,
+                toolbar: ['create']
+            });
+
+            new App.ModuleTable();
+
+            $('#path').stepSelection({
+                urlRoot: 'rest/sys/module/list',
+                callback: function (id) {
+                    $('#parent').val(id);
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+<div id="article">
+    <form class="queryBar">
+        <ul>
+            <li>
+                <label>模块名称：</label>
+                <input type="text" name="moduleName"/>
+            </li>
+            <li>
+                <label>路径：</label>
+                <input type="text" name="target"/>
+            </li>
+            <li>
+                <label>菜单：</label>
+                <select name="isMenu" data-local="yn">
+                    <option value="">所有</option>
+                </select>
+            </li>
+            <li>
+                <button class="search"><i></i>查询</button>
+            </li>
+            <li class="toolBar"></li>
+        </ul>
+    </form>
+    <div class="dataGrid">
+        <table class="app"></table>
+    </div>
+</div>
+
+<div class="navPanel">
+    <div class="toolBar"></div>
+    <div class="editorPanel">
+        <form>
+            <ol>
+                <li>
+                    <label>名称:</label>
+                    <input type="text" name="name" placeholder="请输入模块名称" required/>
+                </li>
+                <li>
+                    <label>父节点:</label>
+                    <input type="text" name="parent" id="parent" style="display:none"/>
+                    <input type="text" name="path" id="path" style="display:none"/>
+                </li>
+                <li>
+                    <label>路径:</label>
+                    <input type="text" name="url"/>
+                </li>
+                <li>
+                    <label>Http Mehtod:</label>
+                    <select name="method" data-local="http_method"></select>
+                </li>
+                <li>
+                    <label>按钮ID:</label>
+                    <input type="text" name="buttonId"/>
+                </li>
+                <li>
+                    <label>菜单:</label>
+                    <select name="menu" data-local="yn"></select>
+                </li>
+                <li>
+                    <label>快捷:</label>
+                    <select name="shortcut" data-local="yn"></select>
+                </li>
+                <li>
+                    <label>图标:</label>
+                    <input type="text" name="icon"/>
+                </li>
+                <li>
+                    <label>状态:</label>
+                    <select name="status" data-local="status"></select>
+                </li>
+                <li>
+                    <label>提示:</label>
+                    <input type="text" name="tips"/>
+                </li>
+                <li>
+                    <label>说明:</label>
+                    <input type="text" name="remark"/>
+                </li>
+                <li>
+                    <label>排序:</label>
+                    <input type="number" name="sort" required max="99" min="0"/>
+                </li>
+            </ol>
+        </form>
+    </div>
+</div>
+</body>
+</html>

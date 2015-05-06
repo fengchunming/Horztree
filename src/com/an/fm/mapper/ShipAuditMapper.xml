@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="ShipAuditMapper">
+    <resultMap id="BaseResultMap" type="com.an.fm.entity.ShipAudit">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="ship_code" property="shipCode" jdbcType="VARCHAR"/>
+        <result column="bill_code" property="billCode" jdbcType="VARCHAR"/>
+        <result column="weight" property="weight" jdbcType="NUMERIC"/>
+        <result column="quantity" property="quantity" jdbcType="NUMERIC"/>
+        <result column="amount" property="amount" jdbcType="NUMERIC"/>
+        <result column="remark" property="remark" jdbcType="VARCHAR"/>
+        <result column="had_paid" property="hadPaid" jdbcType="NUMERIC"/>
+        <result column="status" property="status" jdbcType="VARCHAR"/>
+        <result column="org_code" property="orgCode" jdbcType="VARCHAR"/>
+        <result column="shipment" property="shipment" jdbcType="VARCHAR"/>
+        <result column="enter_at" property="enterAt" jdbcType="TIMESTAMP"/>
+        <result column="bill_date" property="billDate" jdbcType="DATE"/>
+        <result column="ship_date" property="shipDate" jdbcType="DATE"/>
+        <result column="address" property="address" jdbcType="VARCHAR"/>
+        <result column="ship_fee" property="shipFee" jdbcType="NUMERIC"/>
+        <result column="region" property="region" jdbcType="VARCHAR"/>
+        <result column="dust_fee" property="dustFee" jdbcType="NUMERIC"/>
+        <result column="add_price" property="addPrice" jdbcType="NUMERIC"/>
+        <result column="base_price" property="basePrice" jdbcType="NUMERIC"/>
+        <result column="audit1" property="audit1" jdbcType="NUMERIC"/>
+        <result column="audit2" property="audit2" jdbcType="NUMERIC"/>
+    </resultMap>
+    <sql id="Example_Where_Clause">
+        <where>
+            <if test="status != null and status != ''">status = #{status,jdbcType=VARCHAR}</if>
+            <if test="shipment != null and shipment != ''">and shipment = #{shipment,jdbcType=VARCHAR}</if>
+            <if test="orgCode != null and orgCode != ''">and org_code = #{orgCode,jdbcType=VARCHAR}</if>
+            <if test="billCode != null and billCode != ''">and bill_code ilike concat('%',#{billCode,jdbcType=VARCHAR},'%')
+            </if>
+            <if test="shipCode != null and shipCode != ''">and ship_code = #{shipCode,jdbcType=VARCHAR}</if>
+            <if test="fsdate != null and fsdate != ''">and ship_date >= #{fsdate,jdbcType=DATE}</if>
+            <if test="empty != null and empty != ''">and ${empty} is null</if>
+            <if test="notEmpty != null and notEmpty != ''">and ${notEmpty} is not null</if>
+            <if test="fedate != null and fedate != ''">
+                and ship_date <![CDATA[ <=  ]]> #{fedate,jdbcType=DATE}
+            </if>
+            <if test="tsdate != null and tsdate != ''">and bill_date >= #{tsdate,jdbcType=DATE}</if>
+            <if test="tedate != null and tedate != ''">
+                and bill_date <![CDATA[ <=  ]]> #{tedate,jdbcType=DATE}
+            </if>
+        </where>
+    </sql>
+    <sql id="Base_Column_List">
+        id, ship_code, bill_code, weight, quantity, amount, remark, had_paid, status, enter_at,
+        bill_date, ship_date, address, region, shipment, org_code, dust_fee
+    </sql>
+
+    <select id="selectByExample" resultMap="BaseResultMap" parameterType="java.util.HashMap">
+        select<include refid="Base_Column_List"/>,
+        case when a.weight > 0
+        then b.base2 + (ceil(a.weight) - 1) * b.add2
+        else 0 end
+        as audit2,
+
+        case when a.weight > 0
+        then b.base3 + (ceil(a.weight) - 1) * b.add3
+        else 0 end
+        as audit3,
+
+        case when a.weight > 0
+        then b.base_price + (ceil(a.weight) - 1) * b.add_price
+        else 0 end
+        as ship_fee,
+
+        case when a.amount > 0
+        then (case when a.weight > 0 then b.base_price + (ceil(a.weight) - 1) * b.add_price else 0 end) / a.amount
+        else 0 end
+        as audit1,
+
+        case when a.amount > 0
+        then a.weight / a.amount
+        else 0 end
+        as audit4,
+        b.base2 as base_price,
+        b.add2 as add_price
+        from "ag"."T_FI_SHIPMENT" a left join "ag"."A_PRICE" b
+        on a.region like b.area,'%')
+        <include refid="Example_Where_Clause"/>
+        <if test="_BY != null">order by ${_BY}</if>
+
+
+    </select>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long">
+        select
+        <include refid="Base_Column_List"/>
+        from "ag"."T_FI_SHIPMENT"
+        where id = #{id,jdbcType=BIGINT}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        delete from "ag"."T_FI_SHIPMENT"
+        where id = #{id,jdbcType=BIGINT}
+    </delete>
+
+    <insert id="insert" parameterType="com.an.fm.entity.ShipAudit">
+        insert into "ag"."T_FI_SHIPMENT" (ship_code, bill_code,
+        weight, quantity, amount, shipment,
+        remark, had_paid, status, org_code,
+        enter_at, bill_date, ship_date,
+        address, ship_fee, region,
+        dust_fee, add_price)
+        values (#{shipCode,jdbcType=VARCHAR}, #{billCode,jdbcType=VARCHAR},
+        #{weight,jdbcType=NUMERIC}, #{quantity,jdbcType=NUMERIC}, #{amount,jdbcType=NUMERIC},
+        #{shipment,jdbcType=VARCHAR},
+        #{remark,jdbcType=VARCHAR}, #{hadPaid,jdbcType=NUMERIC},
+        #{status,jdbcType=VARCHAR}, #{orgCode,jdbcType=VARCHAR},
+        now(), #{billDate,jdbcType=DATE}, #{shipDate,jdbcType=DATE},
+        #{address,jdbcType=VARCHAR}, #{shipFee,jdbcType=NUMERIC}, #{region,jdbcType=VARCHAR},
+        #{dustFee,jdbcType=NUMERIC}, #{addPrice,jdbcType=NUMERIC})
+    </insert>
+
+    <insert id="insertShip" parameterType="java.util.HashMap">
+        insert into "ag"."A_SHIPBILL" (ship_code,weight)
+        values (#{ship_code,jdbcType=VARCHAR}, #{weight,jdbcType=NUMERIC})
+    </insert>
+
+    <insert id="addElse">
+        insert into "ag"."T_FI_SHIPMENT" ( ship_code, bill_code,
+        weight, quantity, amount, shipment,
+        remark, had_paid, status, org_code,
+        bill_date, address, region )
+        select ship_code, min(bill_code), 1, sum(quantity), sum(amount), min(shipment), max(remark),
+        sum(ship_total), 'input', min(party_b_code), min(bill_date), min(ship_address), min(ship_region)
+        from "ag"."T_TRADE_BILL"
+        where deal_status in ('TRADE_FINISHED','WAIT_BUYER_CONFIRM_GOODS')
+        and (ship_code not in (select ship_code from "ag"."T_FI_SHIPMENT") or ship_code is null)
+        group by ship_code
+    </insert>
+
+    <select id="sumByExample" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+        select count(1) ct,
+        sum( case when a.weight > 0
+        then b.base2 + (ceil(a.weight) - 1) * b.add2
+        else 0 end )
+        as "真彩总计",
+
+        sum( case when a.weight > 0
+        then b.base3 + (ceil(a.weight) - 1) * b.add3
+        else 0 end )
+        as "佰宜总计",
+
+        sum( case when a.weight > 0
+        then b.base_price + (ceil(a.weight) - 1) * b.add_price
+        else 0 end )
+        as "运费总计"
+        from "ag"."T_FI_SHIPMENT" a left join "ag"."A_PRICE" b
+        on a.region like b.area,'%')
+        <include refid="Example_Where_Clause"/>
+    </select>
+
+    <select id="countByExample" parameterType="java.util.HashMap" resultType="java.lang.Integer">
+        select count(1) ct
+        from "ag"."T_FI_SHIPMENT"
+        <include refid="Example_Where_Clause"/>
+    </select>
+
+    <update id="updateByPrimaryKey" parameterType="com.an.fm.entity.ShipAudit">
+        update "ag"."T_FI_SHIPMENT"
+        set ship_code = #{shipCode,jdbcType=VARCHAR},
+        bill_code = #{billCode,jdbcType=VARCHAR},
+        weight = #{weight,jdbcType=NUMERIC},
+        quantity = #{quantity,jdbcType=NUMERIC},
+        amount = #{amount,jdbcType=NUMERIC},
+        remark = #{remark,jdbcType=VARCHAR},
+        had_paid = #{hadPaid,jdbcType=NUMERIC},
+        status = #{status,jdbcType=VARCHAR},
+        org_code = #{orgCode,jdbcType=VARCHAR},
+        enter_at = now(),
+        bill_date = #{billDate,jdbcType=DATE},
+        shipment = #{shipment,jdbcType=VARCHAR},
+        ship_date = #{shipDate,jdbcType=DATE},
+        address = #{address,jdbcType=VARCHAR},
+        ship_fee = #{shipFee,jdbcType=NUMERIC},
+        region = #{region,jdbcType=VARCHAR},
+        dust_fee = #{dustFee,jdbcType=NUMERIC},
+        add_price = #{addPrice,jdbcType=NUMERIC}
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+
+    <update id="check">
+        update "ag"."T_FI_SHIPMENT"
+        set status = 'check'
+        where id in
+        <foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </update>
+
+    <delete id="delete">
+        delete from "ag"."T_FI_SHIPMENT"
+        where id in
+        <foreach item="item" index="index" collection="array" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </delete>
+</mapper>

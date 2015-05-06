@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="UomMapper">
+    <cache eviction="LRU" type="com.an.core.mybatis.cache.RedisCache" />
+    <resultMap id="BaseResultMap" type="com.an.base.entity.Uom">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="code" jdbcType="VARCHAR" property="code"/>
+        <result column="name" jdbcType="VARCHAR" property="name"/>
+        <result column="abbr" jdbcType="VARCHAR" property="abbr"/>
+        <result column="type" jdbcType="VARCHAR" property="type"/>
+        <result column="symbol" jdbcType="VARCHAR" property="symbol"/>
+        <result column="status" jdbcType="VARCHAR" property="status"/>
+        <result column="remark" jdbcType="VARCHAR" property="remark"/>
+    </resultMap>
+    <sql id="Base_Where_Clause">
+        <where>
+           status != 'd'
+            <if test="uomName != null and uomName != ''">and name like concat('%',#{name},'%')</if>
+        </where>
+    </sql>
+    <sql id="Base_Column_List">
+        id, code, name, abbr, type, symbol, remark, status
+    </sql>
+
+    <select id="selectByExample" parameterType="map" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from BASE_UOM
+        <include refid="Base_Where_Clause"/>
+
+        <if test="_BY != null">order by ${_BY}</if>
+    </select>
+
+    <select id="selectAll" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from BASE_UOM
+    </select>
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer"
+            resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from BASE_UOM
+        where id = #{id,jdbcType=INTEGER}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+        update BASE_UOM
+        set status = 'trash', enter_at = now()
+        where id = #{id,jdbcType=INTEGER}
+    </delete>
+    
+    <insert id="insert" parameterType="com.an.base.entity.Uom">
+        insert into BASE_UOM (code, name, abbr,
+        type, symbol, remark, status , enter_at)
+        values (#{code,jdbcType=VARCHAR},
+        #{name,jdbcType=VARCHAR},#{abbr,jdbcType=VARCHAR},
+        #{type,jdbcType=VARCHAR},#{symbol,jdbcType=VARCHAR},
+        #{remark,jdbcType=VARCHAR}, #{status,jdbcType=VARCHAR}, now())
+        <selectKey resultType="java.lang.Integer" keyProperty="id">
+            SELECT @@IDENTITY AS id
+        </selectKey>
+    </insert>
+    <select id="countByExample" parameterType="map" resultType="java.lang.Integer">
+        select count(1) from BASE_UOM
+        <include refid="Base_Where_Clause"/>
+    </select>
+    <update id="updateByPrimaryKey" parameterType="com.an.base.entity.Uom">
+        update BASE_UOM
+        set
+        name = #{name,jdbcType=VARCHAR},
+        abbr = #{abbr,jdbcType=VARCHAR},
+        type = #{type,jdbcType=VARCHAR},
+        symbol = #{symbol,jdbcType=VARCHAR},
+        status = #{status,jdbcType=VARCHAR},
+        enter_at = now(),
+        remark = #{remark,jdbcType=VARCHAR}
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+    <select id="selectKV" resultType="java.util.HashMap">
+        select id k,name v
+        from BASE_UOM where status = 't'
+    </select>
+
+    <select id="selectByCode" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from BASE_UOM
+        where code = #{value,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectByName" parameterType="java.lang.String" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from BASE_UOM
+        where name = #{value,jdbcType=VARCHAR}
+    </select>
+
+</mapper>

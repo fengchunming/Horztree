@@ -1,0 +1,149 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <script>
+        $(function () {
+
+            _LocalKV.messageType = {
+                'n': '通知',
+                't': '任务'
+            };
+            _LocalKV.messageStatus = {
+                'n': '通知',
+                't': '任务'
+            };
+            App.MessageTemplate = App.Model.extend({
+                urlRoot: 'rest/sys/messageTpl',
+                idAttribute: 'id',
+                edit: function () {
+                    App.roleGrid.loadGranted(this.get('toRole'));
+                }
+            });
+
+            App.MessageTplList = App.Collection.extend({
+                model: App.MessageTemplate,
+                columns: [
+                    {label: '消息类型', key: 'type', local: 'messageType', thcss: 'width:100px'},
+                    {label: '模板代码', key: 'code', thcss: 'width:200px'},
+                    {label: '模板名称', key: 'title'},
+                    {label: '优先级', key: 'priority', local: 'priority', thcss: 'width:70px'},
+                    {label: '状态', key: 'status', local: 'status', thcss: 'width:50px'},
+                    {label: '创建时间', key: 'createAt', thcss: 'width:100px'}
+                ]
+            });
+
+            App.MessageTplForm = App.FormView.extend({
+                size: {width: 800},
+                prepare: function (param) {
+                    param.toRole = _.without(App.roleGrid.collection.map(function (model) {
+                        if (model.selected) return model.id;
+                    }), undefined);
+                    return param;
+                }
+            });
+
+            App.MessageTplGrid = App.Grid.extend({
+                qel: '.queryBar',
+                form: new App.MessageTplForm,
+                collection: new App.MessageTplList,
+                toolbar: ['create']
+            });
+
+            new App.MessageTplGrid();
+
+            /*
+             角色
+             */
+            App.Role = App.Model.extend({
+                idAttribute: 'roleId'
+            });
+            App.RoleList = App.Collection.extend({
+                model: App.Role,
+                url: 'rest/sys/role/list',
+                pageSize: 0,
+                columns: [
+                    {key: 'id', type: 'checkbox', thcss: 'width:27px'},
+                    {key: 'roleName', label: '角色名称'}
+                ]
+            });
+            App.RoleGrid = App.Grid.extend({
+                el: '#roleGrid',
+                collection: new App.RoleList,
+                loadGranted: function (roles) {
+                    this.collection.each(function (model) {
+                        model.select(_.contains(roles, model.id + ''));
+                        model.row.render();
+                    });
+                }
+            });
+            App.roleGrid = new App.RoleGrid();
+        });
+    </script>
+</head>
+<body>
+<div id="article">
+    <form class="queryBar">
+        <ul>
+            <li>
+                <label>模板名称：</label>
+                <input type="text" name="title"/>
+            </li>
+            <li>
+                <label>模板代码：</label>
+                <input type="text" name="code"/>
+            </li>
+            <li>
+                <button class="search"><i></i>查询</button>
+            </li>
+            <li class="toolBar"></li>
+        </ul>
+    </form>
+    <div class="dataGrid">
+        <table class="app"></table>
+    </div>
+    <div class="page"></div>
+</div>
+<div class="navPanel">
+    <div class="toolBar"></div>
+    <div class="editorPanel">
+        <form style="width:400px;float:left">
+            <ol>
+                <li>
+                    <label>代码:</label>
+                    <input type="text" name="code" required/>
+                </li>
+                <li>
+                    <label>模板名称:</label>
+                    <input type="text" name="title"/>
+                </li>
+                <li>
+                    <label>类型:</label>
+                    <select name="type" data-local="messageType"></select>
+                </li>
+                <li>
+                    <label>优先级:</label>
+                    <select name="priority" data-local="priority"></select>
+                </li>
+                <li>
+                    <label>内容:</label>
+                    <textarea name="note" style="height:300px"></textarea>
+                </li>
+                <li>
+                    <label>执行路径:</label>
+                    <input type="text" name="taskUrl"/>
+                </li>
+                <li>
+                    <label>状态:</label>
+                    <select name="status" data-local="status"></select>
+                </li>
+
+            </ol>
+        </form>
+        <div id="roleGrid" style="width:250px;float:left;">
+            <h3>收件角色：</h3>
+            <table class="app"></table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

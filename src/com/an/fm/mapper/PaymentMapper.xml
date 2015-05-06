@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="FM.PaymentMapper">
+    <resultMap id="BaseResultMap" type="com.an.fm.entity.Payment">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="name" property="name" jdbcType="VARCHAR"/>
+        <result column="code" property="code" jdbcType="VARCHAR"/>
+        <result column="sort" property="sort" jdbcType="INTEGER"/>
+        <result column="partner_no" property="partnerNo" jdbcType="VARCHAR"/>
+        <result column="token" property="token" jdbcType="VARCHAR"/>
+        <result column="rate" property="rate" jdbcType="NUMERIC"/>
+        <result column="max_limit" property="maxLimit" jdbcType="NUMERIC"/>
+        <result column="min_limit" property="minLimit" jdbcType="NUMERIC"/>
+        <result column="status" property="status" jdbcType="VARCHAR"/>
+        <result column="remark" property="remark" jdbcType="VARCHAR"/>
+        <result column="enter_by" property="enterBy" jdbcType="INTEGER"/>
+        <result column="enter_dt" property="enterDt" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Example_Where_Clause">
+        <where>
+            status != 'd'
+            <if test="name != null and name != ''">
+                and name like concat('%',#{name},'%')
+            </if>
+        </where>
+    </sql>
+
+    <sql id="Base_Column_List">
+        id,code,name,status,sort,min_limit,max_limit,remark, enter_by,token,partner_no,rate,enter_dt
+    </sql>
+    <select id="selectByExample" resultMap="BaseResultMap" parameterType="java.util.Map">
+        select
+        <include refid="Base_Column_List"/>
+        from FM_PAYMENT
+        <include refid="Example_Where_Clause"/>
+        <if test="_BY != null">order by ${_BY}</if>
+    </select>
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+        select
+        <include refid="Base_Column_List"/>
+        from FM_PAYMENT
+        where id = #{id,jdbcType=INTEGER}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+        update FM_PAYMENT
+        set status = 'd',enter_dt = now()
+        where id = #{id,jdbcType=INTEGER}
+    </delete>
+
+    <insert id="insert" parameterType="com.an.fm.entity.Payment">
+        insert into FM_PAYMENT (code,name,status,sort,min_limit,max_limit,
+        remark, enter_by,token,partner_no,rate,enter_dt )
+        values (
+        #{code,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR},
+        #{status,jdbcType=VARCHAR},#{sort,jdbcType=INTEGER},
+        #{minLimit,jdbcType=NUMERIC},#{maxLimit,jdbcType=NUMERIC},
+        #{remark,jdbcType=VARCHAR},#{enterBy,jdbcType=VARCHAR},
+        #{token,jdbcType=VARCHAR},#{partnerNo,jdbcType=VARCHAR},
+        #{rate,jdbcType=NUMERIC}, now()
+        )
+        <selectKey resultType="java.lang.Integer" keyProperty="id">
+            SELECT @@IDENTITY AS id
+        </selectKey>
+    </insert>
+
+    <select id="countByExample" parameterType="java.util.Map" resultType="java.lang.Integer">
+        select count(1) from FM_PAYMENT
+        <include refid="Example_Where_Clause"/>
+    </select>
+
+    <update id="updateByPrimaryKey" parameterType="com.an.fm.entity.Payment">
+        update FM_PAYMENT
+        set
+        code = #{code,jdbcType=VARCHAR},
+        name = #{name,jdbcType=VARCHAR},
+        sort = #{sort,jdbcType=INTEGER},
+        min_limit = #{minLimit,jdbcType=NUMERIC},
+        max_limit = #{maxLimit,jdbcType=NUMERIC},
+        remark = #{remark,jdbcType=VARCHAR},
+        enter_by = #userId,
+        token = #{token,jdbcType=VARCHAR},
+        partner_no = #{partnerNo,jdbcType=VARCHAR},
+        rate = #{rate,jdbcType=NUMERIC},
+        status = #{status,jdbcType=VARCHAR},
+        enter_dt = now()
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+
+    <select id="selectKV" resultType="java.util.Map">
+        select code k,name v from FM_PAYMENT where status = 't'
+    </select>
+</mapper>

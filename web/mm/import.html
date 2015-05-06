@@ -1,0 +1,275 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <script>
+        $(function () {
+            App.showView = new App.FormView;
+
+            App.ResutlList = App.Collection.extend({
+                columns: [
+                    {label: '序号', key: 'code'},
+                    {label: '文件名', key: 'filename'},
+                    {label: '导入结果', key: 'error'}
+                ]
+            });
+
+            App.ResultGrid = App.Grid.extend({
+                el: '.navPanel',
+                toolbar: ['trash', 'hide'],
+                collection: new App.ResutlList,
+                hide: function () {
+                    App.showView.hide();
+                },
+                trash: function () {
+                    this.collection.reset();
+                    this.$el.find('tbody').empty();
+                }
+            });
+            App.resultTable = new App.ResultGrid();
+
+            $("#goodsImport").html5Uploader({
+                name: "goods",
+                postUrl: "rest/mm/goodsImport",
+                onClientLoadStart: function () {
+                    $.startLoading();
+                },
+                onSuccess: function (e, file, response) {
+                    $.stopLoading();
+                    var list = JSON.parse(response);
+                    $.map(list, function (item, i) {
+                        item.filename = file.name;
+                    });
+                    App.resultTable.append(list);
+                    App.showView.show();
+                }
+            });
+
+            $("#stockImport").html5Uploader({
+                name: "goods",
+                postUrl: "rest/wm/stockImport",
+                onClientLoadStart: function () {
+                    $.startLoading();
+                },
+                onSuccess: function (e, file, response) {
+                    $.stopLoading();
+                    var list = JSON.parse(response);
+                    $.map(list, function (item, i) {
+                        item.filename = file.name;
+                    });
+                    App.resultTable.append(list);
+                    App.showView.show();
+                }
+            });
+
+        })
+    </script>
+</head>
+<body>
+<div id="article">
+    <div class="toolBar"></div>
+    <div class="dataGrid" id="tabs">
+        <ul>
+            <li><a href="#tab_1"><span>商品主数据导入</span></a></li>
+            <li><a href="#tab_2"><span>库存数据导入</span></a></li>
+        </ul>
+        <div id="tab_1">
+            <form id="goodsImport">
+                <ol>
+                    <li>
+                        请选择要导入的excel文件:
+                    </li>
+                    <li>
+                        <input type="file" name="goodsFile" value="选择文件...">
+                    </li>
+                    <li>
+                        <button type="submit" class="save"><i></i>确认导入</button>
+                    </li>
+                    <li style="margin-top:20px">
+                        商品模版下载：<a href="/resource/goods-schema.xlsx">点击下载</a>
+                    </li>
+                    <li style="width:500px;float:left;">
+                        <span>备注：	</span>
+                        <br>1.系统仅导入第一个工作表，请不要调整工作表顺序
+                        <br>2.该表可以重复导入，以最后导入数据为准
+                        <br>3.支持公式导入，导入数据为公式计算结果（建议以确定值导入）
+                        <br>4.请不要调整字段(column)顺序，也不要在导入字段前加入自定义字段，包括隐藏字段
+                        <br>5.为了保证数据的精准性，请将合并表格拆分，并填写有效信息
+                        <br>6.导入错误数据请在日志中查看，修正后重新导入
+                    </li>
+                    <li style="width:700px;float:left;margin-top:-100px">
+                        <span>导入数据字段说明	</span>
+                        <table class="app">
+                            <tr>
+                                <td width="200px">序号</td>
+                                <td>非必填</td>
+                            </tr>
+                            <tr>
+                                <td>商品编码-SKUCode</td>
+                                <td>必填，文本类型，必须唯一，否则后面记录覆盖前面记录</td>
+                            </tr>
+                            <tr>
+                                <td>商品条码-barcode</td>
+                                <td>非必填，文本类型</td>
+                            </tr>
+                            <tr>
+                                <td>名称/描述-name/description</td>
+                                <td>必填，文本类型</td>
+                            </tr>
+                            <tr>
+                                <td>简称-shortname</td>
+                                <td>非必填，文本类型</td>
+                            </tr>
+                            <tr>
+                                <td>分类-category</td>
+                                <td>建议填写，请对应系统内商品分类编号，也可导入后进行修改</td>
+                            </tr>
+                            <tr>
+                                <td>长-length(CM)</td>
+                                <td>必填，数字类型，空值请填写0</td>
+                            </tr>
+                            <tr>
+                                <td>宽-width(CM)</td>
+                                <td>必填，数字类型，空值请填写0</td>
+                            </tr>
+                            <tr>
+                                <td>高-height(CM)</td>
+                                <td>必填，数字类型，空值请填写0</td>
+                            </tr>
+                            <tr>
+                                <td>净重-netweight(KG)</td>
+                                <td>必填，数字类型，空值请填写0</td>
+                            </tr>
+                            <tr>
+                                <td>毛重-grossweight(KG)</td>
+                                <td>必填，数字类型，空值请填写0</td>
+                            </tr>
+                            <tr>
+                                <td>单位-SKUunit</td>
+                                <td>必填，文本类型，填写内容请对应系统内单位编码，默认见附表</td>
+                            </tr>
+                            <tr>
+                                <td>包装单位-packageUnit</td>
+                                <td>必填，文本类型，填写内容请对应系统内单位编码，默认见附表</td>
+                            </tr>
+                            <tr>
+                                <td>每包装数量-packquantity</td>
+                                <td>必填，数字类型，内容为每包装SKU数量，单位相同请填 1</td>
+                            </tr>
+                            <tr>
+                                <td>货主-partner</td>
+                                <td>建议填写，请对应系统内组织编号</td>
+                            </tr>
+                            <tr>
+                                <td>供应商-supplier</td>
+                                <td>建议填写，请对应系统内组织编号</td>
+                            </tr>
+                            <tr>
+                                <td>海关编码-HS CODE</td>
+                                <td>非必填，文本类型</td>
+                            </tr>
+                        </table>
+                    </li>
+                </ol>
+            </form>
+        </div>
+        <div id="tab_2">
+            <form id="stockImport">
+                <ol>
+                    <li>
+                        请选择要导入的excel文件:
+                    </li>
+                    <li>
+                        <input type="file" name="stockFile">
+                    </li>
+                    <li>
+                        <button type="submit" class="save"><i></i>确认导入</button>
+                    </li>
+                    <li style="margin-top:20px">
+                        库存模版下载：<a href="/resource/stock-schema.xlsx">点击下载</a>
+                    </li>
+                    <li style="width:500px;float:left;">
+                        <span>备注：	</span>
+                        <br>1.在导入库存数据前，请先录入/导入相关商品数据
+                        <br>2.系统仅导入第一个工作表，请不要调整工作表顺序
+                        <br>3.该表不可以重复导入，本功能只可以在库存初始化时使用
+                        <br>4.支持公式导入，导入数据为公式计算结果（建议以确定值导入）
+                        <br>5.蓝色字段(column)为特定字段，请不要调整顺序，也不要在之前加入其它字段（包括隐藏字段）
+                        <br>6.非特定字段为批次属性字段，可以自由增删，如内容为空则不存在该属性
+                        <br>7.为了保证数据的精准性，请将合并表格拆分，并填写有效信息
+                        <br>8.导入错误数据请在日志中查看，修正后重新导入
+                    </li>
+                    <li style="width:700px;float:left;margin-top:-100px">
+                        <span>导入数据字段说明	</span>
+                        <table class="app">
+                            <tr>
+                                <td width="200px" style="max-width:200px">序号</td>
+                                <td width="500px">非必填，内容不限</td>
+                            </tr>
+                            <tr>
+                                <td>入库单号-bill code</td>
+                                <td>非必填，文本类型，仅做记录，不产生收货单</td>
+                            </tr>
+                            <tr>
+                                <td>收货日期-receipt date</td>
+                                <td>必填，日期类型/文本类型，标准格式yyyy-mm-dd</td>
+                            </tr>
+                            <tr>
+                                <td>货号-goods code</td>
+                                <td>必填，文本类型，请先确认该商品主数据已存在</td>
+                            </tr>
+                            <tr>
+                                <td>条码-barcode</td>
+                                <td>非必填，文本类型</td>
+                            </tr>
+                            <tr>
+                                <td>品名-goods name/desc</td>
+                                <td>必填，文本类型</td>
+                            </tr>
+                            <tr>
+                                <td>件数-quantity</td>
+                                <td>必填，数字类型，支持4位小数，如果需要以两种单位规格表示，请分拆为两条记录。<br>
+                                    如总共有12件货，10件为一箱，用箱和件表示为，数据为两条记录，数量分别为1箱 和 2件
+                                </td>
+                            </tr>
+                            <tr>
+                                <td>单位-unit</td>
+                                <td>必填，文本类型，填写内容请对应系统内单位编码，默认见附表</td>
+                            </tr>
+                            <tr>
+                                <td>库区-section</td>
+                                <td>必填，文本类型，请与系统库区编号对应</td>
+                            </tr>
+                            <tr>
+                                <td>库位-location</td>
+                                <td>必填，文本类型，请与系统储位编号对应</td>
+                            </tr>
+                            <tr>
+                                <td>货主-partner</td>
+                                <td>必填，请对应系统内组织编号</td>
+                            </tr>
+                            <tr>
+                                <td>生产日期-productionCode</td>
+                                <td>非必填，日期类型/文本类型，标准格式yyyy-mm-dd</td>
+                            </tr>
+                            <tr>
+                                <td>其它字段-others</td>
+                                <td>用户自定义字段，非必填，如果填写则成为批次属性</td>
+                            </tr>
+                        </table>
+                    </li>
+                </ol>
+            </form>
+        </div>
+    </div>
+</div>
+<div class="navPanel">
+    <div class="toolBar"></div>
+    <div class="editorPanel">
+        <table class="app">
+            <thead></thead>
+            <tbody></tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

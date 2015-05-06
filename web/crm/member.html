@@ -1,0 +1,266 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>会员管理</title>
+    <script>
+        $(function () {
+            App.Member = App.Model.extend({
+                urlRoot: 'rest/crm/member',
+                idAttribute: 'id'
+            });
+
+            App.Members = App.Collection.extend({
+                model: App.Member,
+                sortCol:'regist_at',
+                sortDirect:'desc',
+                columns: [
+                    {label: '账号', key: 'userName', sort: true},
+                    {label: '姓名', key: 'nickName'},
+                    {label: '手机', key: 'mobile'},
+                    {label: '邮箱', key: 'email'},
+                    {label: '注册时间', key: 'registAt', sort: true},
+                    {label: '登录时间', key: 'loginAt', sort: true},
+                    {label: '状态', key: 'status', local: 'status', thcss:'width:70px'}
+                ]
+            });
+
+            App.MemberForm = App.FormView.extend({
+                toolbar: ['hide']
+            });
+
+            App.MemberGrid = App.Grid.extend({
+                qel: '.queryBar',
+                collection: new App.Members,
+                form: new App.MemberForm,
+                toolbar: []
+            });
+            new App.MemberGrid();
+        });
+    </script>
+</head>
+<body>
+<div id="article">
+    <form class="queryBar">
+        <ul>
+            <li>
+                <label>账号：</label>
+                <input type="text" name="userName"/>
+            </li>
+            <li>
+                <label>姓名：</label>
+                <input type="text" name="realName"/>
+            </li>
+            <li>
+                <label>手机：</label>
+                <input type="text" name="mobile"/>
+            </li>
+            <li>
+                <label>邮箱：</label>
+                <input type="text" name="email"/>
+            </li>
+            <li>
+                <label>注册时间：</label>
+                <input type="text" name="sdate" class="mindatepicker"/> -
+                <input type="text" name="edate" class="maxdatepicker"/>
+            </li>
+            <li>
+                <label>状态：</label>
+                <select name="status" data-local="status">
+                    <option value="">所有</option>
+                </select>
+            </li>
+            <li>
+                <button class="search"><i></i>查询</button>
+                <button type="reset" class="reset"><i></i>重置</button>
+            </li>
+            <li class="toolBar"></li>
+        </ul>
+    </form>
+    <div class="dataGrid">
+        <table class="app"></table>
+    </div>
+    <div class="page"></div>
+</div>
+
+<div class="navPanel">
+    <div class="toolBar"></div>
+    <div class="editorPanel">
+        <div id="tabs">
+            <ul>
+                <li><a href="#tabs_1"><span>会员信息</span></a></li>
+                <li><a href="#tabs_2"><span>历史订单</span></a></li>
+                <li><a href="#tabs_3"><span>积分记录</span></a></li>
+                <li><a href="#tabs_4"><span>余额记录</span></a></li>
+            </ul>
+            <div id="tabs_1">
+                <form>
+                    <ol>
+                        <li>
+                            <label>账号:</label>
+                            <input type="text" name="userName" readonly/>
+                        </li>
+                        <li>
+                            <label>昵称:</label>
+                            <input type="text" name="nickName" readonly/>
+                        </li>
+                        <li>
+                            <label>姓名:</label>
+                            <input type="text" name="realName" readonly/>
+                        </li>
+                        <li>
+                            <label>性别:</label>
+                            <select name="gender" data-local="gender">
+                                <option value=""></option>
+                            </select>
+                        </li>
+                        <li>
+                            <label>电话:</label>
+                            <input type="text" name="telephone"/>
+                        </li>
+                        <li>
+                            <label>手机:</label>
+                            <input type="text" name="mobile"/>
+                        </li>
+                        <li>
+                            <label>email:</label>
+                            <input type="text" name="email"/>
+                        </li>
+                        <li>
+                            <label>余额:</label>
+                            <input type="text" name="banlance" disabled/>
+                        </li>
+                        <li>
+                            <label>积分:</label>
+                            <input type="text" name="point" disabled/>
+                        </li>
+                        <li>
+                            <label>注册日期:</label>
+                            <input type="text" name="registAt" disabled/>
+                        </li>
+                        <li>
+                            <label>登录日期:</label>
+                            <input type="text" name="loginAt" disabled/>
+                        </li>
+                        <li>
+                            <label>状态 :</label>
+                            <select name="status" data-local="status"></select>
+                        </li>
+                    </ol>
+                </form>
+            </div>
+
+            <div id="tabs_2">
+                <div class="dataGrid">
+                    <table class="app"></table>
+                </div>
+                <div class="page"></div>
+            </div>
+
+            <div id="tabs_3">
+                <div class="dataGrid">
+                    <table class="app"></table>
+                </div>
+                <div class="page"></div>
+            </div>
+
+            <div id="tabs_4">
+                <div class="dataGrid">
+                    <table class="app"></table>
+                </div>
+                <div class="page"></div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="passwdReset" style="display:none;">
+        <div class="nyroModalForm">
+            <form action="javascript:void(0)" class="edit" id="passwdResetForm" method="post">
+                <fieldset>
+                    <legend>密码重置</legend>
+                    <ol>
+                        <li>
+                            <p style="color:red">重要提示:请与顾客核对下列信息中的至少三项后进行操作！<br/>如以下信息不足，请核对该账号最近订单的日期，收货人，及收货人联系方式！</p>
+                        </li>
+                        <li>
+                            <label>姓名:</label>
+                            <input type="text" name="NAME" readonly/>
+                        </li>
+                        <li>
+                            <label>手机:</label>
+                            <input type="text" name="MOBILE" readonly/>
+                        </li>
+                        <li>
+                            <label>EMAIL:</label>
+                            <input type="text" name="EMAIL" readonly/>
+                        </li>
+                        <li>
+                            <label>证件号:</label>
+                            <input type="text" name="CERTNO" readonly/>
+                        </li>
+                        <li>
+                            <label>最后登陆:</label>
+                            <input type="text" name="LOGDATE" readonly/>
+                        </li>
+                        <li>
+                            <input type="hidden" name="ACCOUNT"/>
+                            <button type="submit"><span class="accept">确定重置</span></button>
+                        </li>
+                    </ol>
+                </fieldset>
+            </form>
+        </div>
+    </div>
+
+    <div id="AddBanlance" style="display:none">
+        <div>
+            <form>
+                <fieldset>
+                    <legend>账号充值</legend>
+                    <ol>
+                        <li>
+                            <label>账号:</label>
+                            <input type="text" name="ACCOUNT" readonly/>
+                        </li>
+                        <li>
+                            <label>姓名:</label>
+                            <input type="text" name="NAME" readonly/>
+                        </li>
+                        <li>
+                            <label>卡号:</label>
+                            <input type="text" name="FACENO" readonly/>
+                        </li>
+                        <li>
+                            <label>MSC用户ID:</label>
+                            <input type="text" name="MSCID" readonly/>
+                        </li>
+                        <li>
+                            <label>充值金额:</label>
+                            <input type="text" name="AMOUNT" required/>
+                        </li>
+                        <li>
+                            <label>充值原因:</label>
+                            <select name="TYPE">
+                                <option value='订单取消'>订单取消</option>
+                                <option value='仓库缺货'>仓库缺货</option>
+                                <option value='丢货补偿'>丢货补偿</option>
+                                <option value='多付'>多付</option>
+                                <option value='活动'>活动</option>
+                            </select>
+                        </li>
+                        <li>
+                            <label>原因补充:</label>
+                            <input type="text" name="MARK" required/>
+                        </li>
+                        <li>
+                            <button type="submit"><span class="accept">确认充值</span></button>
+                            <span class="msg"></span>
+                        </li>
+                    </ol>
+                </fieldset>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

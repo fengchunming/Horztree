@@ -1,0 +1,113 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>新闻公告分类</title>
+    <script>
+        $(function () {
+            App.Category = App.Model.extend({
+                urlRoot: 'rest/mm/category',
+                defaults: { sort: 50 },
+                edit: function () {
+                    $('#path').stepSelection('load', this.id);
+                }
+            });
+
+            App.Categorys = App.Collection.extend({
+                model: App.Category,
+                type: 'tree',
+                columns: [
+                    {label: '分类名称', key: 'name'},
+                    {label: '类型', key: 'type'},
+                    {label: '层级', key: 'level'},
+                    {label: '简称', key: 'shortName'},
+                    {label: '状态', key: 'status', local: 'status'}
+                ]
+            });
+
+            App.CategoryGrid = App.Grid.extend({
+                collection: new App.Categorys,
+                form: new App.FormView,
+                toolbar: ['create'],
+                qel: '.queryBar'
+            });
+
+            new App.CategoryGrid;
+
+            $('#path').stepSelection({
+                urlRoot: 'rest/mm/category/list',
+                callback: function (id) {
+                    $('#parent').val(id);
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+<div id="article">
+    <form class="queryBar">
+        <ul>
+            <li>
+                <label>分类名称：</label>
+                <input type="text" name="name"/>
+            </li>
+            <li>
+                <label>分类编号：</label>
+                <input type="text" name="code"/>
+            </li>
+            <li>
+                <label>状态：</label>
+                <select name="status" data-local="status">
+                    <option value="">所有</option>
+                </select>
+            </li>
+            <li>
+                <button class="search"><i></i>查询</button>
+            </li>
+            <li class="toolBar"></li>
+        </ul>
+    </form>
+    <div class="dataGrid">
+        <table class="app"></table>
+    </div>
+    <div class="page"></div>
+</div>
+
+<div class="navPanel">
+    <div class="toolBar"></div>
+    <div class="editorPanel">
+        <form>
+            <ol>
+                <li>
+                    <label>分类名称:</label>
+                    <input type="text" name="name" required/>
+                </li>
+                <li>
+                    <label>上级分类:</label>
+                    <input type="text" name="parentName" readonly data-default="无上级分类"/>
+                </li>
+                <li>
+                    <label>模板:</label>
+                    <select name="type" data-local="crm/kv/template"></select>
+                </li>
+                <li>
+                    <label>标签:</label>
+                    <input type="text" name="tags"/>
+                </li>
+                <li>
+                    <label>启用:</label>
+                    <select name="enabled" data-local="YN"></select>
+                </li>
+                <li>
+                    <label>排序:</label>
+                    <input type="text" name="sort" required data-default="0"/>
+                </li>
+                <li>
+                    <label>描述:</label>
+                    <textarea name="description"></textarea>
+                </li>
+            </ol>
+        </form>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="LocationMapper">
+    <resultMap id="BaseResultMap" type="com.an.wm.entity.Location">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="barcode" property="barcode" jdbcType="VARCHAR"/>
+        <result column="section_type" property="sectionType" jdbcType="VARCHAR"/>
+        <result column="section_code" property="sectionCode" jdbcType="VARCHAR"/>
+        <result column="status" property="status" jdbcType="VARCHAR"/>
+        <result column="storage_type" property="storageType" jdbcType="VARCHAR"/>
+        <result column="usage_type" property="usageType" jdbcType="VARCHAR"/>
+        <result column="abc_type" property="abcType" jdbcType="VARCHAR"/>
+        <result column="volume" property="volume" jdbcType="NUMERIC"/>
+        <result column="use_status" property="useStatus" jdbcType="VARCHAR"/>
+        <result column="weight" property="weight" jdbcType="NUMERIC"/>
+        <result column="remark" property="remark" jdbcType="VARCHAR"/>
+        <result column="parent" property="parent" jdbcType="INTEGER"/>
+    </resultMap>
+    <sql id="Example_Where_Clause">
+        <where>
+            status != 'd'
+            <if test="barcode != null and barcode != ''">
+                and barcode ilike #{barcode},'%')
+            </if>
+
+            <if test="ids != null">and id in
+                <foreach collection="ids" index="index" item="item" open="(" separator="," close=")">
+                    #{item,jdbcType=INTEGER}
+                </foreach>
+            </if>
+        </where>
+    </sql>
+
+    <sql id="Base_Column_List">
+        id, barcode, section_type, section_code, status, storage_type, usage_type,
+        abc_type, volume, use_status, weight, remark, parent
+    </sql>
+    <select id="selectByExample" resultMap="BaseResultMap" parameterType="java.util.HashMap">
+        select
+        <include refid="Base_Column_List"/>
+        from WM_LOCATION
+        <include refid="Example_Where_Clause"/>
+        <if test="_BY != null">order by ${_BY}</if>
+        <if test="_BY == null">order by barcode</if>
+
+    </select>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+        select
+        <include refid="Base_Column_List"/>
+        from WM_LOCATION
+        where id = #{id,jdbcType=INTEGER}
+    </select>
+
+    <select id="selectByCode" resultMap="BaseResultMap" parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List"/>
+        from WM_LOCATION
+        where barcode = #{value,jdbcType=VARCHAR}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+        update WM_LOCATION
+        set status = 'd'
+        where id = #{id,jdbcType=INTEGER}
+    </delete>
+
+    <insert id="insert" parameterType="com.an.wm.entity.Location">
+        insert into WM_LOCATION (barcode,
+        section_type, section_code, status,
+        storage_type, usage_type, abc_type,
+        volume, use_status, weight,
+        remark, enter_dt,parent )
+        values (#{barcode,jdbcType=VARCHAR},
+        #{sectionType,jdbcType=VARCHAR}, #{sectionCode,jdbcType=VARCHAR}, #{status,jdbcType=VARCHAR},
+        #{storageType,jdbcType=VARCHAR}, #{usageType,jdbcType=VARCHAR}, #{abcType,jdbcType=VARCHAR},
+        #{volume,jdbcType=NUMERIC}, #{useStatus,jdbcType=VARCHAR}, #{weight,jdbcType=NUMERIC},
+        #{remark,jdbcType=VARCHAR}, now(), #{parent,jdbcType=INTEGER}
+        )
+        <selectKey resultType="java.lang.Integer" keyProperty="id">
+            SELECT @@IDENTITY AS id
+        </selectKey>
+    </insert>
+    <select id="countByExample" parameterType="java.util.HashMap" resultType="java.lang.Integer">
+        select count(*) from WM_LOCATION
+        <include refid="Example_Where_Clause"/>
+    </select>
+    <update id="updateByPrimaryKey" parameterType="com.an.wm.entity.Location">
+        update WM_LOCATION
+        set
+        barcode = #{barcode,jdbcType=VARCHAR},
+        section_type = #{sectionType,jdbcType=VARCHAR},
+        section_code = #{sectionCode,jdbcType=VARCHAR},
+        status = #{status,jdbcType=VARCHAR},
+        storage_type = #{storageType,jdbcType=VARCHAR},
+        usage_type = #{usageType,jdbcType=VARCHAR},
+        abc_type = #{abcType,jdbcType=VARCHAR},
+        volume = #{volume,jdbcType=NUMERIC},
+        weight = #{weight,jdbcType=NUMERIC},
+        remark = #{remark,jdbcType=VARCHAR},
+        enter_dt = now(),
+        parent = #{parent,jdbcType=INTEGER}
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+
+    <select id="selectLocationKV" resultType="java.util.HashMap">
+        select barcode k,barcode v from WM_LOCATION where status = 't'
+        order by barcode
+    </select>
+    <select id="possibleLocation" parameterType="com.an.wm.entity.PossibleStorage" resultType="java.util.HashMap">
+        select barcode k,barcode v from WM_LOCATION where status = 't'
+        <if test="usageType != null">and usage_type = #{usageType,jdbcType=VARCHAR}</if>
+        <if test="storageType != null">and storage_type = #{storageType,jdbcType=VARCHAR}</if>
+        <if test="abcType != null">and abc_type = #{abcType,jdbcType=VARCHAR}</if>
+        <if test="useStatus != null">and use_status = #{useStatus,jdbcType=VARCHAR}</if>
+        <if test="sectionCode != null">and section_code = #{sectionCode,jdbcType=VARCHAR}</if>
+    </select>
+</mapper>

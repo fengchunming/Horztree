@@ -1,0 +1,314 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <script>
+        $(function () {
+            App.Store = App.Model.extend({
+                urlRoot: 'rest/sys/org/store',
+                idAttribute: 'orgCode',
+                edit: function () {
+                    App.goodsStoreList.load('rest/mm/summaryListByOrg/' + this.get('orgCode'));
+                },
+                success: function (model, response) {
+                    model.set(response);
+                    App.goodsStoreView.save();
+                }
+            });
+
+            App.Stores = App.Collection.extend({
+                urlRoot: 'rest/sys/orgList/store',
+                sortCol: 'org_code',
+                sortDirect: 'asc',
+                model: App.Store,
+                columns: [
+                    {label: '门店编号', key: 'orgCode', sort: 'org_code'},
+                    {label: '门店名', key: 'orgName', sort: 'org_name'},
+                    {label: '开店日期', key: 'openDate', sort: 'open_date'},
+                    {label: '配送仓', key: 'warehouse.orgCode', local: 'sys/kv/warehouse'},
+                    {label: '地址', key: 'address'},
+                    {label: '状态', key: 'status', local: 'status', sort: 'status'}
+                ]
+            });
+
+            App.StoreForm = App.FormView.extend({
+                toolbar: ['create', 'save', 'sync', 'trash', 'hide'],
+                sync: function () {
+                    $.ajax({
+                        contentType: 'application/json',
+                        dataType: 'json',
+                        type: 'POST',
+                        url: 'rest/mm/sendSummaryByOrg/' + $('#orgCode').val()
+                    });
+                }
+            });
+
+            App.StoreGrid = App.Grid.extend({
+                collection: new App.Stores,
+                form: new App.StoreForm,
+                toolbar: ['create'],
+                qel: '.queryBar'
+            });
+            App.storeGrid = new App.StoreGrid();
+
+            App.GoodsStoreRow = App.Row.extend({
+                listen: function () {
+                    var view = this;
+                    $('td[name=orgMinPrice], td[name=orgSalePrice], td[name=safeLine], td[name=maxSafeLine]', this.$el).focusout(function () {
+                        view.model.set($(this).attr('name'), $(this).text());
+                    });
+
+                    $('td[name=canSale]', this.$el).click(function () {
+                        if (_.isNull(view.model.get('maxSafeLine'))) {
+                            view.model.set({
+                                canSale: !view.model.get('canSale'),
+                                canBooking: true,
+                                orgSalePrice: view.model.get('standardSalePrice'),
+                                orgMinPrice: view.model.get('minSalePrice'),
+                                maxSafeLine: 0,
+                                safeLine: 0
+                            });
+
+                        } else {
+                            view.model.set('canSale', !view.model.get('canSale'));
+                        }
+                    });
+
+                    $('td[name=canBooking]', this.$el).click(function () {
+                        if (_.isNull(view.model.get('maxSafeLine'))) {
+                            view.model.set({
+                                canBooking: !view.model.get('canBooking'),
+                                orgSalePrice: view.model.get('standardSalePrice'),
+                                orgMinPrice: view.model.get('minSalePrice'),
+                                canSale: true,
+                                maxSafeLine: 0,
+                                safeLine: 0
+                            });
+                        } else {
+                            view.model.set('canBooking', !view.model.get('canBooking'));
+                        }
+                    });
+                }
+            });
+
+            App.GoodsStore = App.Model.extend({
+                rowView: App.GoodsStoreRow
+            });
+
+            App.GoodsStoreList = App.Collection.extend({
+                model: App.GoodsStore,
+                pageSize: 15,
+                columns: [
+                    {label: '商品', key: 'pn'},
+                    {label: '商品名称', key: 'name'},
+                    {label: '基础售价', key: 'standardSalePrice'},
+                    {label: '组织售价', key: 'orgSalePrice', editable: true},
+                    {label: '最低价', key: 'orgMinPrice', editable: true},
+                    {label: '最小库存', key: 'safeLine', editable: true},
+                    {label: '最大库存', key: 'maxSafeLine', editable: true},
+                    {label: '可售', key: 'canSale', editable: true},
+                    {label: '可进', key: 'canBooking', editable: true}
+                ]
+            });
+
+
+            App.goodsStoreList = new App.GoodsStoreList();
+            App.GoodsStoreView = App.Grid.extend({
+                el: '#tab_2',
+                pel: '#goodsPage',
+                toolbar: [
+                    {'check': '选择所有'}
+                ],
+                collection: App.goodsStoreList,
+                check: function () {
+                    $.map(this.collection.models, function (item, i) {
+                        if (item.get('orgSalePrice') != null) {
+                            item.set({
+                                canBooking: true,
+                                canSale: true
+                            });
+                        } else {
+                            item.set({
+                                canBooking: true,
+                                canSale: true,
+                                maxSafeLine: 0,
+                                safeLine: 0,
+                                orgSalePrice: item.get('standardSalePrice'),
+                                orgMinPrice: item.get('minSalePrice')
+                            })
+                        }
+                    })
+                },
+                save: function () {
+                    var list = this.collection.toJSON();
+                    var store = {'orgCode': $('#orgCode').val()};
+                    _.each(list, function (item) {
+                        item.org = store;
+                    })
+
+                    $.ajax({
+                        contentType: 'application/json',
+                        data: JSON.stringify(list),
+                        dataType: 'json',
+                        processData: false,
+                        type: 'POST',
+                        url: 'rest/mm/linkStore'
+                    });
+                }
+            })
+
+            App.goodsStoreView = new App.GoodsStoreView();
+
+            $("#filter").keyup(function () {
+                $.uiTableFilter($("#tab_2 table"), this.value);
+            })
+        });
+    </script>
+</head>
+<body>
+<div id="article">
+    <form class="queryBar queryPanel">
+        <ul>
+            <li>
+                <label>门店编号</label>
+                <input type="text" name="orgCode"/>
+            </li>
+            <li>
+                <label>门店名称</label>
+                <input type="text" name="orgName"/>
+            </li>
+            <li>
+                <label>状态</label>
+                <select name="status" data-local="status"></select>
+            </li>
+            <li>
+                <button class="search"><i></i>查询</button>
+            </li>
+            <li class="toolBar"></li>
+        </ul>
+    </form>
+    <div class="dataGrid">
+        <table class="app"></table>
+    </div>
+    <div class="page"></div>
+</div>
+
+<div class="navPanel">
+    <div class="toolBar"></div>
+    <div class="editorPanel">
+        <div id="tabs">
+            <ul>
+                <li><a href="#tab_1"><span>基本信息</span></a></li>
+                <li><a href="#tab_2"><span>关联商品</span></a></li>
+            </ul>
+            <div id="tab_1">
+                <form>
+                    <fieldset>
+                        <legend>店铺基本信息</legend>
+                        <ol>
+                            <li>
+                                <label>门店编码:</label>
+                                <input type="text" name="orgCode" id="orgCode" placeholder="请输入门店名称" required/>
+                            </li>
+                            <li>
+                                <label>门店名称:</label>
+                                <input type="text" name="orgName" placeholder="请输入门店名称" required/>
+                            </li>
+                            <li>
+                                <label>简称:</label>
+                                <input type="text" name="shortName" placeholder="简称"/>
+                            </li>
+                            <li>
+                                <label>门店地址:</label>
+                                <textarea name="address" placeholder="请输入门店详细地址"></textarea>
+                            </li>
+                            <li>
+                                <label>门店电话:</label>
+                                <input type="text" name="telephone" placeholder="请输入门店电话"/>
+                            </li>
+                            <li>
+                                <label>传真:</label>
+                                <input type="text" name="fax" placeholder="请输入门店传真"/>
+                            </li>
+                            <li>
+                                <label>邮编:</label>
+                                <input type="text" name="zipCode" placeholder="请输入门店邮编"/>
+                            </li>
+                            <li>
+                                <label>电子邮箱:</label>
+                                <input type="text" name="email" placeholder="请输入门店电子邮箱"/>
+                            </li>
+                            <li>
+                                <label>营业时间:</label>
+                                <input type=time name="openTime" placeholder="请输入营业开始时间" data-default="08:00"/>
+                            </li>
+                            <li>
+                                <label>打烊时间:</label>
+                                <input type="time" name="closeTime" placeholder="请输入打烊时间" data-default="21:00"/>
+                            </li>
+                            <li>
+                                <label>经度:</label>
+                                <input type="text" name="latitude" placeholder="请输入经度"/>
+                            </li>
+                            <li>
+                                <label>纬度:</label>
+                                <input type="text" name="longitude" placeholder="请输入纬度"/>
+                            </li>
+                        </ol>
+                    </fieldset>
+                    <fieldset>
+                        <legend>营业信息</legend>
+                        <ol>
+                            <li>
+                                <label>开店日期:</label>
+                                <input type="text" class="datepicker" name="openDate" placeholder="请输入营业开始时间"/>
+                            </li>
+                            <li>
+                                <label>闭店日期:</label>
+                                <input type="text" class="datepicker" name="closeDate" placeholder="请输入营业时间"/>
+                            </li>
+                            <li>
+                                <label>配货组织:</label>
+                                <select name="warehouse.orgCode" data-local="sys/kv/warehouse"></select>
+                            </li>
+                            <li>
+                                <label>配订日:</label>
+                                <input type=checkbox name=bookingDay value=1><span>周一</span>
+                                <input type=checkbox name=bookingDay value=2><span>周二</span>
+                                <input type=checkbox name=bookingDay value=3><span>周三</span>
+                                <input type=checkbox name=bookingDay value=4><span>周四</span>
+                                <input type=checkbox name=bookingDay value=5><span>周五</span>
+                                <input type=checkbox name=bookingDay value=6><span>周六</span>
+                                <input type=checkbox name=bookingDay value=0><span>周日</span>
+                            </li>
+                            <li>
+                                <label>收货日:</label>
+                                <input type=checkbox name=receiptDay value=1><span>周一</span>
+                                <input type=checkbox name=receiptDay value=2><span>周二</span>
+                                <input type=checkbox name=receiptDay value=3><span>周三</span>
+                                <input type=checkbox name=receiptDay value=4><span>周四</span>
+                                <input type=checkbox name=receiptDay value=5><span>周五</span>
+                                <input type=checkbox name=receiptDay value=6><span>周六</span>
+                                <input type=checkbox name=receiptDay value=0><span>周日</span>
+                            </li>
+                            <li>
+                                <label>门店状态:</label>
+                                <select name="status" data-local="status"></select>
+                                <input type="hidden" name="id" data-default=0>
+                            </li>
+                        </ol>
+                    </fieldset>
+                </form>
+            </div>
+            <div id="tab_2">
+                <div class="toolBar"></div>
+                <table class="app">
+                    <thead></thead>
+                    <tbody></tbody>
+                </table>
+                <div id="goodsPage"></div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

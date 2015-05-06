@@ -1,0 +1,169 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <script>
+        $(function () {
+            _LocalKV.messageType = {
+                'n': '通知',
+                't': '任务'
+            };
+            _LocalKV.messageStatus = {
+                'n': '通知',
+                't': '任务'
+            };
+            App.Message = App.Model.extend({
+                urlRoot: 'rest/sys/message',
+                edit: function () {
+                    if (this.get('privateStatus') === '0') {
+                        this.set('privateStatus', '1');
+
+                        $.get("rest/sys/readMessage/" + this.id);
+                        var msgNo = $('#messageNum');
+                        msgNo.html(msgNo.html() - 1 ? msgNo.html() - 1 : '');
+                    }
+                }
+            });
+
+            App.MessageList = App.Collection.extend({
+                model: App.Message,
+                param: {type: "n", privateStatus: "0"},
+                parse: function (response) {
+                    this.focus = null;
+                    this.count = response.count;
+                    if (response['notice']) {
+                        $('.noticeTitle').addClass('unread');
+                    } else {
+                        $('.noticeTitle').removeClass('unread');
+                    }
+                    if (response['task']) {
+                        $('.taskTitle').addClass('unread');
+                    } else {
+                        $('.taskTitle').removeClass('unread');
+                    }
+                    return response.list;
+                },
+                columns: [
+                    {label: '消息', key: 'note'},
+                    {label: '消息类型', key: 'type', local: 'messageType', thcss: 'width:100px'},
+                    {label: '重要程度', key: 'priority', local: 'priority', thcss: 'width:100px'},
+                    {label: '发送人', key: 'sendBy', thcss: 'width:100px', local: 'sys/kv/user'},
+                    {label: '发送时间', key: 'sendAt', thcss: 'width:100px'},
+                    {label: '状态', key: 'status', local: 'messageStatus', thcss: 'width:100px'}
+                ]
+            });
+
+            App.MessageEditor = App.FormView.extend({
+                size: {width: 600},
+                toolbar: ['save', {
+                    'link': '跳转', visible: function (model) {
+                        return model.get('type') === 't';
+                    }
+                }, 'hide'],
+                link: function () {
+                    App.request = JSON.parse(this.model.get('param'));
+                    $.history.load(this.model.get('taskUrl'));
+                }
+            });
+
+            App.MessageTable = App.Grid.extend({
+                qel: '.queryBar',
+                form: new App.MessageEditor,
+                collection: new App.MessageList,
+                toolbar: [
+                    {'create': '发消息'}
+                ]
+            });
+
+            App.messageGrid = new App.MessageTable();
+
+            $('#btnType,.sub').buttonset().on('change', ':radio', function () {
+                if (this.name === 'type') {
+                    $('.sub_' + this.value).show().siblings('.sub').hide();
+                }
+                App.messageGrid.search();
+            });
+        });
+    </script>
+</head>
+<body>
+<div id="article">
+    <!--
+        <li data-param='{}'><a>动态</a>
+            <ul class="cate sub">
+                <li data-param='{"my":"send"}' class="focus"><a>我发送的</a></li>
+                <li data-param='{"my":"receipt"}'><a>我接收的</a></li>
+            </ul>
+        </li>
+    -->
+    <form class="queryBar">
+        <ul>
+            <li id="btnType">
+                <input type="radio" checked name="type" value="n" id="r1"><label for="r1">　通知　</label>
+                <input type="radio" name="type" value="t" id="r2"><label for="r2">　任务　</label>
+            </li>
+            <li class="sub sub_n">
+                <input type="radio" checked name="privateStatus" value="0" id="r3"><label for="r3">　未读　</label>
+                <input type="radio" name="privateStatus" value="1" id="r4"><label for="r4">　已读　</label>
+            </li>
+            <li class="sub sub_t" style="display:none">
+                <input type="radio" checked name="status" value="1" id="r5"><label for="r5">　要做　</label>
+                <input type="radio" name="status" value="2" id="r6"><label for="r6">　已完成　</label>
+                <input type="radio" name="status" value="3" id="r7"><label for="r7">　过期　</label>
+            </li>
+            <li>
+
+            </li>
+            <li class="toolBar"></li>
+        </ul>
+    </form>
+    <div class="dataGrid">
+        <table class="app"></table>
+    </div>
+    <div class="page"></div>
+</div>
+
+<div class="navPanel">
+    <div class="toolBar"></div>
+    <div class="editorPanel">
+        <form>
+            <ol>
+                <!--
+                <li>
+                    <label>收件人:</label>
+                    <select name="toUser" data-local="sys/kv/user"></select>
+                </li>
+                -->
+                <li>
+                    <label>类型:</label>
+                    <select name="type" data-local="messageType"></select>
+                </li>
+                <li>
+                    <label>优先级:</label>
+                    <select name="priority" data-local="priority"></select>
+                </li>
+                <li>
+                    <label>内容:</label>
+                    <textarea name="note" style="width:400px;height:200px;"></textarea>
+                </li>
+                <!--
+                <li>
+                    <label>发件人:</label>
+                    <select name="sendBy" data-local="sys/kv/user"></select>
+                </li>
+                -->
+                <li>
+                    <label>状态:</label>
+                    <select name="status" data-local="messageStatus"></select>
+                </li>
+                <!--
+                <li>
+                    <label>发件时间:</label>
+                    <input type="text" name="sendAt">
+                </li>
+                -->
+            </ol>
+        </form>
+    </div>
+</div>
+</body>
+</html>

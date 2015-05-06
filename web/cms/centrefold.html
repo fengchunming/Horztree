@@ -1,0 +1,142 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <link href="js/umeditor/themes/default/css/umeditor.css" rel="stylesheet">
+    <script src="js/umeditor/umeditor.config.js"></script>
+    <script src="js/umeditor/umeditor.min.js"></script>
+    <script>
+        _LocalKV.CentreFoldPosition = {
+            "SITE_TOP": "全站顶部",
+            "INDEX_TOP": "首页顶部"
+        };
+        _LocalKV.CentreFoldType = {
+            "HTML": 'html',
+            "TEXT": '文字',
+            "IMAG": "图片"
+        };
+
+        var um = UM.getEditor('goodsEditor');
+        $(function () {
+            App.Centrefold = App.Model.extend({
+                urlRoot: 'rest/cms/centrefold',
+                idAttribute: 'id',
+                edit: function () {
+                    UM.getEditor('content').setContent(this.get('content') || '');
+                    App.groupList.link(this.get('groups'));
+                }
+            });
+
+            App.CentrefoldList = App.Collection.extend({
+                model: App.Centrefold,
+                columns: [
+                    {label: '位置', key: 'position', thcss: 'width:300px', local: 'CentreFoldPosition'},
+                    {label: '类型', key: 'type', local: 'CentreFoldType'},
+                    {label: '内容', key: 'content', thcss: 'width:500px'},
+                    {label: '状态', key: 'status', local: 'status', thcss: 'width:50px'},
+                    {label: '创建时间', key: 'enterAt'}
+                ]
+            });
+
+            App.CentrefoldEditor = App.FormView.extend({
+                size: {width: 900},
+                prepare: function (param) {
+                    param.groups = App.groupList.selectIds();
+                    return param;
+                }
+            });
+
+            App.CentrefoldTable = App.Grid.extend({
+                qel: '.queryBar',
+                form: new App.CentrefoldEditor,
+                collection: new App.CentrefoldList,
+                toolbar: ['create']
+            });
+
+            new App.CentrefoldTable();
+
+            App.GroupList = App.Collection.extend({
+                urlRoot: 'rest/sys/group/own',
+                model: App.Model,
+                pageSize: 0,
+                columns: [
+                    {key: 'id', type: 'checkbox', thcss: 'width:25px'},
+                    {key: 'name', label: '网点', render: function (val, model) {
+                        return '<span style="text-indent: ' + 10 * model.get('level') + 'px">' + val + '</span>';
+                    }
+                    }
+                ],
+                link: function (group) {
+                    _.each(this.models, function (model) {
+                        if (_.indexOf(group, model.id) >= 0) {
+                            model.select(true);
+                        } else {
+                            model.select(false);
+                        }
+                        model.row.render();
+                    });
+                }
+            });
+
+            App.groupList = new App.GroupList;
+
+            App.GroupGrid = App.Grid.extend({
+                el: '#districtGrid',
+                collection: App.groupList,
+                toolbar: []
+            });
+            new App.GroupGrid();
+        });
+    </script>
+</head>
+<body>
+<div id="article">
+    <form class="queryBar">
+        <ul>
+            <li>
+                <label>类型：</label>
+                <input type="text" name="type"/>
+            </li>
+            <li>
+                <label>位置：</label>
+                <select name="position" data-local="CentreFoldPosition">
+                    <option value="">所有</option>
+                </select>
+            </li>
+            <li>
+                <button class="search"><i></i>查询</button>
+            </li>
+            <li class="toolBar"></li>
+        </ul>
+    </form>
+    <div class="dataGrid">
+        <table class="app"></table>
+    </div>
+    <div class="page"></div>
+</div>
+
+<div class="navPanel">
+    <div class="toolBar"></div>
+    <div class="editorPanel">
+        <form style="width:550px;float:left">
+            <ol class="left-align">
+                <li>
+                    <label>位置:</label>
+                    <select name="position" data-local="CentreFoldPosition"></select>
+                    <label>媒体:</label>
+                    <select name="type" data-local="CentreFoldType"></select>
+                    <label>状态:</label>
+                    <select name="status" data-local="status"></select>
+                </li>
+                <li>
+                    <textarea name="content" id="content" style="width:530px;height:200px;"></textarea>
+                </li>
+            </ol>
+        </form>
+
+        <div id="districtGrid" class="side-panel">
+            <table class="app"></table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

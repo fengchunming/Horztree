@@ -1,0 +1,287 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <script>
+        $(function () {
+            App.Trade = App.Model.extend({
+                defaults: {
+                    discountTotal: 0,
+                    billType: 'OF',
+                    billDate: new Date().format('isoDate'),
+                    amount: 0,
+                    itemTotal: 0
+                },
+                urlRoot: 'rest/trade/bill',
+                idAttribute: 'id',
+                edit: function () {
+                    if (this.isNew())
+                        App.details.reset();
+                    else
+                        App.details.load('rest/trade/details/' + this.id);
+                }
+            });
+
+            App.Trades = App.Collection.extend({
+                sortCol: 'id',
+                sortDirect: 'desc',
+                model: App.Trade,
+                param: {own: true,type:'OF'},
+                columns: [
+                    {key: 'id', type: 'checkbox', style: "width:23px"},
+                    {label: '订单号', key: 'billCode', sort: 'bill_code'},
+                    {label: '状态', key: 'status', local: 'tradeStatus', thcss: 'width:100px'},
+                    {label: '订单时间', key: 'dealStamp', sort: 'deal_stamp'},
+                    {label: '金额', key: 'amount', sort: true},
+                    {label: '网点', key: 'groupId', local: 'sys/kv/group'}
+                ]
+            });
+
+            App.TradeFormView = App.FormView.extend({
+                toolbar: ['create', 'save', {'check': '审核'}, {'print': '打印'}, {'trash': '取消'}, 'hide'],
+                size: {width: 800},
+                prepare: function (param) {
+                    param.items = App.details.toJSON();
+                    return param;
+                },
+                check: function () {
+                    if (confirm('是否确认审核通过？')) {
+                        var that = this;
+                        $.ajax({
+                            dataType: 'json',
+                            type: 'GET',
+                            url: 'rest/trade/check/' + this.model.id,
+                            success: function () {
+                                that.model.fetch();
+                            }
+                        });
+                    }
+                },
+                print: function () {
+                    $.printPage('rest/print/trade/' + this.model.id + '.html');
+                },
+                pause: function () {
+                    if (confirm('确认挂起该订单？')) {
+                        if (this.model.get('status') != 'input') {
+                            $.sticky("只有未审核订单才能挂起！");
+                            return false;
+                        }
+                        var that = this;
+                        $.ajax({
+                            type: 'GET',
+                            url: 'rest/scm/pauseTrade/' + this.model.id,
+                            success: function (data) {
+                                that.model.fetch();
+                            }
+                        });
+                    }
+                },
+                stop: function () {
+                    if (confirm('确认拦截该订单？')) {
+                        if (this.model.get('status') != 'check') {
+                            $.sticky("只在审核通过的订单才能中止！");
+                            return false;
+                        }
+                        var that = this;
+                        $.ajax({
+                            type: 'GET',
+                            url: 'rest/scm/stopTrade/' + this.model.id,
+                            success: function (data) {
+                                that.model.fetch();
+                            }
+                        });
+                    }
+                }
+            });
+
+            App.TradeGrid = App.Grid.extend({
+                collection: new App.Trades,
+                form: new App.TradeFormView,
+                toolbar: ['create'],
+                qel: '.queryBar'
+            });
+            App.tradeGrid = new App.TradeGrid();
+
+            /*
+             * 明细
+             */
+            App.DetailRow = App.Row.extend({
+                listen: function () {
+                    var view = this;
+                    this.$el.find('input[name=pn]').autocomplete({
+                        source: function (request, response) {
+                            $.ajax({
+                                url: 'rest/mm/goods/list',
+                                dataType: "json",
+                                data: {_SH: request.term, _LM: 20},
+                                success: function (data) {
+                                    response($.map(data.list, function (item) {
+                                        return {
+                                            label: item.pn + " - " + item.name,
+                                            value: item
+                                        }
+                                    }));
+                                }
+                            });
+                        },
+                        focus: function (event, ui) {
+                            $(this).val(ui.item.label);
+                            return false;
+                        },
+                        select: function (event, ui) {
+                            var goods = ui.item.value;
+                            goods.uom = goods.skuUom;
+                            goods.category = null;
+                            goods.realQuantity = goods.quantity;
+                            delete goods.quantity;
+                            console.log(goods);
+                            view.model.set(goods);
+                        },
+                        change: function (event, ui) {
+                            if (!ui.item) {
+                                var id = view.model.id;
+                                view.model.clear();
+                                view.model.set({'id': id});
+                            }
+                        }
+                    });
+                }
+            });
+
+
+            App.Detail = App.Model.extend({
+                idAttribute: 'id',
+                locked: function () {
+                    return this.get('status') === '1'
+                }
+            });
+
+            App.DetailList = App.Collection.extend({
+                model: App.Detail,
+                autoLoad: false,
+                sortCol: 'enter_at',
+                sortDirect: 'asc',
+                pageSize: 0,
+                columns: [
+                    {label: '', key: 'id', type: 'checkbox', style: 'width:22px'},
+                    {label: '商品编号', key: 'pn', type: 'text'},
+                    {label: '商品名称', key: 'name'},
+                    {label: '价格', key: 'salePrice', type: 'text'},
+                    {label: '单位', key: 'uom.id', local: 'base/kv/uom'},
+                    {label: '数量', key: 'realQuantity', type: 'number'},
+                    {label: '小计', key: 'saleTotal', type: 'number'}
+                ],
+                saleTotal: function () {
+                    var amount = 0;
+                    this.each(function (model) {
+                        if (model.get('status') != 'd')
+                            amount += model.get('saleTotal');
+                    });
+                    $('#amount').val(Math.round(amount * 1000) / 1000);
+                }
+            });
+
+            App.details = new App.DetailList;
+
+            App.DetailGrid = App.Grid.extend({
+                el: '#tab_2',
+                editable: true,
+                row: App.DetailRow,
+                toolbar: ['append', 'remove'],
+                collection: App.details
+            });
+
+            new App.DetailGrid;
+        });
+    </script>
+</head>
+<body>
+<div id="article">
+    <form class="queryBar">
+        <ul>
+            <li>
+                <label>单号：</label>
+                <input type="text" name="billCode">
+            </li>
+            <li>
+                <label>状态：</label>
+                <select name="status" data-local="tradeStatus">
+                    <option value=""></option>
+                </select>
+            </li>
+            <li>
+                <label>网点：</label>
+                <select name="group" data-local="sys/kv/owngroup">
+                    <option></option>
+                </select>
+            </li>
+            <li>
+                <label>订单日期：</label>
+                <input type="text" class="mindatepicker" name="sdate"> -
+                <input type="text" class="maxdatepicker" name="edate">
+            </li>
+            <li>
+                <button class="search"><i></i>查询</button>
+            </li>
+            <li class="toolBar"></li>
+        </ul>
+    </form>
+    <div class="dataGrid">
+        <table class="app"></table>
+    </div>
+    <div class="page"></div>
+</div>
+
+<div class="navPanel">
+    <div class="toolBar"></div>
+    <div class="editorPanel">
+        <form>
+            <ol>
+                <li>
+                    <label>订单号:</label>
+                    <input type="text" name="billCode" disabled id="billCode"/>
+                </li>
+                <li>
+                    <label>订单日期:</label>
+                    <input type="text" class="datepicker" name="billDate" required>
+                </li>
+                <li>
+                    <label>网点</label>
+                    <select name="groupId" data-local="sys/kv/owngroup"></select>
+                </li>
+                <li>
+                    <label>备注:</label>
+                    <textarea name="remark" style="height:50px;"></textarea>
+                </li>
+            </ol>
+            <ol>
+                <li>
+                    <label>总金额:</label>
+                    <input type="text" id="amount" name="amount" readonly>
+                </li>
+                <li>
+                    <label>折扣:</label>
+                    <input type="number" name="discountTotal" min=0>
+                </li>
+                <li>
+                    <label>商品总计:</label>
+                    <input type="number" id="itemTotal" name="itemTotal" min=0 step="0.001">
+                </li>
+                <li>
+                    <label>支付方式:</label>
+                    <select name="payment" data-local="fm/kv/payment"></select>
+                </li>
+                <li>
+                    <label>订单状态:</label>
+                    <select name="status" disabled data-local="tradeStatus"></select>
+                </li>
+            </ol>
+        </form>
+        <div id="tab_2">
+            <table class="app"></table>
+            <div class="toolBar" style="float:left;width:40%;text-align:right"></div>
+            <div class="page" style="float:right;width:50%"></div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

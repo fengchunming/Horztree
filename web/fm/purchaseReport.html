@@ -1,0 +1,265 @@
+<!DOCTYPE HTML> 
+<html> 
+<head> 
+<link rel="stylesheet" href="css/jquery.jqplot.min.css" />
+<style>
+ul.group {
+}
+ul.group li{
+	float:left;
+}
+
+ul.group li label{
+	width:80px; float: left; padding-top: 5px; text-align:right; padding-right:8px;
+}
+
+ul.group li input:not([type=checkbox],[type=radio]){
+	width:100px; height:20px; line-height:18px; margin:2px;	border: 1px solid #ccc;
+}
+
+ul.group li select{
+	width:100px; height:20px; line-height:18px; margin:2px;	border: 1px solid #ccc;
+}
+
+ul.result {
+	width:130px; float:left; 
+}
+
+div.canvas {
+	float:right;height:230px; width:80%; 
+}
+</style>
+<script src="js/jqplot/jquery.jqplot.min.js"></script>
+<script src="js/jqplot/jqplot.logAxisRenderer.min.js"></script>
+<script src="js/jqplot/jqplot.canvasTextRenderer.min.js"></script>
+<script src="js/jqplot/jqplot.canvasAxisLabelRenderer.min.js"></script>
+<script src="js/jqplot/jqplot.canvasAxisTickRenderer.min.js"></script>
+<script src="js/jqplot/jqplot.dateAxisRenderer.min.js"></script>
+<script src="js/jqplot/jqplot.categoryAxisRenderer.min.js"></script>
+<script src="js/jqplot/jqplot.barRenderer.min.js"></script>
+<script src="js/jqplot/jqplot.highlighter.min.js"></script>
+<script>
+$(function() {
+	App.ReportList = App.Collection.extend({
+		url : function(){
+			var param = $('#paramForm').serializeObject();
+			return 'rest/fi/purchaseReport?' + 
+				$.map(param,  function(i, item){
+					return item + "=" + param[item];
+				}).join("&") + (this.sort?"&_BY=" + this.sort +(this.desc?" desc":""):"");
+		},
+		parse : function(response){
+			var chart = [];
+			var ticks = [];
+			var result = [];
+			var param = $('#paramForm').serializeObject();
+			
+			if(param.time_group)
+				ticks = _.pluck(response.list, param.time_group);
+			
+			if(param.org_group)
+				ticks = _.pluck(response.list, param.org_group);
+			
+			if(param.goods_group)
+				ticks = _.pluck(response.list, param.goods_group);
+ 			
+			
+ 			if(!_.isUndefined(param.amount)){
+				chart.push(_.zip(ticks ,_.pluck(response.list, 'amount')))
+ 			}
+			
+			if(!_.isUndefined(param.bill_avg)){
+				chart.push(_.zip(ticks ,_.pluck(response.list, 'bill_avg')))
+			}
+			
+			if(!_.isUndefined(param.bill_count)){
+				chart.push(_.zip(ticks ,_.pluck(response.list, 'bill_count')))
+			}			
+			
+			if(!_.isUndefined(param.dis_rate)){
+				chart.push(_.zip(ticks ,_.pluck(response.list, 'dis_rate')))
+			}
+			
+			$('#chart').html('');
+			$('#chart').jqplot(chart , {  
+				seriesDefaults: {
+					//renderer:$.jqplot.BarRenderer,
+				},
+				axes:{
+					xaxis: {
+						renderer: $.jqplot.CategoryAxisRenderer,
+						labelRenderer: $.jqplot.CanvasAxisLabelRenderer,
+						//ticks :ticks,
+						tickRenderer: $.jqplot.CanvasAxisTickRenderer,
+						tickOptions: {
+						    angle: -30,
+						    formatString:'&nbsp;'
+						}
+				           
+				    },
+			      	yaxis:{
+			          tickOptions:{
+			            formatString:'%.2f'
+			          }
+			        }
+				},
+				highlighter: {
+					tooltipAxes: 'y',
+			        show: true
+			    }
+			});
+			return response.list;
+		}
+	})
+	
+	convertLocal();
+	
+	$('button').button();;
+	App.reportList = new App.ReportList;
+	
+	$('#paramForm').submit(function(){
+		var param = $('#paramForm').serializeObject();
+		App.ReportGrid = App.Grid.extend({
+			collection: App.reportList,
+			columns : function(){
+				var cols = [];
+				if(param.time_group) 
+					cols.push({label:'日期',key: param.time_group});
+				if(param.goods_group) 
+					cols.push({label:'商品',key: param.goods_group, local: 'mm/kv/goods'});
+				if(param.org_group == 'supplier') 
+					cols.push({label:'供应商',key: param.org_group, local: 'sys/kv/supplier'});
+				else if(param.org_group == 'org')
+					cols.push({label:'采购组织',key: param.org_group});
+				
+				if(!_.isUndefined(param.bill_count))
+					cols.push({label:'单数',key:'bill_count'});
+				if(!_.isUndefined(param.amount))
+					cols.push({label:'总成本',key:'amount'});
+				if(!_.isUndefined(param.plan_quantity))
+					cols.push({label:'采购数',key:'plan_quantity'});
+				if(!_.isUndefined(param.real_quantity))
+					cols.push({label:'收货数',key:'real_quantity'});
+				if(!_.isUndefined(param.dis_rate))
+					cols.push({label:'差异数',key:'dis_rate'});
+				return cols;
+			}
+		});
+		App.reportGrid = new App.ReportGrid;
+		App.reportList.fetch();
+		return false;
+	})
+
+});
+</script>
+</head>
+<body>
+<div id="article">
+	
+	<div class="tt">
+		<form id="paramForm" method="post">
+		<fieldset style="width:98%">
+		<legend>过滤条件</legend>
+		<ul class="group">
+			<li>
+				<label>日期范围:</label>
+			    <input type="text" class="datepicker" name="sdate_filter">
+			    <input type="text" class="datepicker" name="edate_filter">
+			</li>
+			<li>
+				<label>商品分类:</label>
+			    <select name="category_filter" data-local="mm/kv/category">
+			    	<option value="">所有商品</option>
+			    </select>
+			</li>
+			<li>
+				<label>商品:</label>
+			    <select name="goods_filter" data-local="mm/kv/goods">
+			    	<option value="">所有商品</option>
+			    </select>
+			</li>
+			<li>
+			   <label>采购组织:</label>
+			   <select name="org_filter" data-local="sys/kv/warehouse">
+			  		<option value="">所有门店</option>
+			   </select>
+			</li>
+			<li>
+			   <label>供应商:</label>
+			   <select name="supplier_filter" data-local="sys/kv/supplier">
+			   		<option value="">所有供应商</option>
+			   </select>
+			</li>
+		</ul>
+		</fieldset>
+		<fieldset style="width:98%">
+		<legend>分组条件</legend>
+		<ul class="group">
+			<li>
+				<label>商品:</label>
+			    <select name="goods_group">
+			    	<option value="">不区分商品</option>
+			    	<option value="largeCate">按大类区分</option>
+			    	<option value="middleCate">按中类区分</option>
+			    	<option value="smallCate">按小类区分</option>
+			    	<option value="goods">按商品区分</option>
+			    </select>
+			</li>
+			<li>
+			    <label>时间:</label>
+			   	<select name="time_group">
+			   		<option value="">不区分时间</option>
+			    	<option value="year">年度分组</option>
+			    	<option value="quarter">季度分组</option>
+			    	<option value="month">月份分组</option>
+			    	<option value="week">周分组</option>
+			    </select>
+			</li>
+			<li>
+			   <label>采购组织:</label>
+			   	<select name="org_group">
+			   		<option value="">不区分组织</option>
+			    	<option value="org">按采购组织分组</option>
+			    	<option value="supplier">按供应商区分</option>
+			    </select>
+			</li>
+		</ul>
+		</fieldset>
+		<fieldset style="width:160px">
+		<legend>统计项</legend>
+		<ol class="result">
+			<li>
+				<label>总成本:</label>
+			    <input type="checkbox" name="amount" checked>
+			</li>
+			<li>
+				<label>单数:</label>
+			    <input type="checkbox" name="bill_count">
+			</li>
+			<!--  li>
+				<label>单平均数:</label>
+			    <input type="checkbox" name="bill_avg">
+			</li-->
+			<li>
+				<label>总到货:</label>
+			    <input type="checkbox" name="real_quantity">
+			</li>
+			<li>
+				<label>差异数:</label>
+			    <input type="checkbox" name="dis_rate">
+			</li>
+			<li>
+				<label></label>
+			    <button type="submit">生成报表</button>
+			</li>
+		</ol>
+		</fieldset>
+		<div id="chart" class="canvas"></div>
+		</form>
+	</div>
+	<div style="clear:both;margin-top:10px;">
+		<table class="app"><thead></thead><tbody></tbody></table>
+	</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="MM.AnalysisMapper">
+
+    <select id="countByExample" resultType="java.util.HashMap" parameterType="java.util.HashMap">
+        select count(1) from CRM_FAVORITE
+    </select>
+
+    <select id="selectByExample" resultType="java.util.HashMap" parameterType="java.util.HashMap">
+        select count(1) from CRM_FAVORITE
+    </select>
+
+    <select id="selectByPrimaryKey" resultType="java.util.HashMap" parameterType="java.lang.Integer">
+        select count(1) from CRM_FAVORITE
+    </select>
+
+</mapper>

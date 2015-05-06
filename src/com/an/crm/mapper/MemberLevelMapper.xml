@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="CRM.MemberLevelMapper">
+    <resultMap id="BaseResultMap" type="com.an.crm.entity.MemberLevel">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="name" property="name" jdbcType="VARCHAR"/>
+        <result column="level" property="level" jdbcType="VARCHAR"/>
+        <result column="point" property="point" jdbcType="INTEGER"/>
+        <result column="need_point" property="needPoint" jdbcType="INTEGER"/>
+        <result column="rebate" property="rebate" jdbcType="NUMERIC"/>
+        <result column="status" property="status" jdbcType="INTEGER"/>
+        <result column="remark" property="remark" jdbcType="VARCHAR"/>
+
+    </resultMap>
+    <sql id="Example_Where_Clause">
+        <where>
+            status != 'd'
+            <if test="name != null and name != ''">and upper(name) like concat('%',upper(#{name}),'%')</if>
+            <if test="status != null and status != ''">and status =#{status}</if>
+            <if test="level != null and level != ''">and level = #{level,jdbcType=VARCHAR}</if>
+        </where>
+    </sql>
+    <select id="countByExample" parameterType="map" resultType="java.lang.Integer">
+        select count(1) from CRM_MEMBER_LEVEL
+        <include refid="Example_Where_Clause"/>
+    </select>
+
+    <sql id="Base_Column_List">
+        id, name, rebate, status, point, status, enter_at, need_point, level, remark
+    </sql>
+
+    <select id="selectByExample" resultMap="BaseResultMap" parameterType="map">
+        select
+        <include refid="Base_Column_List"/>
+        from CRM_MEMBER_LEVEL
+        <include refid="Example_Where_Clause"/>
+        <if test="_BY != null">order by ${_BY}</if>
+    </select>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+        select
+        <include refid="Base_Column_List"/>
+        from CRM_MEMBER_LEVEL
+        where id = #{id,jdbcType=INTEGER}
+    </select>
+    <select id="selectKV" resultType="java.util.HashMap">
+        select id as k, name as v from CRM_MEMBER_LEVEL
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+        delete from CRM_MEMBER_LEVEL
+        where id = #{id,jdbcType=INTEGER}
+    </delete>
+
+    <insert id="insert" parameterType="com.an.crm.entity.MemberLevel">
+        insert into CRM_MEMBER_LEVEL ( name, rebate,level,
+        status, point, need_point, enter_at, remark)
+        values ( #{name,jdbcType=VARCHAR}, #{rebate,jdbcType=NUMERIC},#{level,jdbcType=VARCHAR},
+        #{status,jdbcType=VARCHAR}, #{point,jdbcType=INTEGER}, #{needPoint,jdbcType=INTEGER},
+        now(), #{remark,jdbcType=VARCHAR})
+    </insert>
+
+    <update id="updateByPrimaryKey" parameterType="com.an.crm.entity.MemberLevel">
+        update CRM_MEMBER_LEVEL
+        set name = #{name,jdbcType=VARCHAR},
+        rebate = #{rebate,jdbcType=NUMERIC},
+        level = #{level,jdbcType=VARCHAR},
+        point = #{point,jdbcType=NUMERIC},
+        status = #{status,jdbcType=VARCHAR},
+        remark = #{remark,jdbcType=VARCHAR},
+        need_point = #{needPoint,jdbcType=INTEGER},
+        enter_at = #{enterAt,jdbcType=TIMESTAMP},
+        point = #{point,jdbcType=INTEGER}
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+</mapper>

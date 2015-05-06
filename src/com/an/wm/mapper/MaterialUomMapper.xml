@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="GoodsUnitMapper">
+    <resultMap id="BaseResultMap" type="com.an.wm.entity.MaterialUom">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="uom_name" property="uomName" jdbcType="VARCHAR"/>
+        <result column="uom_code" property="uomCode" jdbcType="VARCHAR"/>
+        <result column="pack_quantity" property="packQuantity" jdbcType="NUMERIC"/>
+        <result column="height" property="height" jdbcType="NUMERIC"/>
+        <result column="length" property="length" jdbcType="NUMERIC"/>
+        <result column="width" property="width" jdbcType="NUMERIC"/>
+        <result column="weight" property="weight" jdbcType="NUMERIC"/>
+        <result column="barcode" property="barcode" jdbcType="VARCHAR"/>
+        <result column="goods_code" property="pn" jdbcType="VARCHAR"/>
+    </resultMap>
+    <sql id="Example_Where_Clause">
+        <where>
+           status != 'd'
+            and goods_code = #{pn,jdbcType=VARCHAR}
+        </where>
+    </sql>
+    <sql id="Base_Column_List">
+        id, uom_name, uom_code, pack_quantity, status, height,length,width,weight, barcode
+    </sql>
+    <select id="selectByExample" resultMap="BaseResultMap" parameterType="java.util.HashMap">
+        select
+        <include refid="Base_Column_List"/>
+        from "ag"."T_MM_GOODS_UNIT"
+        <include refid="Example_Where_Clause"/>
+        <if test="_BY != null">order by ${_BY}</if>
+
+
+    </select>
+
+    <select id="selectByGoods" resultMap="BaseResultMap" parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List"/>
+        from "ag"."T_MM_GOODS_UNIT"
+        wherestatus != 'd'
+        and goods_code = #{value,jdbcType=VARCHAR}
+    </select>
+
+    <select id="countByGoods" parameterType="java.lang.String" resultType="java.lang.Integer">
+        select count(*) from "ag"."T_MM_GOODS_UNIT"
+        wherestatus != 'd'
+        and goods_code = #{value,jdbcType=VARCHAR}
+    </select>
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long">
+        select
+        <include refid="Base_Column_List"/>
+        from "ag"."T_MM_GOODS_UNIT"
+        where id = #{id,jdbcType=BIGINT}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        update "ag"."T_MM_GOODS_UNIT"
+        set status = 'trash',enter_at = now()
+        where id = #{id,jdbcType=BIGINT}
+    </delete>
+    <insert id="insert" parameterType="com.an.wm.entity.MaterialUom">
+        insert into "ag"."T_MM_GOODS_UNIT"
+        (goods_code, uom_name, uom_code, pack_quantity, status,
+        barcode, height, length, width, weight, enter_at)
+        values (#{pn,jdbcType=VARCHAR}, #{uomName,jdbcType=VARCHAR}, #{uomCode,jdbcType=VARCHAR},
+        #{packQuantity,jdbcType=NUMERIC}, #{status,jdbcType=VARCHAR},
+        #{barcode,jdbcType=VARCHAR},#{height,jdbcType=NUMERIC}, #{length,jdbcType=NUMERIC},
+        #{width,jdbcType=NUMERIC}, #{weight,jdbcType=NUMERIC}, now() )
+        <selectKey resultType="java.lang.Integer" keyProperty="id">
+            select currval('"ag"."T_MM_GOODS_UNIT_id_seq"') AS id
+        </selectKey>
+    </insert>
+    <select id="countByExample" parameterType="java.util.HashMap" resultType="java.lang.Integer">
+        select count(*) from "ag"."T_MM_GOODS_UNIT"
+        <include refid="Example_Where_Clause"/>
+    </select>
+
+    <update id="updateByPrimaryKey" parameterType="com.an.wm.entity.MaterialUom">
+        update "ag"."T_MM_GOODS_UNIT"
+        set uom_name = #{uomName,jdbcType=VARCHAR},
+        uom_code = #{uomCode,jdbcType=VARCHAR},
+        pack_quantity = #{packQuantity,jdbcType=NUMERIC},
+        status = #{status,jdbcType=VARCHAR},
+        barcode = #{barcode,jdbcType=VARCHAR},
+        height = #{height,jdbcType=NUMERIC},
+        length = #{length,jdbcType=NUMERIC},
+        width = #{width,jdbcType=NUMERIC},
+        weight = #{weight,jdbcType=NUMERIC},
+        enter_at = now()
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+</mapper>

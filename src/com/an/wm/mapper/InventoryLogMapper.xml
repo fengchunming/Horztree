@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="InventoryLogMapper">
+    <resultMap id="BaseResultMap" type="com.an.wm.entity.Item">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="location_code" property="stock.location.locationCode" jdbcType="VARCHAR"/>
+        <result column="target_location_code" property="targetStock.location.locationCode" jdbcType="VARCHAR"/>
+        <result column="bill_code" property="bill.billCode" jdbcType="VARCHAR"/>
+        <result column="bill_type" property="bill.type" jdbcType="VARCHAR"/>
+        <result column="org_code" property="belongTo.orgCode" jdbcType="VARCHAR"/>
+        <result column="org_type" property="belongTo.orgType" jdbcType="VARCHAR"/>
+        <result column="stock_id" property="stock.stockId" jdbcType="INTEGER"/>
+        <result column="target_stock_id" property="targetStock.stockId" jdbcType="INTEGER"/>
+        <result column="opening_inventory" property="openingSummary" jdbcType="NUMERIC"/>
+        <result column="ending_inventory" property="endingSummary" jdbcType="NUMERIC"/>
+        <result column="opening_quantity" property="openingQuantity" jdbcType="NUMERIC"/>
+        <result column="ending_quantity" property="endingQuantity" jdbcType="NUMERIC"/>
+        <result column="lot_code" property="lotCode" jdbcType="VARCHAR"/>
+        <result column="goods_code" property="pn" jdbcType="VARCHAR"/>
+        <result column="goods_unit_code" property="goodsUnit.uomCode" jdbcType="VARCHAR"/>
+        <result column="usage_type" property="usageType" jdbcType="VARCHAR"/>
+        <result column="real_date" property="realDate" jdbcType="DATE"/>
+        <result column="section" property="stock.location.sectionCode" jdbcType="VARCHAR"/>
+        <result column="warehouse" property="stock.location.warehouseCode" jdbcType="VARCHAR"/>
+        <result column="enter_at" property="enterAt" jdbcType="TIMESTAMP"/>
+    </resultMap>
+    <sql id="Example_Where_Clause">
+        <where>
+            <if test="pn != null">goods_code = #{pn}</if>
+        </where>
+    </sql>
+    <sql id="Base_Column_List">
+        id, location_code, target_location_code, bill_code, bill_type, stock_id, goods_code,
+        target_stock_id, lot_code, opening_inventory, ending_inventory, goods_unit_code, usage_type,
+        turn_state, work_type, enter_at, org_code, org_type,
+        opening_quantity, ending_quantity, real_date, section, warehouse
+    </sql>
+
+    <select id="selectByExample" resultMap="BaseResultMap" parameterType="map">
+        select
+        <include refid="Base_Column_List"/>
+        from WM_INVENTORY_LOG
+        <include refid="Example_Where_Clause"/>
+        order by id
+    </select>
+
+    <select id="selectByTimestamp" resultMap="BaseResultMap" parameterType="java.util.HashMap">
+        select
+        <include refid="Base_Column_List"/>
+        from WM_INVENTORY_LOG
+        where id in
+        (select max(id) from WM_INVENTORY_LOG
+        where enter_at <![CDATA[ <  ]]> #{enterAt,jdbcType=DATE}
+        <if test="pn != null">and goods_code = #{pn}</if>
+        )
+        order by goods_code
+    </select>
+
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+        select
+        <include refid="Base_Column_List"/>
+        from WM_INVENTORY_LOG
+        where id = #{id,jdbcType=INTEGER}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+        delete from WM_INVENTORY_LOG
+        where id = #{id,jdbcType=INTEGER}
+    </delete>
+
+    <insert id="insert" parameterType="com.an.wm.entity.Item">
+        insert into WM_INVENTORY_LOG (location_code, target_location_code,
+        bill_code, bill_type, goods_code,
+        stock_id, target_stock_id, section, warehouse, lot_code,
+        opening_inventory, ending_inventory,
+        opening_quantity, ending_quantity,
+        goods_unit_code, usage_type, org_code, org_type, real_date, enter_at)
+        values (#{stock.location.locationCode,jdbcType=VARCHAR}, #{targetStock.location.locationCode,jdbcType=VARCHAR},
+        #{bill.billCode,jdbcType=VARCHAR}, #{bill.type,jdbcType=VARCHAR}, #{pn,jdbcType=VARCHAR},
+        #{stock.stockId,jdbcType=INTEGER}, #{targetStock.stockId,jdbcType=INTEGER},
+        #{stock.location.sectionCode,jdbcType=VARCHAR}, #{stock.location.warehouseCode,jdbcType=VARCHAR},
+        #{lotCode,jdbcType=VARCHAR},
+        #{openingSummary,jdbcType=NUMERIC}, #{endingSummary,jdbcType=NUMERIC},
+        #{openingQuantity,jdbcType=NUMERIC}, #{endingQuantity,jdbcType=NUMERIC},
+        #{goodsUnit.uomCode,jdbcType=VARCHAR}, #{usageType,jdbcType=VARCHAR},
+        #{belongTo.orgCode,jdbcType=VARCHAR}, #{belongTo.orgType,jdbcType=VARCHAR}, #{realDate,jdbcType=DATE}, now())
+    </insert>
+
+    <select id="countByExample" parameterType="map" resultType="java.lang.Integer">
+        select count(*) from WM_INVENTORY_LOG
+        <include refid="Example_Where_Clause"/>
+    </select>
+</mapper>

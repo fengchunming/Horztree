@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="WmBillDetailMapper">
+    <resultMap id="BaseResultMap" type="com.an.wm.entity.Item">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="item_id" property="itemId" jdbcType="INTEGER"/>
+        <result column="pn" property="pn" jdbcType="VARCHAR"/>
+        <result column="barcode" property="barcode" jdbcType="VARCHAR"/>
+        <result column="name" property="name" jdbcType="VARCHAR"/>
+        <result column="uom" property="uom.id" jdbcType="INTEGER"/>
+        <result column="pack_quantity" property="uom.packQuantity" jdbcType="NUMERIC"/>
+        <result column="bill_id" property="billId" jdbcType="INTEGER"/>
+        <result column="bill_code" property="bill.billCode" jdbcType="VARCHAR"/>
+        <result column="bill_type" property="bill.type" jdbcType="VARCHAR"/>
+        <result column="origin_bill" property="origin.billCode" jdbcType="VARCHAR"/>
+        <result column="origin_bill_type" property="origin.type" jdbcType="VARCHAR"/>
+        <result column="product_date" property="productDate" jdbcType="DATE"/>
+        <result column="receipt_date" property="receiptDate" jdbcType="DATE"/>
+        <result column="batch_attr" property="batchAttr" typeHandler="com.an.core.mybatis.handlers.JsonTypeHandler"/>
+        <result column="warehouse" property="location.warehouse" jdbcType="INTEGER"/>
+        <result column="section" property="location.sectionCode" jdbcType="VARCHAR"/>
+        <result column="location" property="location.locationCode" jdbcType="VARCHAR"/>
+        <result column="pallet_code" property="location.pallet" jdbcType="VARCHAR"/>
+        <result column="target_warehouse" property="target.warehouse" jdbcType="INTEGER"/>
+        <result column="target_section" property="target.sectionCode" jdbcType="VARCHAR"/>
+        <result column="target_location" property="target.locationCode" jdbcType="VARCHAR"/>
+        <result column="plan_quantity" property="planQuantity" jdbcType="NUMERIC"/>
+        <result column="real_quantity" property="realQuantity" jdbcType="NUMERIC"/>
+        <result column="deal_quantity" property="dealQuantity" jdbcType="NUMERIC"/>
+        <result column="adjust_quantity" property="adjustQuantity" jdbcType="NUMERIC"/>
+        <result column="origin_id" property="originId" jdbcType="BIGINT"/>
+        <result column="stock_id" property="stockId" jdbcType="BIGINT"/>
+        <result column="lock_id" property="lockId" jdbcType="BIGINT"/>
+        <result column="org_code" property="belong.orgCode" jdbcType="VARCHAR"/>
+        <result column="org_type" property="belong.orgType" jdbcType="VARCHAR"/>
+        <result column="target_org_code" property="partyB.orgCode" jdbcType="VARCHAR"/>
+        <result column="target_org_type" property="partyB.orgType" jdbcType="VARCHAR"/>
+        <result column="status" property="status" jdbcType="VARCHAR"/>
+        <result column="batch_code" property="batchCode" jdbcType="VARCHAR"/>
+        <result column="cost_price" property="costPrice" jdbcType="NUMERIC"/>
+        <result column="cost_total" property="costTotal" jdbcType="NUMERIC"/>
+        <result column="enter_at" property="enterAt" jdbcType="TIMESTAMP"/>
+    </resultMap>
+    <sql id="Example_Where_Clause">
+        <where>
+            status != 'd'
+            <if test="orgCode != null and orgCode != ''">and org_code = #{orgCode}</if>
+            <if test="pn != null and pn != ''">and pn = #{pn}</if>
+            <if test="billCode != null and billCode != ''">and bill_code = #{billCode}</if>
+            <if test="billId != null and billId != ''">and bill_id = #{billId}</if>
+            <if test="originBill != null and originBill != ''">and origin_bill = #{originBill}</if>
+            <if test="type != null and type != ''">and bill_type = #{type}</if>
+            <if test="batchCode != null and batchCode != ''">and batch_code = #{batchCode}</if>
+            <if test="online != null and online != ''">
+                <![CDATA[  and adjust_quantity < real_quantity and target_org_type = 'store']]></if>
+        </where>
+    </sql>
+    <sql id="Base_Column_List">
+        id, item_id, pn, barcode, name, uom, pack_quantity, bill_id, bill_code, bill_type,
+        origin_bill, origin_bill_type, product_date, receipt_date, batch_attr, warehouse,
+        section, location, target_warehouse, target_section, target_location, plan_quantity, real_quantity,
+        pallet_code,
+        adjust_quantity, origin_id, stock_id, lock_id, org_code, org_type, dual_quantity,batch_code,
+        target_org_code, target_org_type, status, cost_price, cost_total, enter_at
+    </sql>
+    <select id="selectByExample" resultMap="BaseResultMap" parameterType="java.util.HashMap">
+        select
+        <include refid="Base_Column_List"/>
+        from WM_WORK_DETAIL
+        <include refid="Example_Where_Clause"/>
+        <if test="_BY == null">order by id</if>
+        <if test="_BY != null">order by ${_BY}</if>
+
+
+    </select>
+
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long">
+        select
+        <include refid="Base_Column_List"/>
+        from WM_WORK_DETAIL
+        where id = #{id,jdbcType=BIGINT}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Long">
+        update WM_WORK_DETAIL
+        set status = 'd',enter_at = now()
+        where id = #{id,jdbcType=BIGINT}
+    </delete>
+
+    <delete id="deleteByBill" parameterType="java.lang.Integer">
+        update WM_WORK_DETAIL
+        set status = 'd',enter_at = now()
+        where bill_id = #{value,jdbcType=INTEGER}
+    </delete>
+    <delete id="deleteByOriginCode" parameterType="java.lang.String">
+        update WM_WORK_DETAIL
+        set status = 'd',enter_at = now()
+        where origin_bill = #{value,jdbcType=VARCHAR}
+    </delete>
+
+    <insert id="insert" parameterType="com.an.wm.entity.Item">
+        insert into WM_WORK_DETAIL (bill_id, item_id, pn, barcode, pallet_code,
+        name, uom, pack_quantity, bill_code,
+        bill_type, origin_bill, origin_bill_type,
+        product_date, receipt_date, batch_attr,
+        warehouse, section, location, target_warehouse, target_section, target_location,
+        plan_quantity, real_quantity, adjust_quantity,
+        origin_id, stock_id, lock_id,
+        org_code, org_type, target_org_code,
+        target_org_type, status, batch_code,
+        cost_price, cost_total, enter_at )
+        values (#{billId,jdbcType=INTEGER}, #{itemId,jdbcType=INTEGER}, #{pn,jdbcType=VARCHAR},
+        #{barcode,jdbcType=VARCHAR}, #{location.pallet,jdbcType=VARCHAR},
+        #{name,jdbcType=VARCHAR}, #{uom.id,jdbcType=INTEGER},
+        #{uom.packQuantity,jdbcType=NUMERIC}, #{bill.billCode,jdbcType=VARCHAR},
+        #{bill.type,jdbcType=VARCHAR}, #{origin.billCode,jdbcType=VARCHAR},
+        #{origin.type,jdbcType=VARCHAR},
+        #{productDate,jdbcType=DATE}, #{receiptDate,jdbcType=DATE}, #{batchAttr,typeHandler=com.an.core.mybatis.handlers.JsonTypeHandler},
+        #{location.warehouse,jdbcType=INTEGER}, #{location.sectionCode,jdbcType=VARCHAR},
+        #{location.locationCode,jdbcType=VARCHAR}, #{target.warehouse,jdbcType=INTEGER},
+        #{target.sectionCode,jdbcType=VARCHAR}, #{target.locationCode,jdbcType=VARCHAR},
+        #{planQuantity,jdbcType=NUMERIC}, #{realQuantity,jdbcType=NUMERIC}, #{adjustQuantity,jdbcType=NUMERIC},
+        #{originId,jdbcType=BIGINT}, #{stockId,jdbcType=BIGINT}, #{lockId,jdbcType=BIGINT},
+        #{belong.orgCode,jdbcType=VARCHAR}, #{belong.orgType,jdbcType=VARCHAR}, #{partyB.orgCode,jdbcType=VARCHAR},
+        #{partyB.orgType,jdbcType=VARCHAR}, #{status,jdbcType=VARCHAR}, #{batchCode,jdbcType=VARCHAR},
+        #{costPrice,jdbcType=NUMERIC}, #{costTotal,jdbcType=NUMERIC}, now() )
+        <selectKey resultType="java.lang.Integer" keyProperty="id">
+            SELECT @@IDENTITY AS id
+        </selectKey>
+    </insert>
+
+    <select id="countByExample" parameterType="java.util.HashMap" resultType="java.lang.Integer">
+        select count(*) from WM_WORK_DETAIL
+        <include refid="Example_Where_Clause"/>
+    </select>
+
+    <select id="countByBill" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+        select count(*) from WM_WORK_DETAIL
+        where bill_id = #{value,jdbcType=INTEGER}
+    </select>
+
+    <select id="countByOriginCode" parameterType="java.lang.String" resultType="java.lang.Integer">
+        select count(*) from WM_WORK_DETAIL
+        where bill_code = #{value,jdbcType=VARCHAR}
+    </select>
+
+    <update id="updateByPrimaryKey" parameterType="com.an.wm.entity.Item">
+        update WM_WORK_DETAIL
+        set pn = #{pn,jdbcType=VARCHAR},
+        item_id = #{itemId,jdbcType=INTEGER},
+        barcode = #{barcode,jdbcType=VARCHAR},
+        name = #{name,jdbcType=VARCHAR},
+        uom = #{uom.id,jdbcType=INTEGER},
+        pallet_code = #{location.pallet,jdbcType=VARCHAR},
+        pack_quantity = #{uom.packQuantity,jdbcType=NUMERIC},
+        bill_id = #{billId,jdbcType=INTEGER},
+        bill_code = #{bill.billCode,jdbcType=VARCHAR},
+        bill_type = #{bill.type,jdbcType=VARCHAR},
+        origin_bill = #{origin.billCode,jdbcType=VARCHAR},
+        origin_bill_type = #{origin.type,jdbcType=VARCHAR},
+        product_date = #{productDate,jdbcType=DATE},
+        receipt_date = #{receiptDate,jdbcType=DATE},
+        batch_attr = #{batchAttr,typeHandler=com.an.core.mybatis.handlers.JsonTypeHandler},
+        warehouse = #{location.warehouse,jdbcType=INTEGER},
+        section = #{location.sectionCode,jdbcType=VARCHAR},
+        location = #{location.locationCode,jdbcType=VARCHAR},
+        target_warehouse = #{target.warehouse,jdbcType=INTEGER},
+        target_section = #{target.sectionCode,jdbcType=VARCHAR},
+        target_location = #{target.locationCode,jdbcType=VARCHAR},
+        plan_quantity = #{planQuantity,jdbcType=NUMERIC},
+        real_quantity = #{realQuantity,jdbcType=NUMERIC},
+        adjust_quantity = #{adjustQuantity,jdbcType=NUMERIC},
+        origin_id = #{originId,jdbcType=BIGINT},
+        stock_id = #{stockId,jdbcType=BIGINT},
+        lock_id = #{lockId,jdbcType=BIGINT},
+        org_code = #{belong.orgCode,jdbcType=VARCHAR},
+        org_type = #{belong.orgType,jdbcType=VARCHAR},
+        target_org_code = #{partyB.orgCode,jdbcType=VARCHAR},
+        target_org_type = #{partyB.orgType,jdbcType=VARCHAR},
+        batch_code = #{batchCode,jdbcType=VARCHAR},
+        status = #{status,jdbcType=VARCHAR},
+        cost_price = #{costPrice,jdbcType=NUMERIC},
+        cost_total = #{costTotal,jdbcType=NUMERIC},
+        enter_at = now()
+        where id = #{id,jdbcType=BIGINT}
+    </update>
+
+
+    <update id="updateRealQuantity" parameterType="java.lang.String">
+        update WM_WORK_DETAIL a set dual_quantity =
+        ( select sum(b.real_quantity) from WM_WORK_DETAIL b
+        where b.status not in ('trash') and b.origin_bill = #{value} and b.origin_id = a."id")
+        where a.bill_code = #{value} and exists (select 1 from WM_WORK_DETAIL b
+        where b.origin_bill = #{value} and b.origin_id = a."id")
+    </update>
+</mapper>

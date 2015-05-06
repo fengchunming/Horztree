@@ -1,0 +1,98 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <script>
+        $(function () {
+            App.Strategy = App.Model.extend({
+                defaults: {type: 'T'},
+                urlRoot: 'rest/crm/mktTask'
+            });
+
+            App.StrategyList = App.Collection.extend({
+                model: App.Strategy,
+                param: {type: 'T'},
+                columns: [
+                    {label: '名称', key: 'name', sort: true},
+                    {label: '任务', key: 'task'},
+                    {label: '策略', key: 'effect', sort: true},
+                    {label: '时间(启)', key: 'effectDate', sort: true},
+                    {label: '时间(止)', key: 'expireDate', sort: true},
+                    {label: '状态', key: 'status', local: 'status', sort: true}
+                ]
+            });
+
+            App.StrategyGrid = App.Grid.extend({
+                collection: new App.StrategyList,
+                form: new App.FormView,
+                toolbar: ['create'],
+                qel: '.queryBar'
+            });
+
+            new App.StrategyGrid();
+        });
+    </script>
+</head>
+<body>
+<div id="article">
+    <form class="queryBar">
+        <ul>
+            <li>
+                <label>名称：</label>
+                <input type="text" name="name"/>
+            </li>
+            <li>
+                <label>生效日期：</label>
+                <input type="text" class="datepicker" name="sdate"> -
+                <input type="text" class="datepicker" name="edate">
+            </li>
+            <li>
+                <button class="search"><i></i>查询</button>
+            </li>
+            <li class="toolBar"></li>
+        </ul>
+    </form>
+    <div class="dataGrid">
+        <table class="app"></table>
+    </div>
+    <div class="page"></div>
+</div>
+
+<div class="navPanel">
+    <div class="toolBar"></div>
+    <div class="editorPanel">
+        <form>
+            <ol>
+                <li>
+                    <label>名称:</label>
+                    <input type="text" name="name" placeholder="营销活动名称" required/>
+                </li>
+                <li>
+                    <label>任务:</label>
+                    <input type="text" name="task" placeholder="任务" required/>
+                </li>
+                <li>
+                    <label>策略生效日期:</label>
+                    <input type="text" name="effectDate" placeholder="策略生效日期" class="datepicker"/>
+                </li>
+                <li>
+                    <label>策略截止日期:</label>
+                    <input type="text" name="expireDate" placeholder="策略截止日期" class="datepicker"/>
+                </li>
+                <li>
+                    <label>享用效果:</label>
+                    <input type="text" name="effect" placeholder="享用效果" required/>
+                </li>
+                <li>
+                    <label>备注:</label>
+                    <textarea name="remark" style="width:300px;height:100px;"></textarea>
+                </li>
+                <li>
+                    <label>状态 :</label>
+                    <select name="status" data-local="status"></select>
+                </li>
+            </ol>
+        </form>
+    </div>
+</div>
+</body>
+</html>

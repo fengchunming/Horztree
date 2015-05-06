@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="SmartSuggest">
+    <resultMap id="BaseResultMap" type="com.an.wm.entity.Item">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="goods_id" property="mid" jdbcType="INTEGER"/>
+        <result column="lock_id" property="lockId" jdbcType="BIGINT"/>
+        <result column="goods_code" property="pn" jdbcType="VARCHAR"/>
+        <result column="goods_name" property="goodsName" jdbcType="VARCHAR"/>
+        <result column="goods_barcode" property="barcode" jdbcType="VARCHAR"/>
+        <result column="goods_unit_code" property="goodsUnit.uomCode" jdbcType="INTEGER"/>
+        <result column="quantity" property="quantity" jdbcType="NUMERIC"/>
+        <result column="bill_code" property="bill.billCode" jdbcType="VARCHAR"/>
+        <result column="standard_cost_price" property="standardCostPrice" jdbcType="NUMERIC"/>
+        <result column="org_code" property="org.orgCode" jdbcType="VARCHAR"/>
+        <result column="org_type" property="org.orgType" jdbcType="VARCHAR"/>
+        <result column="target_org_code" property="targetOrg.orgCode" jdbcType="VARCHAR"/>
+        <result column="target_org_type" property="targetOrg.orgType" jdbcType="VARCHAR"/>
+        <result column="summary" property="summary" jdbcType="NUMERIC"/>
+        <result column="stock" property="stockSummary" jdbcType="NUMERIC"/>
+        <result column="min_inventory" property="safeLine" jdbcType="NUMERIC"/>
+        <result column="max_inventory" property="maxSafeLine" jdbcType="NUMERIC"/>
+        <result column="sub_total" property="saleTotal" jdbcType="NUMERIC"/>
+        <result column="status" property="status" jdbcType="VARCHAR"/>
+    </resultMap>
+
+
+    <select id="suggestResupply" resultMap="BaseResultMap" parameterType="java.lang.String">
+        select a.goods_code,a.goods_barcode, a.goods_name,
+        b.max_inventory, a.standard_unit as goods_unit_code,
+        b.min_inventory, b.org_code target_org_code, b.org_type target_org_type,
+        b.summary, b.stock
+        from
+        ((select goods_id,goods_code,goods_name,goods_barcode,standard_unit,standard_cost_price
+        from "ag"."T_MM_GOODS") a
+        join
+        (select st.max_inventory,st.min_inventory,st.org_code,st.org_type,
+        st.goods_code, st.summary, (wh.summary - wh.locked_summary) as stock
+        from "ag"."T_MM_ORG_GOODS" st,
+        "ag"."T_POS_STORE" n,
+        "ag"."T_MM_ORG_GOODS" wh
+        where st.org_code = n.org_code and n.warehouse = wh.org_code and wh.goods_code = st.goods_code
+        and st.status = 'enabled' and st.can_booking is true
+        and strpos(n.booking_day,#{value}) > 0 and n.status = 'enabled') b
+        on a.goods_code = b.goods_code)
+        where b.stock > 0
+        order by org_code,goods_code
+    </select>
+
+</mapper>

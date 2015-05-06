@@ -1,0 +1,270 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <script>
+        $(function () {
+            App.Move = App.Model.extend({
+                urlRoot: 'rest/bill/move',
+                idAttribute: 'billCode',
+                edit: function () {
+                    this.editor.setData(this);
+                    App.moveDetailList.load('rest/bill/details/' + this.get('billCode'));
+                }
+            })
+
+            App.MoveList = App.Collection.extend({
+                urlRoot: 'rest/bill/list/move',
+                sortCol: 'enterAt',
+                sortDirect: 'desc',
+                model: App.Move,
+                columns: [
+                    {label: '移库单号', key: 'billCode'},
+                    {label: '仓库', key: 'org.orgCode', local: 'sys/kv/warehouse'},
+                    {label: '单据日期', key: 'billDate'},
+                    {label: '负责人', key: 'chargeStaff'},
+                    {label: '状态', key: 'status', local: 'billStatus'}
+                ]
+            })
+
+            App.MoveForm = App.FormView.extend({
+                toolbar: ['create', 'check', 'print', 'save', 'trash', 'hide'],
+                check: function () {
+                    if (confirm('是否确认该单据无误，操作不可退回！')) {
+                        $.ajax({
+                            contentType: 'application/json',
+                            dataType: 'json',
+                            type: 'POST',
+                            url: 'rest/wm/checkMove/' + $("#billCode").val(),
+                            success: function (data) {
+                                $.sticky('移库记录已确认！');
+                                App.moveDetailList.fetch();
+                            }
+                        });
+                    }
+                },
+                prepare: function (param) {
+                    param['items'] = App.moveDetailList.toJSON();
+                    return param;
+                },
+                print: function () {
+                    $.printPage('rest/wm/print/move/' + this.model.id + '.html');
+                }
+            })
+
+            App.MoveGrid = App.Grid.extend({
+                collection: new App.MoveList,
+                editorView: App.MoveForm,
+                qel: '.queryBar',
+                toolbar: ['create']
+            });
+
+            App.moveGrid = new App.MoveGrid();
+            /*
+             * 库存查询
+             */
+            App.Stock = App.Model.extend({
+                idAttribute: 'stockId'
+            })
+
+            App.StockList = App.Collection.extend({
+                model: App.Stock,
+                autoLoad: false,
+                pageSize: 15,
+                urlRoot: 'rest/wm/stockList',
+                columns: [
+                    {key: 'stockId', type: 'checkbox'},
+                    {label: '名称', key: 'name'},
+                    {label: '编码', key: 'pn'},
+                    {label: '单位', key: 'goodsUnit.id', local: 'base/kv/uom'},
+                    {label: '数量', key: 'realQuantity'},
+                    {label: '库区', key: 'location.sectionCode'},
+                    {label: '储位', key: 'location.locationCode'},
+                    {label: '批次属性', key: 'lotAttr', type: 'form'}
+                ]
+            })
+
+            App.stockList = new App.StockList();
+            App.StockGrid = App.Grid.extend({
+                el: '#tab_3',
+                toolbar: [
+                    {'inport': '选择'}
+                ],
+                pel: '.page',
+                qel: '.queryForm',
+                collection: App.stockList,
+                inport: function () {
+                    _.each(this.collection.models, function (model) {
+                        if (model.checked) {
+                            var cache = App.moveDetailList.get(model.id);
+                            if (cache) {
+                                cache.set('status', 'input');
+                                cache.rowView.show();
+                            } else {
+                                App.moveDetailList.add(model);
+                            }
+                        }
+                    });
+                    $('#tabs').tabs({ active: 1 });
+                }
+            });
+
+            new App.StockGrid();
+
+            /*
+             * 明细
+             */
+            App.MoveDetail = App.Model.extend({
+                idAttribute: 'stockId'
+            })
+
+            App.MoveDetailList = App.Collection.extend({
+                model: App.MoveDetail,
+                columns: [
+                    {key: 'id', type: 'checkbox'},
+                    {label: '商品名称', key: 'name'},
+                    {label: '商品编号', key: 'pn'},
+                    {label: '度量单位', key: 'goodsUnit.id', local: 'base/kv/uom'},
+                    {label: '当前库区', key: 'originLocation.sectionCode', local: 'wm/loadSectionKV.do'},
+                    {label: '当前货位', key: 'originLocation.locationCode'},
+                    {label: '动前数量', key: 'realQuantity'},
+                    {label: '物动数量', key: 'planQuantity', type: 'number'},
+                    {label: '目标库区', key: 'targetLocation.sectionCode', local: 'wm/loadSectionKV.do'},
+                    {label: '目标储位', key: 'targetLocation.locationCode'},
+                    {label: '批次属性', key: 'lotAttr'}
+                ]
+            })
+
+            App.moveDetailList = new App.MoveDetailList();
+            App.LocationForm = App.FormView.extend({
+                el: "#location",
+                type: 'inline',
+                sync: true
+            })
+
+            App.MoveDetailGrid = App.Grid.extend({
+                el: '#tab_2',
+                editorView: App.LocationForm,
+                collection: App.moveDetailList,
+                toolbar: ['append', 'remove'],
+                append: function () {
+                    $('#tabs').tabs({ active: 2 });
+                }
+            })
+
+            new App.MoveDetailGrid();
+
+            $('#targetSection').change(function () {
+                $('#targetLocation').empty().attr('data-local', 'wm/filterLocation.do?sectionCode=' + $(this).val());
+                convertLocal();
+            });
+
+            $('#targetSection').change();
+
+        });
+    </script>
+</head>
+<body>
+<div id="article">
+    <form class="queryBar">
+        <ul>
+            <li>
+                <label>单号</label>
+                <input type="text" name="billCode"/>
+            </li>
+            <li>
+                <label>物动日期</label>
+                <input type="text" name="queryDate" class="datepicker"/>
+                <button class="search"><i></i>查询</button>
+            </li>
+            <li class="toolBar"></li>
+        </ul>
+    </form>
+    <div class="dataGrid">
+        <table class="app"></table>
+    </div>
+    <div class="page"></div>
+</div>
+
+
+<div class="navPanel">
+    <div class="toolBar"></div>
+    <div class="editorPanel">
+        <div id="tabs">
+            <ul>
+                <li><a href="#tab_1"><span>移库单</span></a></li>
+                <li><a href="#tab_2"><span>物动明细</span></a></li>
+                <li><a href="#tab_3"><span>库存查询</span></a></li>
+            </ul>
+            <div id="tab_1">
+                <form name="norEditForm" id="norEditForm">
+                    <ol>
+                        <li>
+                            <label>移库单号:</label>
+                            <input type="text" name="billCode" id="billCode" readonly>
+                        </li>
+                        <li>
+                            <label>制单日期:</label>
+                            <input type="text" name="billDate" placeholder="制单日期" readonly>
+                        </li>
+                        <li>
+                            <label>确认日期:</label>
+                            <input type="text" name="realDate" placeholder="确认日期" class="datepicker">
+                        </li>
+                        <li>
+                            <label>仓库:</label>
+                            <select name="warehouse.id" data-local="sys/kv/warehouse"></select>
+                        </li>
+                        <li>
+                            <label>备注:</label>
+                            <textarea name="remark" style="width:250px;height:150px;"></textarea>
+                        </li>
+                        <li>
+                            <label>单据状态:</label>
+                            <select name="status" data-local="billStatus" disabled></select>
+                        </li>
+                    </ol>
+                </form>
+            </div>
+            <div id="tab_2">
+                <table class="app"></table>
+                <div class="toolBar"></div>
+                <form id="location" name="targetLocation">
+                    <label>目标库区：</label>
+                    <select name="sectionCode" data-local="wm/filterSection.do?usageType=003"
+                            id="targetSection"></select>
+                    <label>目标储位：</label>
+                    <select name="locationCode" id="targetLocation"></select>
+                </form>
+            </div>
+            <div id="tab_3">
+                <div class="queryForm">
+                    <form>
+                        <label>商品</label>
+                        <input type="text" name="pn">
+
+                        <label>客户</label>
+                        <select name="orgType" style="width:100px">
+                            <option value=""></option>
+                        </select>
+
+                        <label>库区</label>
+                        <select name="sectionCode" data-local="wm/loadSectionKV.do" style="width:100px">
+                            <option value=""></option>
+                        </select>
+
+                        <label>储位</label>
+                        <select name="locationCode" data-local="wm/loadLocationKV.do" style="width:100px">
+                            <option value=""></option>
+                        </select>
+                        <button type="submit" class="search"><i></i>查询</button>
+                        <span class="toolBar"></span>
+                    </form>
+                </div>
+                <table class="app"></table>
+                <div class="page"></div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

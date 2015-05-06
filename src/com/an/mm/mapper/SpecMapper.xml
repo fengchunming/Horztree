@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="MM.SpecMapper">
+    <resultMap id="BaseResultMap" type="com.an.mm.entity.Spec">
+        <id column="id" property="id" jdbcType="VARCHAR"/>
+        <result column="name" property="name" jdbcType="VARCHAR"/>
+        <result column="type" property="type" jdbcType="CHAR"/>
+        <result column="attrs" property="attrs" typeHandler="com.an.core.mybatis.handlers.JsonTypeHandler"/>
+        <result column="remark" property="remark" jdbcType="VARCHAR"/>
+        <result column="status" property="status" jdbcType="CHAR"/>
+        <result column="enter_by" property="enterBy" jdbcType="INTEGER"/>
+        <result column="enter_at" property="enterAt" jdbcType="TIMESTAMP"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        id, name, type, remark, attrs, enter_by, enter_at, status
+    </sql>
+    <sql id="Where_Clause">
+        <where>
+            status != 'd'
+            <if test="name != null and name != ''"> and upper(name) like concat('%',upper(#{name}),'%')</if>
+            <if test="status != null and status != ''"> and status = #{status}</if>
+        </where>
+    </sql>
+    <!-- 总数 -->
+    <select id="countByExample" resultType="int" parameterType="java.util.HashMap">
+        select count(1) from MM_SPECIFICATION
+        <include refid="Where_Clause"/>
+    </select>
+
+    <!--列表查询 -->
+    <select id="selectByExample" resultMap="BaseResultMap" parameterType="java.util.HashMap">
+        select
+        <include refid="Base_Column_List"/>
+        from MM_SPECIFICATION
+        <include refid="Where_Clause"/>
+        <if test="_BY != null">order by ${_BY}</if>
+    </select>
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+        select
+        <include refid="Base_Column_List"/>
+        from MM_SPECIFICATION
+        where ID = #{id,jdbcType=INTEGER}
+    </select>
+    <insert id="insert" parameterType="com.an.mm.entity.Spec">
+        insert into MM_SPECIFICATION
+        (name, type, remark, attrs, enter_by, enter_at, status)
+        values (#{name,jdbcType=VARCHAR}, #{type,jdbcType=CHAR},
+        #{remark,jdbcType=VARCHAR}, #{attrs,typeHandler=com.an.core.mybatis.handlers.JsonTypeHandler},
+        #userId, now(), #{status,jdbcType=CHAR})
+        <selectKey resultType="java.lang.Integer" keyProperty="id">
+            SELECT @@IDENTITY AS id
+        </selectKey>
+    </insert>
+    <update id="updateByPrimaryKey" parameterType="com.an.mm.entity.Spec">
+        update MM_SPECIFICATION
+        set name = #{name,jdbcType=VARCHAR},
+        type = #{type,jdbcType=CHAR},
+        attrs = #{attrs,typeHandler=com.an.core.mybatis.handlers.JsonTypeHandler},
+        remark = #{remark,jdbcType=VARCHAR},
+        status = #{status,jdbcType=CHAR},
+        enter_by = #userId,
+        enter_at = now()
+        where ID = #{id,jdbcType=VARCHAR}
+    </update>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+        update MM_SPECIFICATION
+        set status = 'd' where id = #{value}
+    </delete>
+
+</mapper>

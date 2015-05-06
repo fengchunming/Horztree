@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="CRM.FeedbackMapper">
+    <resultMap id="BaseResultMap" type="com.an.crm.entity.Feedback">
+        <id column="id" property="id" jdbcType="VARCHAR"/>
+        <result column="title" property="title" jdbcType="VARCHAR"/>
+        <result column="type" property="type" jdbcType="CHAR"/>
+        <result column="content" property="content" jdbcType="VARCHAR"/>
+        <result column="linkman" property="linkman" jdbcType="VARCHAR"/>
+        <result column="link_info" property="linkInfo" jdbcType="VARCHAR"/>
+        <result column="member_id" property="memberId" jdbcType="INTEGER"/>
+        <result column="status" property="status" jdbcType="CHAR"/>
+        <result column="enter_by" property="enterBy" jdbcType="INTEGER"/>
+        <result column="enter_at" property="enterAt" jdbcType="TIMESTAMP"/>
+        <result column="group_id" property="group" jdbcType="VARCHAR"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        id, title, type, member_id, status, enter_by, enter_at, content, linkman,link_info, group_id
+    </sql>
+    <sql id="Where_Clause">
+        <where>
+            <if test="title != null and title != ''">and upper(title) like concat('%',upper(#{title}),'%')</if>
+            <if test="content != null and content != ''">and upper(content) like concat('%',upper(#{content}),'%')</if>
+            <if test="status != null and status != ''">and status =#{status}</if>
+            <if test="type != null and type != ''">and type=#{type,jdbcType=VARCHAR}</if>
+            <if test="startTime != null and startTime != ''">
+                and enter_at &lt; to_date(#{startTime},'yyyy-mm-dd')
+            </if>
+            <if test="endTime != null and endTime != ''">
+                and enter_at &gt; to_date(#{endTime},'yyyy-mm-dd')+1
+            </if>
+        </where>
+    </sql>
+    <!-- 总数 -->
+    <select id="countByExample" resultType="int" parameterType="hashmap">
+        select count(1) from CRM_FEEDBACK
+        <include refid="Where_Clause"/>
+    </select>
+
+    <!--列表查询 -->
+    <select id="selectByExample" resultMap="BaseResultMap" parameterType="hashmap">
+        select
+        <include refid="Base_Column_List"/>
+        from CRM_FEEDBACK
+        <include refid="Where_Clause"/>
+        <if test="_BY != null">order by ${_BY}</if>
+    </select>
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="hashmap">
+        select
+        <include refid="Base_Column_List"/>
+        from CRM_FEEDBACK
+        where id = #{id,jdbcType=INTEGER}
+
+    </select>
+    <insert id="insert" parameterType="com.an.crm.entity.Feedback">
+        insert into CRM_FEEDBACK (title, type,
+        content, member_id, status, linkman, link_info
+        create_by, create_at,group_id)
+        values
+        (#{title,jdbcType=VARCHAR}, #{type,jdbcType=CHAR}, #{content,jdbcType=VARCHAR},
+        #{memberId,jdbcType=INTEGER}, #{status,jdbcType=CHAR},#{linkman,jdbcType=VARCHAR},
+        #{linkInfo,jdbcType=VARCHAR},#userId, now(),#{group,jdbcType=INTEGER})
+        <selectKey resultType="java.lang.Integer" keyProperty="id">
+            SELECT @@IDENTITY AS id
+        </selectKey>
+    </insert>
+    <update id="updateByPrimaryKey" parameterType="com.an.crm.entity.Feedback">
+        update CRM_FEEDBACK
+        set title = #{title,jdbcType=VARCHAR},
+        type = #{type,jdbcType=CHAR},
+        content = #{content,jdbcType=VARCHAR},
+        member_id = #{memberId,jdbcType=INTEGER},
+        linkman = #{linkman,jdbcType=VARCHAR},
+        link_info = #{linkInfo,jdbcType=VARCHAR},
+        status = #{status,jdbcType=CHAR},
+        group_id =#{group,jdbcType=INTEGER}
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+    <update id="deleteByPrimaryKey" parameterType="com.an.crm.entity.Feedback">
+        update CRM_FEEDBACK set
+        status = 'd'
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+</mapper>

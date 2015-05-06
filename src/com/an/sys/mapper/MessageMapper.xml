@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="SYS.MessageMapper">
+    <resultMap id="BaseResultMap" type="com.an.sys.entity.Message">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="title" property="title" jdbcType="VARCHAR"/>
+        <result column="type" property="type" jdbcType="CHAR"/>
+        <result column="param" property="param" jdbcType="VARCHAR"/>
+        <result column="priority" property="priority" jdbcType="INTEGER"/>
+        <result column="note" property="note" jdbcType="VARCHAR"/>
+        <result column="code" property="code" jdbcType="VARCHAR"/>
+		<result column="category" property="category" jdbcType="CHAR"/>
+        <result column="task_url" property="taskUrl" jdbcType="INTEGER"/>
+
+        <result column="status" property="status" jdbcType="CHAR"/>
+        <result column="remind_left" property="remindLeft" jdbcType="INTEGER"/>
+        <result column="send_at" property="sendAt" jdbcType="TIMESTAMP"/>
+        <result column="send_by" property="sendBy" jdbcType="INTEGER"/>
+
+        <result column="receipt_at" property="receiptAt" jdbcType="TIMESTAMP"/>
+        <result column="receipt_by" property="receiptBy" jdbcType="INTEGER"/>
+        <result column="deal_at" property="dealAt" jdbcType="TIMESTAMP"/>
+        <result column="deal_by" property="dealBy" jdbcType="INTEGER"/>
+        <result column="biz_id" property="bizId" jdbcType="INTEGER"/>
+
+        <result column="private_status" property="privateStatus" jdbcType="VARCHAR"/>
+        <result column="read_at" property="readAt" jdbcType="TIMESTAMP"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id, title, param, task_url, note, type, priority, code, category, send_at,
+        status, remind_left, send_by, receipt_at, receipt_by, deal_at, deal_by, biz_id
+    </sql>
+
+    <!-- 根据消息 ID 查询消息 -->
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+        select
+        <include refid="Base_Column_List"/>
+        from SYS_MESSAGE
+        where id = #{id,jdbcType=INTEGER}
+    </select>
+
+
+    <!-- ##########  发送消息相关SQL  ############ -->
+    <!-- 查询消息 或 消息模板 -->
+    <select id="selectTemplateLeftJoinMessage" resultMap="BaseResultMap" parameterType="java.util.HashMap">
+        select a.code, a.title, b.send_at from SYS_MESSAGE_TEMPLATE  a
+        left join
+        (select * from SYS_MESSAGE where biz_id = #{bizId} and category = #{sceneId} and status != 'd' ) b
+        on a.code = b.code
+        where a.category = #{sceneId} and a.merch_id = 1  
+    </select>
+
+    <!-- 发送方（系统功能）查询消息列表 -->
+    <select id="selectByExample" resultMap="BaseResultMap" parameterType="java.util.HashMap">
+        select
+        <include refid="Base_Column_List"/>
+        from SYS_MESSAGE
+        <where>
+            status != 'd' and merch_id = #merchId
+            <if test="type != null and type != ''">
+                and type =  #{type,jdbcType=VARCHAR}
+            </if>
+            <if test="status != null and status != ''">
+                and status = #{status,jdbcType=VARCHAR}
+            </if>
+        </where>
+
+        <if test="_BY != null"> order by ${_BY}</if>
+    </select>
+
+    <!-- 根据业务ID 及 消息code 查询是否存在该消息 -->
+    <select id="countExists" parameterType="com.an.sys.entity.Message" resultType="java.lang.Integer">
+        select id from SYS_MESSAGE
+        <where>
+            <if test="id != null and id > 0">
+                id = #{id}
+            </if>
+            <if test="code != null and bizId != null">
+                and code = #{code} and biz_id = #{bizId}
+            </if>
+            <if test="id == null and bizId == null">
+                and 1 = 2
+            </if>
+        </where>
+    </select>
+
+    <!-- 发送消息（发送到角色和组织） -->
+    <insert id="insert" parameterType="com.an.sys.entity.Message">
+        insert into SYS_MESSAGE (
+        param, task_url, note, type, priority, code, to_role, to_dept,to_user,
+        status, send_at, remind_left, send_by,  title,
+        merch_id, category, biz_id)
+        values (
+        #{param,jdbcType=VARCHAR}, #{taskUrl,jdbcType=VARCHAR},
+        #{note,jdbcType=VARCHAR}, #{type,jdbcType=CHAR}, #{priority,jdbcType=INTEGER},
+        #{code,jdbcType=VARCHAR}, #{toRole,typeHandler=com.an.core.mybatis.handlers.JsonTypeHandler},
+        #{toDept,typeHandler=com.an.core.mybatis.handlers.JsonTypeHandler},
+        #{toUser,typeHandler=com.an.core.mybatis.handlers.JsonTypeHandler},
+        #{status,jdbcType=CHAR}, #{sendAt,jdbcType=TIMESTAMP},
+        #{remindLeft,jdbcType=INTEGER},
+        <if test="sendBy != null">  #{sendBy} </if> 
+        <if test="sendBy == null">  #userId </if>
+        ,#{title,jdbcType=VARCHAR},
+        <if test="merchId != null"> #{merchId} </if> 
+        <if test="merchId == null"> #merchId </if>
+        ,#{category},#{bizId} )
+
+        <selectKey resultType="java.lang.Integer" keyProperty="id">
+            SELECT @@IDENTITY AS id
+        </selectKey>
+    </insert>
+
+
+    <!-- 发送消息到角色、部门、用户-->
+    <insert id="insertSendTo" parameterType="com.an.sys.entity.Message">
+        replace into SYS_MESSAGE_SENDTO (message_id, role_id, group_id, user_id )
+        values
+
+        <if test="toRole.size > 0 and toDept.size > 0">
+            <foreach item="role" index="i" collection="toRole" separator="),(" open="(" close=")">
+                <foreach item="dept" index="j" collection="toDept"  separator="),(" >
+                    #{id,jdbcType=INTEGER}, #{role,jdbcType=INTEGER}, #{dept,jdbcType=INTEGER}, 0
+                </foreach>
+            </foreach>
+        </if>
+
+        <if test="toRole.size > 0 and toDept.size ==0">
+            <foreach item="role" index="i" collection="toRole" separator="),(" open="(" close=")">
+                #{id,jdbcType=INTEGER}, #{toRole[0],jdbcType=INTEGER}, 0, 0
+            </foreach>
+        </if>
+
+        <if test="toRole.size ==0 and toDept.size > 0">
+            <foreach item="dept" index="j" collection="toDept"  separator="),(" open="(" close=")">
+                #{id,jdbcType=INTEGER}, 0, #{toDept[0],jdbcType=INTEGER}, 0
+            </foreach>
+        </if>
+
+        <if test="toUser.size > 0">
+            <if test="toRole.size > 0 or toDept.size > 0">, </if>
+            <foreach item="user" index="i" collection="toUser"  separator="),(" open="(" close=")">
+                #{id,jdbcType=INTEGER}, 0, 0, #{user,jdbcType=INTEGER}
+            </foreach>
+        </if>
+    </insert>
+
+
+
+    <!-- 发送方更新消息 (包括删除消息） -->
+    <update id="updateByPrimaryKey" parameterType="com.an.sys.entity.Message">
+        update SYS_MESSAGE
+        <set>
+            <if test="status != null">
+                status = #{status,jdbcType=CHAR},
+            </if>
+            <if test="sendBy != null"> send_by = #{sendBy}, </if> 
+            <if test="sendBy == null"> send_by = #userId, </if>
+            <if test="sendAt != null">
+                send_at = #{sendAt,jdbcType=TIMESTAMP},
+            </if>
+            to_role = #{toRole,typeHandler=com.an.core.mybatis.handlers.JsonTypeHandler},
+            to_dept = #{toDept,typeHandler=com.an.core.mybatis.handlers.JsonTypeHandler},
+            to_user = #{toUser,typeHandler=com.an.core.mybatis.handlers.JsonTypeHandler},
+
+            <if test="note != null">
+                note = #{note,jdbcType=VARCHAR},
+            </if>
+            <if test="status == '2'.toString()">
+                deal_by = #userId,
+                deal_at = now()
+            </if>
+        </set>
+        where
+        <if test="merchId != null"> merch_id = #{merchId} </if> 
+        <if test="merchId == null"> merch_id = #merchId </if>
+        <if test="id != null and id > 0">
+            and id = #{id,jdbcType=INTEGER}
+        </if>
+        <if test="code != null and code != ''">
+            and code =#{code,jdbcType=VARCHAR}
+        </if>
+        <if test="param != null and param != ''">
+            and param =#{param,jdbcType=VARCHAR}
+        </if>
+        <if test="bizId != null and bizId > 0">
+            and biz_id =#{bizId,jdbcType=INTEGER}
+        </if>
+        <if test="status == '2'.toString()">
+            and status = '1'
+        </if>
+    </update>
+
+
+    <!-- ########## 接收消息相关SQL ########## -->
+
+    <!-- 接收方查询消息列表 -->
+    <select id="selectMyMessage" resultMap="BaseResultMap" parameterType="java.util.HashMap">
+        select distinct
+        <include refid="Base_Column_List"/>, private_status
+        from
+        (   select m.id, title, param, task_url, note, type, priority, code, category, send_at,
+                status, remind_left, send_by, receipt_at, receipt_by, deal_at, deal_by, biz_id
+            from SYS_MESSAGE m, SYS_MESSAGE_SENDTO t
+            where m.id = t.message_id
+            and status != 'd'  and merch_id = #merchId
+            and send_at &lt;= now()
+            and (
+                   ( t.role_id in ( #roles )  and t.group_id in ( #groups ) )
+                or ( t.role_id = 0 and t.group_id in ( #groups ) )
+                or ( t.group_id = 0 and t.role_id in ( #roles ) )
+                or t.user_id = #userId
+            )
+            <if test="type != null and type != ''">
+                and type = #{type,jdbcType=VARCHAR}
+            </if>
+            <if test="status != null and status != ''">
+                and status = #{status,jdbcType=VARCHAR}
+            </if>
+        ) a
+        left join
+        (   select message_id, private_status, read_at from SYS_MESSAGE_RECEIPT where user_id = #userId ) b
+        on a.id = b.message_id
+        where IFNULL(b.private_status,'0') != 'd'
+
+        <if test="privateStatus != null and privateStatus != ''">
+            and IFNULL(b.private_status,'0') = #{privateStatus,jdbcType=VARCHAR}
+        </if>
+
+        order by send_at desc
+    </select>
+
+    <!-- 接收方查询消息总数 -->
+    <select id="countMyMessage" parameterType="java.util.HashMap" resultType="java.lang.Integer">
+        select count(1) ct from
+        (   select distinct m.id, title, param, task_url, note, type, priority, code, category, send_at,
+        status, remind_left, send_by, deal_at, deal_by, biz_id
+        from SYS_MESSAGE m, SYS_MESSAGE_SENDTO t
+        where m.id = t.message_id
+        and status != 'd'  and merch_id = #merchId
+
+        and send_at &lt;= now()
+
+        and (
+            ( t.role_id in ( #roles )  and t.group_id in ( #groups ) )
+            or ( t.role_id = 0 and t.group_id in ( #groups ) )
+            or ( t.group_id = 0 and t.role_id in ( #roles ) )
+            or t.user_id = #userId
+        )
+
+        <if test="type != null and type != ''">
+            and type = #{type,jdbcType=VARCHAR}
+        </if>
+        <if test="status != null and status != ''">
+            and status = #{status,jdbcType=VARCHAR}
+        </if>
+        ) a
+        left join
+        (   select message_id, private_status, read_at from SYS_MESSAGE_RECEIPT where user_id = #userId ) b
+        on a.id = b.message_id
+        where IFNULL(b.private_status,'0') != 'd'
+
+        <if test="privateStatus != null and privateStatus != ''">
+            and IFNULL(b.private_status,'0') = #{privateStatus,jdbcType=VARCHAR}
+        </if>
+    </select>
+
+    <!-- 接收用户更新个人消息状态 -->
+    <update id="updatePrivateStatus" parameterType="com.an.sys.entity.Message">
+        update SYS_MESSAGE_RECEIPT set
+        private_status = #{privateStatus,jdbcType=CHAR}
+        where message_id = #{id} and user_id = #userId
+    </update>
+
+    <!-- 接收用户插入个人消息状态 -->
+    <insert id="insertPrivateStatus" parameterType="com.an.sys.entity.Message">
+        insert into SYS_MESSAGE_RECEIPT (message_id, private_status, user_id , read_at )
+        values (#{id,jdbcType=INTEGER}, #{privateStatus,jdbcType=CHAR}, #userId, now() )
+    </insert>
+
+    <delete id="deletePrivateStatus" parameterType="com.an.sys.entity.Message">
+        delete from SYS_MESSAGE_RECEIPT
+        where message_id = #{id} and DATE_FORMAT(read_at,'%Y-%m-%d') &lt; #{sendAt,jdbcType=TIMESTAMP}
+        and #{sendAt,jdbcType=TIMESTAMP} >= CURRENT_DATE()
+    </delete>
+
+
+    <select id="selectMessageListByBizId" resultMap="BaseResultMap" parameterType="java.util.HashMap">
+           SELECT m.biz_id, m.code,m.send_at,m.category FROM SYS_MESSAGE AS m
+			WHERE m.biz_id =#{bizId} and m.category=#{sceneId} and m.status !='d' GROUP BY m.biz_id,m.code
+    </select>
+
+    <select id="countByBizId" parameterType="java.util.HashMap" resultType="java.lang.Integer">
+        select count(*) FROM SYS_MESSAGE AS m
+		WHERE m.biz_id =#{bizId} and m.category=#{sceneId} GROUP BY m.biz_id,m.code
+    </select>
+</mapper>

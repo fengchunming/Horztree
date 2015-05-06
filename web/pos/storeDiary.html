@@ -1,0 +1,62 @@
+<!DOCTYPE HTML> 
+<html> 
+<head> 
+<script>
+$(function() {
+	App.StoreDiary = App.Model.extend({
+		urlRoot : 'rest/pos/storeDiary',
+		idAttribute: 'id'
+	})
+	
+	App.StoreDiarys = App.Collection.extend({
+		sortCol: 'visit_date',
+		sortDirect : 'desc',
+		urlRoot : 'rest/pos/storeDiaryList',
+		model : App.StoreDiary,
+		columns : [
+		   		    {label:'门店编号',key:'orgCode', sort:'org_code'},
+		   		 	{label:'门店名称',key:'orgCode',local:'sys/loadStoreKV.do'},
+				    {label:'营业日期',key:'visitDate',sort:'visit_date'},
+				    {label:'开店时间',key:'openTime'},
+				    {label:'打烊时间',key:'closeTime'},
+				    {label:'期初备用金',key:'openBalance'},
+				    {label:'期末备用金',key:'dailyRevenue'},
+				    {label:'营业额',key:'escortAmount'},
+				    {label:'备用金使用',key:'pettyCashUse'}
+				]
+	})
+
+	App.StoreDiaryGrid = App.Grid.extend({
+		collection: new App.StoreDiarys,
+		toolbar : [],
+		querybar : '.queryBar'
+	});
+	App.storeDiaryGrid = new App.StoreDiaryGrid();
+});
+</script>
+</head>
+<body>
+<div id="article">
+    <form class="queryBar">
+    <ul>
+        <li>
+        	<label>日期：</label>
+        	<input type="text" class="datepicker" name="visitDate"/>
+        </li>
+        <li>
+        	<label>门店：</label>
+        	<select name="orgCode" data-local="sys/loadStoreKV.do">
+        		<option value=""></option>
+        	</select>
+        	<button class="search"><i></i>查询</button>
+        </li>
+    </ul>
+    </form>
+	<div class="toolBar"></div>
+	<div class="dataGrid">
+		<table class="app"><thead></thead><tbody></tbody></table>
+	</div>
+	<div class="statusBar"></div>
+</div>
+</body>
+</html>

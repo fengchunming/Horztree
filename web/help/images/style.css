@@ -1,0 +1,89 @@
+body {
+	margin: 0; padding: 0; font: 73% "Trebuchet MS", sans-serif;
+	background: white url(/css/images/ui-bg_fine-grain_15_ffffff_60x60.png) 50% 50% repeat;
+}
+
+body:after{
+  content: ".";
+  display: block;
+  height: 0;
+  clear: both;
+  visibility: hidden;
+ }
+
+span.icon {
+	padding-left:15px;
+	background-image: url(images/ui-icons_b83400_256x240.png); 
+	width:10px; height:10px;
+}
+
+.number {
+	text-align: right;
+}
+
+.clear {
+	clear:both;
+}
+
+a {
+	text-decoration: none; cursor:pointer; color:#444;
+}
+
+a:hover {
+	text-shadow: rgba(0, 0, 0, .4) 2px 2px 3px;
+}
+
+a:focus { outline: none; }
+
+ol,ul,li,dl,dd,dt {
+	list-style: none;
+	margin: 0;
+	padding:2px;
+}
+
+#article {
+	float:left; margin:20px 10px 10px 260px;
+	padding:10px 8px;
+	background: white; line-height: 20px;
+}
+
+#article .title{
+	font-size:14px; padding:7px; font-weight:700;
+}
+
+#article .toolBar{
+	position:absolute; left: 8px; height:25px; right: 8px; top: 30px; overflow:hidden;
+}
+
+#article .toolBar span{
+	height:25px;
+}
+
+#article img{
+    max-width:100%;
+}
+
+.nav {
+	float:left; width:245px; margin-left:10px; position: fixed;
+}
+
+.nav h3{
+	padding-left:10px;
+}
+
+.nav dt {
+	padding:6px 10px; background-color:#e7e7e7;  font-weight:bold; font-size:13px;
+}
+
+.nav dl {
+	padding:6px 0; background-color:#f2f2f2;
+}
+
+.nav dd {
+	padding:6px 10px;
+}
+
+.nav dd a {
+	display: block;
+}
+

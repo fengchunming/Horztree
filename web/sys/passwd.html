@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="zh-cn">
+<head>
+    <title>MIS</title>
+    <link href="css/default.css" rel="stylesheet"/>
+    <link href="css/jquery-ui.min.css" rel="stylesheet"/>
+    <link href="css/sticky.css" rel="stylesheet"/>
+    <script src="js/lib/jquery.min.js"></script>
+    <script src="js/lib/jquery-ui.min.js"></script>
+    <script src="js/lib/json2.js"></script>
+    <script src="js/lib/underscore-min.js"></script>
+    <script src="js/lib/backbone-min.js"></script>
+    <script src="js/lib/jquery.sha1.js"></script>
+    <script src="js/lib/jquery.history.js"></script>
+    <script src="js/lib/sticky.js"></script>
+    <script src="js/lib/jquery.validate.min.js"></script>
+    <script src="js/jquery.validate.plugin.js"></script>
+    <script src="js/util.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/lib/jquery.sha1.js"></script>
+    <script src="js/jquery.pstrength-min.1.2.js"></script>
+    <style>
+        .main {
+            width: 700px;
+            height: 300px;
+            margin: 100px auto;
+            border: 1px solid #fff;
+        }
+        #resetPassword ol li {
+            height: 30px;
+        }
+    </style>
+    <script>
+        $(function () {
+            var user = null;
+            $.get('rest/sec/user', function (data) {
+                user = data;
+                if (user.firstTime) {
+                    $('#oldPwd').remove();
+                }
+            });
+
+            $('.password').pstrength();
+            $('button').button();
+            $("#resetPassword").submit(function () {
+                var params = $(this).serializeObject();
+                if (params.newPasswd != params.rePasswd) {
+                    $.sticky("新密码两次输入不一致");
+                    return false;
+                }
+
+                params.newPasswd = $.sha1(user.userName + params.newPasswd);
+                params.oldPasswd = $.sha1($.sha1(user.userName + params.oldPasswd) + params.newPasswd);
+                delete params.rePasswd;
+                $.post('rest/sec/passwd', params, function () {
+                    location.reload();
+                });
+                return false;
+            });
+            $('#logout').click(function () {
+                location.href = 'rest/sec/logout?_=' + new Date().getTime();
+            });
+        });
+    </script>
+</head>
+<body>
+<div class="main ui-widget-content">
+    <div style="padding:80px 20px 0 0;">
+        <h3>请修改初始密码</h3>
+
+        <div style="color:#888">初次登录 或 密码已被管理员重置</div>
+        <form id="resetPassword">
+            <ol>
+                <li id="oldPwd">
+                    <label>原密码:</label>
+                    <input type="password" name="oldPasswd" placeholder="输入用户原密码" required/>
+                </li>
+                <li style="height:50px">
+                    <label>新密码:</label>
+                    <input type="password" name="newPasswd" class="password" placeholder="新密码" required/>
+                </li>
+                <li style="height:50px">
+                    <label>再输入一次:</label>
+                    <input type="password" name="rePasswd" placeholder="再次输入新密码" required/>
+                </li>
+                <li>
+                    <label></label>
+                    <button class="check" type="submit"><i></i><span>确认</span></button>
+                    <button id="logout" type="button"><span>退出系统</span></button>
+                </li>
+            </ol>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>

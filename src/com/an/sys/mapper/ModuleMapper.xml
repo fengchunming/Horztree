@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ModuleMapper">
+	<cache eviction="LRU" type="com.an.core.mybatis.cache.RedisCache" />
+	<resultMap id="moduleMap" type="com.an.sys.entity.Module">
+		<id property="id" column="id" />
+		<result property="name" column="name" jdbcType="VARCHAR"/>
+		<result property="tips" column="tips" jdbcType="VARCHAR"/>
+		<result property="url" column="url" jdbcType="VARCHAR"/>
+		<result property="param" column="param" jdbcType="VARCHAR"/>
+        <result property="method" column="method" jdbcType="VARCHAR"/>
+        <result property="buttonId" column="button_id" jdbcType="VARCHAR"/>
+		<result property="isMenu" column="is_menu" jdbcType="CHAR"/>
+		<result property="isShortcut" column="is_shortcut" jdbcType="CHAR"/>
+		<result property="icon" column="icon" jdbcType="VARCHAR"/>
+		<result property="isLeaf" column="is_leaf" jdbcType="CHAR"/>
+		<result property="parent" column="parent" jdbcType="INTEGER"/>
+		<result property="step" column="step" jdbcType="INTEGER"/>
+		<result property="depth" column="depth" jdbcType="VARCHAR"/>
+		<result property="sort" column="sort"  jdbcType="INTEGER"/>
+		<result property="path" column="path" jdbcType="VARCHAR"/>
+		<result property="status" column="status" jdbcType="VARCHAR"/>
+		<result property="remark" column="remark"  jdbcType="VARCHAR"/>
+		<result property="createBy" column="create_by" jdbcType="INTEGER"/>
+		<result property="createAt" column="create_at" jdbcType="DATE"/>
+	</resultMap>
+	
+    <sql id="Column_List" >
+    	id,name,tips,url,param,is_menu,is_shortcut,icon,is_leaf,parent,step,
+    	depth,sort,path,status,remark,create_by,create_at, method, button_id
+    </sql>
+    
+	<sql id="Where_Clause" >
+		<where>
+			status != 'd'
+	        <if test="isMenu != null and isMenu != '' ">and is_menu = #{isMenu, jdbcType=CHAR}</if>
+	        <if test="parent != null ">and parent = #{parent, jdbcType=INTEGER}</if>
+	        <if test="step != null and step > 0 ">and step = #{step}</if>
+			<if test="name != null and name != ''"> and name like concat('%',#{name},'%') </if>
+			<if test="url != null and url != ''"> and url like concat('%',#{url},'%') </if>
+		</where>
+    </sql>
+    
+	<!-- 后台功能总数 -->
+	<select id="countByExample" resultType="int" parameterType="java.util.HashMap">
+		select count(1) from SYS_MODULE
+		<include refid="Where_Clause" /> 
+	</select>
+	
+	<!-- 后台功能列表查询 -->
+	<select id="selectByExample" resultMap="moduleMap" parameterType="java.util.HashMap">
+		select 
+		<include refid="Column_List"/>  
+		from SYS_MODULE 
+		<include refid="Where_Clause"/>  
+		order by depth
+	</select>
+
+	<!-- 根据主键查询后台功能 -->
+	<select id="selectByPrimaryKey" resultMap="moduleMap">
+		select 
+		<include refid="Column_List" />   
+		from SYS_MODULE
+		where id = #{id}
+	</select>
+
+	<!-- 新增后台功能 -->
+	<insert id="insert" parameterType="com.an.sys.entity.Module">
+		insert into SYS_MODULE
+		(name,tips,url,param,is_menu,is_shortcut,icon,is_leaf,parent,step,
+    	method, button_id, depth,sort,path,status,remark,create_by,create_at)
+		values
+		(#{name,jdbcType=VARCHAR},#{tips, jdbcType=VARCHAR},#{url, jdbcType=VARCHAR},
+		#{param, jdbcType=VARCHAR}, #{isMenu, jdbcType=CHAR}, #{isShortcut, jdbcType=CHAR},
+		#{icon, jdbcType=VARCHAR}, #{isLeaf, jdbcType=CHAR}, #{parent, jdbcType=INTEGER},
+		#{step, jdbcType=INTEGER}, #{method, jdbcType=VARCHAR},#{buttonId, jdbcType=VARCHAR},
+        #{depth, jdbcType=VARCHAR}, #{sort, jdbcType=INTEGER},
+		#{path, jdbcType=VARCHAR}, #{status, jdbcType=CHAR}, #{remark, jdbcType=VARCHAR} , #userId, now())
+        <selectKey resultType="java.lang.Integer" keyProperty="id">
+            SELECT @@IDENTITY AS id
+        </selectKey>
+	</insert>
+	
+	<!-- 更新后台功能 -->
+	<update id="updateByPrimaryKey" parameterType="com.an.sys.entity.Module">
+		update SYS_MODULE set
+			name = #{name, jdbcType=VARCHAR},
+			tips = #{tips, jdbcType=VARCHAR},
+			url = #{url, jdbcType=VARCHAR},
+			param = #{param, jdbcType=VARCHAR},
+            method = #{method, jdbcType=VARCHAR},
+            button_id = #{buttonId, jdbcType=VARCHAR},
+			parent = #{parent, jdbcType=INTEGER},
+			is_menu = #{isMenu, jdbcType=CHAR},
+            is_leaf = #{isLeaf, jdbcType=CHAR},
+			is_shortcut = #{isShortcut, jdbcType=CHAR},
+			step = #{step, jdbcType=INTEGER},
+			depth = #{depth, jdbcType=VARCHAR},
+			path = #{path, jdbcType=VARCHAR},
+			create_at = now(),
+			icon = #{icon, jdbcType=VARCHAR},
+			status = #{status, jdbcType=VARCHAR},
+			remark = #{remark, jdbcType=VARCHAR},
+			sort = #{sort, jdbcType=INTEGER}
+		 where id = #{id}
+	</update>
+	
+	<!-- 删除后台功能 -->
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+		delete from SYS_MODULE where id = #{id}
+	</delete>
+	
+	<update id="updateLeaf">
+		update SYS_MODULE
+        set path = concat(#{path},#{id},','), step = #{step} + 1,
+        depth = concat(#{depth}, LPAD(#{sort}, 4, 0), LPAD(id, 4, 0))
+		where parent = #{id}
+	</update>
+	
+		<!-- 后台功能列表查询 -->
+	<select id="selectKV" resultType="java.util.HashMap">
+		select id as k,name as v 
+		from SYS_MODULE where status = 't' and step = 1
+	</select>
+</mapper>

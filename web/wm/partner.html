@@ -1,0 +1,110 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <script>
+        $(function () {
+            App.Partner = App.Model.extend({
+                urlRoot: 'rest/sys/org/supplier',
+                idAttribute: 'id',
+                defaults: {orgType:'supplier'}
+            });
+
+            App.Partners = App.Collection.extend({
+                sortCol: 'depth',
+                model: App.Partner,
+                columns: [
+                    {label: '组织名称', key: 'orgName'},
+                    {label: '联系人', key: 'addr.linkman'},
+                    {label: '联系方式', key: 'addr.tel'},
+                    {label: '邮箱', key: 'addr.email'},
+                    {label: '状态', key: 'status', local: 'status'}
+                ]
+            });
+
+            App.PartnerGrid = App.Grid.extend({
+                collection: new App.Partners,
+                form: new App.FormView,
+                qel: '.queryBar',
+                toolbar: ['create']
+            });
+
+            App.PartnerTable = new App.PartnerGrid();
+        });
+    </script>
+</head>
+<body>
+<div id="article">
+    <form class="queryBar">
+        <ul>
+            <li>
+                <label>名称：</label>
+                <input type="text" name="partnerName"/>
+            </li>
+            <li>
+                <button class="search"><i></i>查询</button>
+            </li>
+            <li class="toolBar"></li>
+        </ul>
+    </form>
+
+    <div class="dataGrid">
+        <table class="app"></table>
+    </div>
+    <div class="page"></div>
+</div>
+
+<div class="navPanel">
+    <div class="toolBar"></div>
+    <div class="editorPanel">
+        <form>
+            <ol>
+                <li>
+                    <label>组织名称:</label>
+                    <input type="text" name="orgName" placeholder="请输入组织名称" required/>
+                </li>
+                <li>
+                    <label>别名:</label>
+                    <input type="text" name="shortName" placeholder=""/>
+                </li>
+                <li>
+                    <label>联系人:</label>
+                    <input type="text" name="addr.linkman" placeholder=""/>
+                </li>
+                <li>
+                    <label>联系地址:</label>
+                    <input type="text" name="addr.addr" placeholder="联系地址"/>
+                </li>
+                <li>
+                    <label>联系方式:</label>
+                    <input type="text" name="addr.tel" placeholder="联系方式"/>
+                </li>
+                <li>
+                    <label>手机:</label>
+                    <input type="text" name="addr.mobile" placeholder=""/>
+                </li>
+                <li>
+                    <label>邮编:</label>
+                    <input type="text" name="addr.zip" placeholder=""/>
+                </li>
+                <li>
+                    <label>电子邮箱:</label>
+                    <input type="text" name="addr.email" placeholder=""/>
+                </li>
+                <li>
+                    <label>传真:</label>
+                    <input type="text" name="addr.fax" placeholder=""/>
+                </li>
+                <li>
+                    <label>备注:</label>
+                    <input type="text" name="remark">
+                </li>
+                <li>
+                    <label>状态:</label>
+                    <select name="status" data-local="status"></select>
+                </li>
+            </ol>
+        </form>
+    </div>
+</div>
+</body>
+</html>

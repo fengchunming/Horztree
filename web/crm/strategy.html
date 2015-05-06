@@ -1,0 +1,283 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <script>
+        $(function () {
+            _LocalKV.PropClause = {
+                'AmountClause': '商品总额',
+                'ItemsClause': '指定商品',
+                'UserClause': '会员等级',
+                'TimesClause': '购买次数'
+            };
+
+            _LocalKV.Effect = {
+                'percent': '折扣',
+                'subtract': '金额减免',
+                'coupon': '送优惠券',
+                'point': '送积分'
+            };
+
+
+            App.Strategy = App.Model.extend({
+                defaults: {type: 'M'},
+                urlRoot: 'rest/crm/strategy',
+                edit: function () {
+                    App.groupList.link(this.get('groups'));
+                    _.each(this.get('clause').items, function(i){
+                        App.itemGrid.collection.add(new App.Model({goodsId:i}));
+                    });
+                }
+            });
+
+            App.StrategyList = App.Collection.extend({
+                model: App.Strategy,
+                param: {type: 'M'},
+                columns: [
+                    {label: '名称', key: 'name', sort: true, thcss: 'width:500px'},
+                    {label: '时间(启)', key: 'effectDate', sort: true},
+                    {label: '时间(止)', key: 'expireDate', sort: true},
+                    {label: '兼容', key: 'include'},
+                    {label: '排斥', key: 'exclude'},
+                    {label: '状态', key: 'status', local: 'status', sort: true}
+                ]
+            });
+            App.StrategyForm = App.FormView.extend({
+                size: {width: 1000},
+                events: {
+                    'click #clauseItems': 'selectItems'
+                },
+                prepare: function (param) {
+                    param.groups = App.groupList.selectIds();
+                    var goodsId = [];
+                    App.itemGrid.collection.each(function (model) {
+                        if (model.get('status') != 'd' && model.id) {
+                            goodsId.push(model.id);
+                        }
+                    });
+                    param.clause.items = goodsId;
+                    return param;
+                }
+            });
+
+
+            App.StrategyGrid = App.Grid.extend({
+                collection: new App.StrategyList,
+                form: new App.StrategyForm,
+                toolbar: ['create'],
+                qel: '.queryBar'
+            });
+
+            new App.StrategyGrid();
+
+            App.ItemList = App.Collection.extend({
+                pageSize: 0,
+                columns: [
+                    {key: 'goodsId', type: 'checkbox', style: 'width:25px'},
+                    {key: 'goodsId', label: '商品', local:'mm/kv/goods'}
+                ]
+            });
+            App.ItemGrid = App.Grid.extend({
+                withHead: false,
+                editable: true,
+                el: '#clauseItems',
+                toolbar: ['append', 'remove'],
+                collection: new App.ItemList,
+                append: function(){
+                    this.collection.add($('#goodsCode').data('cache'));
+                }
+            });
+
+            App.itemGrid = new App.ItemGrid;
+
+
+            App.GroupList = App.Collection.extend({
+                urlRoot: 'rest/sys/group/own',
+                model: App.Model,
+                pageSize: 0,
+                columns: [
+                    {key: 'id', type: 'checkbox', thcss: 'width:25px'},
+                    {
+                        key: 'name', label: '网点', render: function (val, model) {
+                        return '<span style="text-indent: ' + 10 * model.get('level') + 'px">' + val + '</span>';
+                    }
+                    }
+                ],
+                link: function (group) {
+                    _.each(this.models, function (model) {
+                        if (_.indexOf(group, model.id) >= 0) {
+                            model.select(true);
+                        } else {
+                            model.select(false);
+                        }
+                        model.row.render();
+                    });
+                }
+            });
+
+            App.groupList = new App.GroupList;
+
+            App.GroupGrid = App.Grid.extend({
+                el: '#districtGrid',
+                collection: App.groupList,
+                toolbar: []
+            });
+            new App.GroupGrid();
+
+
+            $('#goodsCode').autocomplete({
+                source: function (request, response) {
+                    $.ajax({
+                        url: 'rest/mm/goods/list',
+                        dataType: "json",
+                        data: {_SH: request.term, _LM: 20},
+                        success: function (data) {
+                            response($.map(data.list, function (item) {
+                                return {
+                                    label: item.pn + " - " + item.name,
+                                    value: item
+                                }
+                            }));
+                        }
+                    });
+                },
+                focus: function (event, ui) {
+                    $(this).val(ui.item.label);
+                    return false;
+                },
+                select: function (event, ui) {
+                    $(this).data('cache', ui.item.value);
+                    $(this).val(ui.item.label);
+                    return false;
+                },
+                change: function (event, ui) {
+                    if (!ui.item) {
+                        $(this).data('cache', null);
+                    }
+                }
+            });
+        });
+    </script>
+</head>
+<body>
+<div id="article">
+    <form class="queryBar">
+        <ul>
+            <li>
+                <label>名称：</label>
+                <input type="text" name="name"/>
+            </li>
+            <li>
+                <label>生效日期：</label>
+                <input type="text" class="mindatepicker" name="sdate"> -
+                <input type="text" class="maxdatepicker" name="edate">
+            </li>
+            <li>
+                <label>网点：</label>
+                <select name="group" data-local="sys/kv/owngroup">
+                    <option></option>
+                </select>
+            </li>
+            <li>
+                <button class="search"><i></i>查询</button>
+            </li>
+            <li class="toolBar"></li>
+        </ul>
+    </form>
+    <div class="dataGrid">
+        <table class="app"></table>
+    </div>
+    <div class="page"></div>
+</div>
+
+<div class="navPanel">
+    <div class="toolBar"></div>
+    <div class="editorPanel">
+        <form style="width:700px;float:left">
+            <ol>
+                <li>
+                    <label>名称:</label>
+                    <input type="text" name="name" placeholder="营销活动名称" required/>
+                </li>
+                <li>
+                    <label>状态 :</label>
+                    <select name="status" data-local="status"></select>
+                </li>
+                <li>
+                    <label>策略生效日期:</label>
+                    <input type="text" name="effectDate" placeholder="策略生效日期" required
+                           class="datetimepicker"/>
+                </li>
+                <li>
+                    <label></label>
+                    <input type="text" name="expireDate" placeholder="策略截止日期" required
+                           class="datetimepicker"/>
+                </li>
+                <li>
+
+                    <label>兼容:</label>
+                    <input type="text" name="include" placeholder="兼容"/>
+                </li>
+                <li>
+                    <label>排斥:</label>
+                    <input type="text" name="exclude" placeholder="排斥"/>
+                </li>
+                <li>
+                    <label>备注:</label>
+                    <textarea name="remark" style="height:100px;"></textarea>
+                </li>
+            </ol>
+            <ol>
+                <li>
+                    <h3 style="text-indent: 20px">使用条件</h3>
+                </li>
+                <li>
+                    <label>金额满:</label>
+                    <input type="text" name="clause.amount"/>
+                </li>
+                <li>
+                    <label>数量满:</label>
+                    <input type="text" name="clause.quantity"/>
+                </li>
+                <li id="clauseItems">
+                    <label>限定商品:</label>
+                    <div style="width:200px;display:inline-block">
+                        <input id="goodsCode">
+                        <div class="toolBar"></div>
+                        <table class="app"></table>
+                    </div>
+                </li>
+                <li>
+                    <label>会员等级:</label>
+                    <select name="clause.level" data-local="crm/kv/memberLevel">
+                        <option value="">不限</option>
+                    </select>
+                </li>
+                <li>
+                    <label>生日:</label>
+                    <input type="checkbox" name="clause.birthday"/>
+                </li>
+                <li>
+                    <h3 style="text-indent: 20px">享受效果</h3>
+                </li>
+                <li>
+                    <label>折扣:</label>
+                    <input type="number" name="effect.percent"/>
+                </li>
+                <li>
+                    <label>定额减免:</label>
+                    <input type="number" name="effect.subtract"/>
+                </li>
+                <li>
+                    <label>赠品:</label>
+                    <input type="text" name="effect.reward"/>
+                </li>
+            </ol>
+        </form>
+
+        <div id="districtGrid" class="side-panel">
+            <table class="app"></table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

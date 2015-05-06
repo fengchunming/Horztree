@@ -1,0 +1,310 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="ReportMapper">
+    <select id="saleReport" resultType="java.util.HashMap"
+            parameterType="java.util.HashMap">
+        select
+        <if test="org_group == 'org'">c.org_code as org,</if>
+        <if test="org_group == 'cashier'">c.cashier_code as cashier,</if>
+        <if test="goods_group == 'category'">b.category,</if>
+        <if test="goods_group == 'goods'">a.goods_code as goods,</if>
+        <if test="goods_group == 'supplier'">b.supplier,</if>
+        <if test="time_group == 'year'">extract(year from c.bill_date) as year,</if>
+        <if test="time_group == 'quarter'">extract(quarter from c.bill_date) as quarter,</if>
+        <if test="time_group == 'month'">extract(month from c.bill_date) as month,</if>
+        <if test="time_group == 'week'">extract(week from c.bill_date) as week,</if>
+        <if test="time_group == 'dow'">
+            to_char(c.bill_date,'DY') as dow,
+            extract(dow from c.bill_date) as ndow,
+        </if>
+        <if test="time_group == 'day'">c.bill_date as day,</if>
+        <if test="time_group == 'hour'">extract(hour from c.sale_stamp) as hour,</if>
+        <if test="quantity != null">sum(a.quantity) as quantity,</if>
+        <if test="weight != null">sum(a.weight) as weight,</if>
+        <if test="amount != null">sum(c.amount * a.sub_total / c.total) as amount,</if>
+        <if test="total != null">sum(a.sub_total) as total,</if>
+        <if test="payable != null">sum(case when replace(a.seq_no,c.bill_code,'') = '1' then c.amount else 0 end)
+            payable,
+        </if>
+        <if test="cost != null">sum(a.cost_total) as cost,</if>
+        <if test="gross != null">sum(a.sub_total - a.cost_total) as gross,</if>
+        <if test="visit_count != null">count(distinct c.bill_code) as visit_count,</if>
+        1 as rownum
+        from "ag"."T_POS_SALE_DETAIL" a, "ag"."T_MM_GOODS" b,
+        (select m.org_code,m.bill_code,m.bill_date,m.sale_stamp,m.cashier_code,m.amount,sum(n.sub_total) total
+        from "ag"."T_POS_SALE_BILL" m, "ag"."T_POS_SALE_DETAIL" n
+        where m.bill_code = n.bill_code
+        <if test="org_filter != ''">and m.org_code = #{org_filter}</if>
+        <if test="sdate_filter != ''"><![CDATA[  and m.bill_date >= #{sdate_filter,jdbcType=DATE}]]></if>
+        <if test="edate_filter != ''"><![CDATA[  and m.bill_date <= #{edate_filter,jdbcType=DATE}]]></if>
+        group by m.org_code,m.bill_date,m.amount,m.bill_code,m.sale_stamp,m.cashier_code
+        ) c
+        <where>
+            a.goods_code = b.goods_code and a.bill_code = c.bill_code
+            <if test="org_filter != ''">and c.org_code = #{org_filter}</if>
+            <if test="sdate_filter != ''"><![CDATA[  and c.bill_date >= #{sdate_filter,jdbcType=DATE}]]></if>
+            <if test="edate_filter != ''"><![CDATA[  and c.bill_date <= #{edate_filter,jdbcType=DATE}]]></if>
+            <if test="goods_filter != ''">and a.goods_code = #{goods_filter}</if>
+            <if test="cashier_filter != ''">and a.cashier_code = #{cashier_filter}</if>
+            <if test="category_filter != ''">and a.category = #{category_filter}</if>
+        </where>
+        <trim prefix="group by" suffixOverrides=",">
+            <if test="org_group == 'org'">org,</if>
+            <if test="org_group == 'cashier'">cashier,</if>
+            <if test="goods_group == 'category'">b.category,</if>
+            <if test="goods_group == 'goods'">goods,</if>
+            <if test="goods_group == 'supplier'">supplier,</if>
+            <if test="time_group == 'year'">year,</if>
+            <if test="time_group == 'quarter'">quarter,</if>
+            <if test="time_group == 'month'">month,</if>
+            <if test="time_group == 'week'">week,</if>
+            <if test="time_group == 'dow'">dow,ndow,</if>
+            <if test="time_group == 'day'">day,</if>
+            <if test="time_group == 'hour'">hour</if>
+        </trim>
+        <if test="_BY != null">order by ${_BY}</if>
+        <if test="_BY == null">
+            <trim prefix="order by" suffixOverrides=",">
+                <if test="goods_group == 'smallCate'">category,</if>
+                <if test="goods_group == 'goods'">goods,</if>
+                <if test="goods_group == 'supplier'">supplier,</if>
+                <if test="time_group == 'year'">year,</if>
+                <if test="time_group == 'quarter'">quarter,</if>
+                <if test="time_group == 'month'">month,</if>
+                <if test="time_group == 'week'">week,</if>
+                <if test="time_group == 'dow'">ndow,</if>
+                <if test="time_group == 'day'">day,</if>
+                <if test="time_group == 'hour'">hour,</if>
+                <if test="org_group == 'org'">org,</if>
+                <if test="org_group == 'cashier'">cashier</if>
+            </trim>
+        </if>
+
+
+    </select>
+
+    <select id="tradeReport" resultType="java.util.HashMap"
+            parameterType="java.util.HashMap">
+        select
+        <if test="org_group == 'org'">c.org_code as org,</if>
+        <if test="org_group == 'cashier'">c.cashier_code as cashier,</if>
+        <if test="goods_group == 'category'">b.category,</if>
+        <if test="goods_group == 'goods'">a.goods_code as goods,</if>
+        <if test="goods_group == 'supplier'">b.supplier,</if>
+        <if test="time_group == 'year'">extract(year from c.bill_date) as year,</if>
+        <if test="time_group == 'quarter'">extract(quarter from c.bill_date) as quarter,</if>
+        <if test="time_group == 'month'">extract(month from c.bill_date) as month,</if>
+        <if test="time_group == 'week'">extract(week from c.bill_date) as week,</if>
+        <if test="time_group == 'dow'">
+            to_char(c.bill_date,'DY') as dow,
+            extract(dow from c.bill_date) as ndow,
+        </if>
+        <if test="time_group == 'day'">c.bill_date as day,</if>
+        <if test="time_group == 'hour'">extract(hour from c.sale_stamp) as hour,</if>
+        <if test="quantity != null">sum(a.quantity) as quantity,</if>
+        <if test="weight != null">sum(a.weight) as weight,</if>
+        <if test="amount != null">sum(c.amount * a.sub_total / c.total) as amount,</if>
+        <if test="total != null">sum(a.sub_total) as total,</if>
+        <if test="payable != null">sum(case when replace(a.seq_no,c.bill_code,'') = '1' then c.amount else 0 end)
+            payable,
+        </if>
+        <if test="cost != null">sum(a.cost_total) as cost,</if>
+        <if test="gross != null">sum(a.sub_total - a.cost_total) as gross,</if>
+        <if test="visit_count != null">count(distinct c.bill_code) as visit_count,</if>
+        1 as rownum
+        from "ag"."T_TRADE_DETAIL" a, "ag"."T_MM_GOODS" b,
+        (select m.org_code,m.bill_code,m.bill_date,m.sale_stamp,m.cashier_code,m.amount,sum(n.sub_total) total
+        from "ag"."T_TRADE_DETAIL" m, "ag"."T_TRADE_DETAIL" n
+        where m.bill_code = n.bill_code
+        <if test="org_filter != ''">and m.org_code = #{org_filter}</if>
+        <if test="sdate_filter != ''"><![CDATA[  and m.bill_date >= #{sdate_filter,jdbcType=DATE}]]></if>
+        <if test="edate_filter != ''"><![CDATA[  and m.bill_date <= #{edate_filter,jdbcType=DATE}]]></if>
+        group by m.org_code,m.bill_date,m.amount,m.bill_code,m.sale_stamp,m.cashier_code
+        ) c
+        <where>
+            a.goods_code = b.goods_code and a.bill_code = c.bill_code
+            <if test="org_filter != ''">and c.org_code = #{org_filter}</if>
+            <if test="sdate_filter != ''"><![CDATA[  and c.bill_date >= #{sdate_filter,jdbcType=DATE}]]></if>
+            <if test="edate_filter != ''"><![CDATA[  and c.bill_date <= #{edate_filter,jdbcType=DATE}]]></if>
+            <if test="goods_filter != ''">and a.goods_code = #{goods_filter}</if>
+            <if test="cashier_filter != ''">and a.cashier_code = #{cashier_filter}</if>
+            <if test="category_filter != ''">and a.category = #{category_filter}</if>
+        </where>
+        <trim prefix="group by" suffixOverrides=",">
+            <if test="org_group == 'org'">org,</if>
+            <if test="org_group == 'cashier'">cashier,</if>
+            <if test="goods_group == 'category'">b.category,</if>
+            <if test="goods_group == 'goods'">goods,</if>
+            <if test="goods_group == 'supplier'">supplier,</if>
+            <if test="time_group == 'year'">year,</if>
+            <if test="time_group == 'quarter'">quarter,</if>
+            <if test="time_group == 'month'">month,</if>
+            <if test="time_group == 'week'">week,</if>
+            <if test="time_group == 'dow'">dow,ndow,</if>
+            <if test="time_group == 'day'">day,</if>
+            <if test="time_group == 'hour'">hour</if>
+        </trim>
+        <if test="_BY != null">order by ${_BY}</if>
+        <if test="_BY == null">
+            <trim prefix="order by" suffixOverrides=",">
+                <if test="goods_group == 'smallCate'">category,</if>
+                <if test="goods_group == 'goods'">goods,</if>
+                <if test="goods_group == 'supplier'">supplier,</if>
+                <if test="time_group == 'year'">year,</if>
+                <if test="time_group == 'quarter'">quarter,</if>
+                <if test="time_group == 'month'">month,</if>
+                <if test="time_group == 'week'">week,</if>
+                <if test="time_group == 'dow'">ndow,</if>
+                <if test="time_group == 'day'">day,</if>
+                <if test="time_group == 'hour'">hour,</if>
+                <if test="org_group == 'org'">org,</if>
+                <if test="org_group == 'cashier'">cashier</if>
+            </trim>
+        </if>
+
+
+    </select>
+
+    <select id="purchaseReport" resultType="java.util.HashMap"
+            parameterType="java.util.HashMap">
+        select
+        <if test="time_group == 'year'">extract(year from b.purchase_date) as year,</if>
+        <if test="time_group == 'quarter'">extract(quarter from b.purchase_date) as quarter,</if>
+        <if test="time_group == 'month'">extract(month from b.purchase_date) as month,</if>
+        <if test="time_group == 'week'">extract(week from purchase_date) as week,</if>
+        <if test="org_group == 'org'">org_code as org,</if>
+        <if test="org_group == 'supplier'">b.supplier_code as supplier,</if>
+        <if test="goods_group == 'smallCate'">c.category,</if>
+        <if test="goods_group == 'goods'">c.goods_code as goods,</if>
+        <if test="real_quantity != null">sum(a.real_quantity) as real_quantity,</if>
+        <if test="plan_quantity != null">sum(a.plan_quantity) as plan_quantity,</if>
+        <if test="amount != null">sum(a.sub_total) as amount,</if>
+        <if test="bill_count != null">count(distinct b.bill_code) as bill_count,</if>
+        <if test="bill_avg != null">average(b.amount) as bill_avg,</if>
+        <if test="dis_rate != null">sum(abs(a.real_quantity - a.plan_quantity)) as dis_rate,</if>
+        1 as rownum
+        from "ag"."T_TRADE_DETAIL" a , "ag"."T_TRADE_DETAIL" b , "ag"."T_MM_GOODS" c
+        <where>
+            a.bill_code = b.bill_code and a.goods_code = c.goods_code and b.status = 'check'
+            <if test="org_filter != ''">and a.org_code = #{org_filter}</if>
+            <if test="sdate_filter != ''"><![CDATA[  and b.purchase_date >= #{sdate_filter,jdbcType=DATE}]]></if>
+            <if test="edate_filter != ''"><![CDATA[  and b.purchase_date <= #{edate_filter,jdbcType=DATE}]]></if>
+            <if test="goods_filter != ''">and a.goods_code = #{goods_filter}</if>
+            <if test="supplier_filter != ''">and b.supplier_code = #{supplier_filter}</if>
+            <if test="category_filter != ''">and c.category = #{category_filter}</if>
+        </where>
+        <trim prefix="group by" suffixOverrides=",">
+            <if test="org_group == 'org'">org,</if>
+            <if test="org_group == 'supplier'">b.supplier_code,</if>
+            <if test="goods_group == 'smallCate'">category,</if>
+            <if test="goods_group == 'goods'">goods,</if>
+            <if test="time_group == 'year'">year,</if>
+            <if test="time_group == 'quarter'">quarter,</if>
+            <if test="time_group == 'month'">month,</if>
+            <if test="time_group == 'week'">week</if>
+        </trim>
+        <if test="_BY != null">order by ${_BY}</if>
+        <if test="_BY == null">
+            <trim prefix="order by" suffixOverrides=",">
+                <if test="goods_group == 'smallCate'">category,</if>
+                <if test="goods_group == 'goods'">goods,</if>
+                <if test="goods_group == 'supplier'">b.supplier_code,</if>
+                <if test="time_group == 'year'">year,</if>
+                <if test="time_group == 'quarter'">quarter,</if>
+                <if test="time_group == 'month'">month,</if>
+                <if test="time_group == 'week'">week,</if>
+                <if test="org_group == 'org'">org,</if>
+                <if test="org_group == 'supplier'">supplier</if>
+            </trim>
+        </if>
+
+
+    </select>
+
+    <select id="stockReport" resultType="java.util.HashMap"
+            parameterType="java.util.HashMap">
+        select a.goods_code,a.min_timestamp,a.max_timestamp,
+        case when a.flag then b.opening_inventory else b.ending_inventory end as opening_inventory,
+        c.ending_inventory,a.receipt,a.issue, a.inventory,a.trash from
+        (select m.goods_code,m.receipt,m.issue,m.flag,m.inventory,m.trash,
+        coalesce(min_timestamp,n."enter_at") min_timestamp,
+        coalesce(max_timestamp,n."enter_at") max_timestamp
+        from
+        (select goods_code, true as flag,
+        min("enter_at") min_timestamp,
+        max("enter_at") max_timestamp,
+        sum(case when bill_type in ('CG','SH','DR') then ending_quantity - opening_quantity else 0 end) as receipt,
+        sum(case when bill_type in ('BH','FH','XS','SC','DC') then opening_quantity - ending_quantity else 0 end) as
+        issue,
+        sum(case when bill_type in ('PD') then ending_quantity - opening_quantity else 0 end) as inventory,
+        sum(case when bill_type in ('FQ') then opening_inventory - ending_inventory else 0 end) as trash
+        from "ag"."T_WM_STOCK_SNAPSHOT"
+        <where>
+            <if test="org_type != null and org_type != ''">org_type = #{org_type}</if>
+            <if test="org_code != ''">and org_code = #{org_code}</if>
+            <if test="goods_code != ''">and goods_code = #{goods_code}</if>
+            <if test="sdate_filter != ''"><![CDATA[ and enter_at > #{sdate_filter,jdbcType=DATE}]]></if>
+            <if test="edate_filter != ''"><![CDATA[ and enter_at < #{edate_filter,jdbcType=DATE}]]></if>
+        </where>
+        group by goods_code) m full outer join
+        (select goods_code,max("enter_at") as "enter_at"
+        from "ag"."T_WM_STOCK_SNAPSHOT"
+        <where>
+            <if test="org_type != null and org_type != ''">org_type = #{org_type}</if>
+            <if test="org_code != ''">and org_code = #{org_code}</if>
+            <if test="goods_code != ''">and goods_code = #{goods_code}</if>
+            <if test="sdate_filter != ''"><![CDATA[and enter_at < #{sdate_filter,jdbcType=DATE}]]></if>
+        </where>
+        group by goods_code) n
+        on m.goods_code = n.goods_code) a, "ag"."T_WM_STOCK_SNAPSHOT" b, "ag"."T_WM_STOCK_SNAPSHOT" c
+        where a.goods_code = b.goods_code and a."min_timestamp" = b."enter_at"
+        and a.goods_code = c.goods_code and a."max_timestamp" = c."enter_at"
+        <if test="_BY != null">order by ${_BY}</if>
+
+
+    </select>
+
+    <select id="stockCount" resultType="java.lang.Integer"
+            parameterType="java.util.HashMap">
+        select count(distinct goods_code)
+        from "ag"."T_WM_STOCK_SNAPSHOT"
+        <where>
+            <if test="org_type != null and org_type != ''">org_type = #{org_type}</if>
+            <if test="org_code != ''">and org_code = #{org_code}</if>
+            <if test="goods_code != ''">and goods_code = #{goods_code}</if>
+            <if test="sdate_filter != ''"><![CDATA[ and enter_at > #{sdate_filter,jdbcType=DATE}]]></if>
+            <if test="edate_filter != ''"><![CDATA[ and enter_at < #{edate_filter,jdbcType=DATE}]]></if>
+        </where>
+    </select>
+
+    <select id="issueReport" resultType="java.util.HashMap"
+            parameterType="java.util.HashMap">
+        select a.goods_code,a.goods_name,sum(real_quantity) quantity,b.standard_cost_price,
+        sum(real_quantity * b.standard_cost_price) sub_total
+        from "ag"."T_WM_BILL_DETAIL" a ,"ag"."T_MM_GOODS" b
+        where a.bill_type = 'FH' and a.goods_code = b.goods_code
+        <if test="org_code != ''">and a.org_code = #{org_code}</if>
+        <if test="sdate_filter != ''"><![CDATA[ and a.enter_at > #{sdate_filter,jdbcType=DATE}]]></if>
+        <if test="edate_filter != ''"><![CDATA[ and a.enter_at < #{edate_filter,jdbcType=DATE}]]></if>
+        group by a.goods_code,a.goods_name,b.standard_cost_price
+    </select>
+
+    <select id="issueCount" resultType="java.lang.Integer"
+            parameterType="java.util.HashMap">
+        select count(distinct a.goods_code)
+        from "ag"."T_WM_BILL_DETAIL" a join "ag"."T_MM_GOODS" b on a.goods_code = b.goods_code
+        where a.bill_type = 'FH'
+        <if test="org_code != ''">and a.org_code = #{org_code}</if>
+        <if test="sdate_filter != ''"><![CDATA[ and a.enter_at > #{sdate_filter,jdbcType=DATE}]]></if>
+        <if test="edate_filter != ''"><![CDATA[ and a.enter_at < #{edate_filter,jdbcType=DATE}]]></if>
+    </select>
+
+    <select id="resurpplyReport" resultType="java.util.HashMap"
+            parameterType="java.util.HashMap">
+        select *
+        from "ag"."T_WM_WAREHOUSE"
+        where
+        <if test="_BY != null">order by ${_BY}</if>
+    </select>
+
+</mapper>

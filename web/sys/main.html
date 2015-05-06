@@ -1,0 +1,65 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <style>
+        .list {
+            float: left;
+            width: 350px;
+            margin: 15px;
+            height: 250px;
+            border: 1px solid #e4e4e4;
+            padding: 0;
+        }
+
+        .list dt {
+            border-bottom: 1px solid #e4e4e4;
+            background: #eee;
+            font-size: 12px;
+            padding: 4px 8px;
+            font-weight: bold;
+        }
+
+        .list dd {
+            border-bottom: 1px solid #eee;
+            font-size: 12px;
+            padding: 5px 7px;
+            line-height: 16px;
+        }
+
+        .right {
+            display: inline-block;
+            float: right;
+            text-align: right;
+        }
+    </style>
+    <script type="text/javascript">
+//        $(function () {
+//            $.get('rest/act/task/my?type=todo&_ST=0&_LM=10', function (data) {
+//                $.each(data.list, function (i, e) {
+//                    $('#task').append('<dd><a href="#sys/myTask.html">' + e['name'] + '</a><span class="right">' + new Date(e['createTime']).format('yyyy-mm-dd HH:MM') + '</span></dd>');
+//                })
+//            });
+
+//            $('#message').change(function () {
+//                stompClient.send("/app/send", {}, JSON.stringify({'note': this.value}));
+//                this.value = '';
+//            });
+//        });
+    </script>
+</head>
+<body>
+<div style="margin:10px;">
+    <dl id="task" class="list">
+        <dt>待办事项</dt>
+    </dl>
+
+    <dl id="notice" class="list">
+        <dt>公告通知</dt>
+    </dl>
+
+    <dl id="warning" class="list">
+        <dt>系统提醒</dt>
+    </dl>
+</div>
+</body>
+</html>

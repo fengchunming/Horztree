@@ -1,0 +1,311 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<script>
+$(function () {
+    App.Transfer = App.Model.extend({
+        urlRoot: 'rest/wb/TF',
+        idAttribute: 'id',
+        edit: function () {
+           if(!this.isNew()) App.details.load('rest/wb/detail/' + this.id);
+        }
+    });
+
+    App.TransferList = App.Collection.extend({
+        model: App.Transfer,
+        columns: [
+            {label: '统配单号', key: 'billCode', thcss:'width:100px', sort: true},
+            {label: '制单日期', key: 'billDate', thcss:'width:100px', sort: true},
+            {label: '收货', key: 'partyB.orgCode', local: 'sys/kv/warehouse'},
+            {label: '配送日期', key: 'planDate'},
+            {label: '状态', key: 'status', local: 'billStatus', sort: 'status'}
+        ]
+    });
+
+    App.TransferForm = App.FormView.extend({
+        size: {width:900},
+        toolbar: ['auto', 'check', 'create', 'trash', 'print', 'save', 'hide'],
+        check: function () {
+            if (confirm('是否确认配送计划无误？')) {
+                $.ajax({
+                    contentType: 'application/json',
+                    dataType: 'json',
+                    type: 'POST',
+                    url: 'rest/scm/checkTransfer/' + $("#billCode").val(),
+                    success: function (data) {
+                        $.sticky('确认成功');
+                    }
+                });
+            }
+        }
+    });
+
+    App.TransferGrid = App.Grid.extend({
+        collection: new App.TransferList,
+        form: new App.TransferForm,
+        toolbar: ['create'],
+        qel: '.queryBar'
+    });
+
+    App.resurpplyGrid = new App.TransferGrid();
+
+
+    /*
+     * 明细
+     */
+    App.DetailRow = App.Row.extend({
+        listen: function () {
+            var view = this;
+            if ($('#status').val() == 'check') {
+                $('td[contenteditable=true]', this.$el).attr('contenteditable', false);
+                return;
+            }
+
+            $('td[name=pn]', this.$el).autocomplete({
+                source: function (request, response) {
+                    $.ajax({
+                        url: 'rest/mm/goodsAutocomplete',
+                        dataType: "json",
+                        data: {q: request.term, limit: 20},
+                        success: function (data) {
+                            response($.map(data, function (item) {
+                                return {
+                                    label: item.pn + " - " + item.name,
+                                    value: item
+                                }
+                            }));
+                        }
+                    });
+                },
+                select: function (event, ui) {
+                    var temp = ui.item.value;
+                    if (view.model.get('targetOrg') != null) {
+                        $.ajax({
+                            url: 'rest/mm/summaryList',
+                            dataType: "json",
+                            data: {
+                                "orgCode": view.model.get('targetOrg')['orgCode'],
+                                'pn': temp.pn},
+                            success: function (data) {
+                                if (data.count > 0) {
+                                    view.model.set({
+                                        pn: temp.pn,
+                                        name: temp.name,
+                                        goodsUnit: temp.skuUom,
+                                        originSummary: temp.summary,
+                                        summary: data.list[0].summary});
+                                } else {
+                                    $.sticky("未建可进关系");
+                                    view.model.clear();
+                                }
+                            }
+                        });
+                    } else {
+                        view.model.set({
+                            pn: temp.pn,
+                            name: temp.name,
+                            goodsUnit: temp.skuUom,
+                            originSummary: temp.summary});
+                    }
+                },
+                change: function (event, ui) {
+                    if (!ui.item) {
+                        var attrs = view.model.toJSON();
+                        view.model.clear();
+                        view.model.set(attrs);
+                    }
+                }
+            });
+
+            $('td[name="targetOrg.orgCode"]', this.$el).autocomplete({
+                source: function (request, response) {
+                    $.ajax({
+                        url: 'rest/sys/storeAutocomplete',
+                        dataType: "json",
+                        data: {q: request.term, limit: 20},
+                        success: function (data) {
+                            response($.map(data, function (item) {
+                                return {
+                                    label: item.orgCode + " - " + item.orgName,
+                                    value: item
+                                }
+                            }));
+                        }
+                    });
+                },
+                select: function (event, ui) {
+                    var temp = ui.item.value;
+                    if (view.model.get('pn') != null) {
+                        $.ajax({
+                            url: 'rest/mm/summaryList',
+                            dataType: "json",
+                            data: {
+                                "orgCode": temp.orgCode,
+                                'pn': view.model.get('pn')},
+                            success: function (data) {
+                                if (data.count > 0) {
+                                    view.model.set({targetOrg: {orgCode: temp.orgCode, orgType: temp.orgType, orgName: temp.orgName}, summary: data.list[0].summary});
+                                } else {
+                                    view.model.clear();
+                                    $.sticky("未建可进关系");
+                                }
+                            }
+                        });
+                    } else {
+                        view.model.set({targetOrg: {orgCode: temp.orgCode, orgType: temp.orgType, orgName: temp.orgName}});
+                    }
+                },
+                change: function (event, ui) {
+                    if (!ui.item) {
+                        var attrs = view.model.toJSON();
+                        view.model.clear();
+                        view.model.set(attrs);
+                    }
+                }
+            });
+
+            $('td[name=planQuantity]', this.$el).focusout(function () {
+                if ($(this).text() == '' || isNaN($(this).text())) {
+                    view.model.set('planQuantity', view.model.get('safeLine') - view.model.get('summary'));
+                } else if ($(this).text() > view.model.get('originSummary') ||
+                        ($(this).text() > view.model.get('maxSafeLine')
+                                && view.model.get('maxSafeLine') > 0)) {
+                    $.sticky('警告：数量大于库存限制!');
+                } else {
+                    view.model.set('planQuantity', parseFloat($(this).text()));
+                }
+            });
+        }
+    });
+
+    App.Detail = App.Model.extend({
+        idAttribute: 'id'
+
+    });
+
+    App.DetailList = App.Collection.extend({
+        model: App.Detail,
+        columns: [
+            {label: '&nbsp;', key: 'id', type: 'checkbox'},
+            {label: '门店', key: 'targetOrg.orgCode', editable: true},
+            {label: '门店名', key: 'targetOrg.orgName', style: 'width:22px'},
+            {label: '商品编号', key: 'pn', editable: true},
+            {label: '商品名称', key: 'name'},
+            {label: '可用库存', key: 'originSummary'},
+            {label: '最小库存', key: 'safeLine'},
+            {label: '最大库存', key: 'maxSafeLine'},
+            {label: '门店库存', key: 'summary'},
+            {label: '补货数量', key: 'planQuantity', editable: true},
+            {label: '单位', key: 'goodsUnit.uomCode', local: 'base/kv/uom'}
+        ]
+    });
+
+    App.details = new App.DetailList();
+
+    App.DetailGrid = App.Grid.extend({
+        el: '#tab_2',
+        rowView: App.DetailRow,
+        toolbar: ['append', 'remove'],
+        collection: App.details,
+        save: function () {
+            $.ajax({
+                contentType: 'application/json',
+                dataType: 'json',
+                data: JSON.stringify(this.collection.toJSON()),
+                type: 'POST',
+                precessData: false,
+                url: 'rest/scm/resurpplyDetail/' + $("#billCode").val(),
+                success: function (data) {
+                    App.details.load('rest/scm/details/' + $("#billCode").val());
+                }
+            });
+        }
+    });
+
+    App.detailGrid = new App.DetailGrid();
+});
+</script>
+</head>
+<body>
+<div id="article">
+    <form class="queryBar">
+        <ul>
+            <li>
+                <label>单号：</label>
+                <input type="text" name="billCode"/>
+            </li>
+            <li>
+                <label>日期：</label>
+                <input type="text" class="datepicker" name="sdate"/> -
+                <input type="text" class="datepicker" name="edate"/>
+            </li>
+            <li>
+                <label>收：</label>
+                <select name="partyB" data-local="sys/kv/supplier">
+                    <option value="">所有</option>
+                </select>
+            </li>
+            <li>
+                <label>发：</label>
+                <select name="partyB" data-local="sys/kv/supplier">
+                    <option value="">所有</option>
+                </select>
+            </li>
+            <li><button class="search"><i></i>查询</button></li>
+            <li class="toolBar"></li>
+        </ul>
+    </form>
+    <div class="dataGrid">
+        <table class="app"></table>
+    </div>
+    <div class="page"></div>
+
+</div>
+
+<div class="navPanel">
+    <div class="toolBar"></div>
+    <div class="editorPanel">
+        <div id="tabs">
+            <ul>
+                <li><a href="#tab_1"><span>基本信息</span></a></li>
+                <li><a href="#tab_2"><span>商品明细</span></a></li>
+            </ul>
+            <div id="tab_1">
+                <form method="post" name="norEditForm">
+                    <ol>
+                        <li>
+                            <label>统配单号:</label>
+                            <input type=text name="billCode" id="billCode" readonly/>
+                        </li>
+                        <li>
+                            <label>制单日期:</label>
+                            <input type="text" class="datepicker" name="billDate" readonly/>
+                        </li>
+                        <li>
+                            <label>配送日期:</label>
+                            <input type="text" class="datepicker" name="planDate"/>
+                        </li>
+                        <li>
+                            <label>供货组织:</label>
+                            <select name="org.orgCode" data-local="sys/kv/warehouse"></select>
+                        </li>
+                        <li>
+                            <label>备注:</label>
+                            <textarea name="remark" style="width:250px;height:150px;"></textarea>
+                        </li>
+                        <li>
+                            <label>状态:</label>
+                            <select name="status" id="status" data-local="billStatus" disabled></select>
+                        </li>
+                    </ol>
+                </form>
+            </div>
+            <div id="tab_2">
+                <table class="app"></table>
+                <div class="toolBar"></div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

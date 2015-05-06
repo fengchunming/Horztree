@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh-cn">
+<head>
+    <title>在线帮助手册</title>
+    <link href="images/style.css" rel="stylesheet"/>
+    <link href="../css/sticky.css" rel="stylesheet"/>
+    <script src="../js/lib/jquery.min.js"></script>
+    <script src="../js/lib/jquery-ui.min.js"></script>
+    <script src="../js/lib/jquery.history.js"></script>
+    <script src="../js/showdown.js"></script>
+    <script>
+        var converter = new Showdown.converter();
+        $(function () {
+            $('.nav').on('click', 'a', function () {
+                var url = $(this).attr('href');
+                if (url && url != '#')
+                    $.history.load(url);
+                return false;
+            });
+
+            $.history.init(function (url) {
+                url = (url == "" ? "menu.html" : decodeURIComponent(url));
+                $.get(url, function (data) {
+                    $("#article").html(converter.makeHtml(data));
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+<div class="nav">
+    <h3>在线帮助手册</h3>
+    <dl>
+        <dt>基础操作</dt>
+        <dd><a href="section0.htm">系统使用说明</a></dd>
+
+        <dt>草稿</dt>
+        <dd><a href="section1.md">Markdown示例</a></dd>
+        <dd><a href="section2.md">Markdown示例2</a></dd>
+
+        <dt>用户及权限管理</dt>
+        <dd><a href="user.md">用户管理</a></dd>
+        <dd><a href="privilege.md">权限管理</a></dd>
+    </dl>
+</div>
+<div id="article"></div>
+</body>
+</html>

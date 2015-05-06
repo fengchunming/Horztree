@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="Trade.ReturnReasonMapper">
+    <resultMap id="BaseResultMap" type="com.an.trade.entity.ReturnReason">
+        <id column="id" jdbcType="INTEGER" property="id"/>
+        <result column="type" jdbcType="VARCHAR" property="type"/>
+        <result column="reason" jdbcType="VARCHAR" property="reason"/>
+        <result column="status" jdbcType="VARCHAR" property="status"/>
+    </resultMap>
+    <sql id="Base_Where_Clause">
+        <where>
+            status != 'd'
+            <if test="type != null and type != ''">and type = #{type}</if>
+        </where>
+    </sql>
+
+    <sql id="Base_Column_List">
+        id, reason, type, status
+    </sql>
+
+    <select id="selectByExample" parameterType="map" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from TRADE_RETURN_REASON
+        <include refid="Base_Where_Clause"/>
+        <if test="_BY != null">order by ${_BY}</if>
+    </select>
+
+
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer"
+            resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from TRADE_RETURN_REASON
+        where id = #{id,jdbcType=INTEGER}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+        update TRADE_RETURN_REASON
+        set status = 'd'
+        where id = #{id,jdbcType=INTEGER}
+    </delete>
+
+    <insert id="insert" parameterType="com.an.trade.entity.ReturnReason">
+        insert into TRADE_RETURN_REASON
+        (type, reason, status)
+        values (#{type,jdbcType=VARCHAR},
+        #{reason,jdbcType=VARCHAR},#{status,jdbcType=VARCHAR} )
+        <selectKey resultType="java.lang.Integer" keyProperty="id">
+            SELECT @@IDENTITY AS id
+        </selectKey>
+    </insert>
+
+    <select id="countByExample" parameterType="map" resultType="java.lang.Integer">
+        select count(1) from TRADE_RETURN_REASON
+        <include refid="Base_Where_Clause"/>
+    </select>
+
+    <update id="updateByPrimaryKey" parameterType="com.an.trade.entity.ReturnReason">
+        update TRADE_RETURN_REASON
+        set
+        reason = #{reason,jdbcType=VARCHAR},
+        type = #{type,jdbcType=VARCHAR},
+        status = #{status,jdbcType=VARCHAR}
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+
+    <select id="selectKV" resultType="java.util.HashMap">
+        select id k,name v
+        from TRADE_RETURN_REASON where status = 't'
+    </select>
+</mapper>

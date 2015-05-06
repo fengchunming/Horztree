@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="LocationSetMapper">
+    <resultMap id="BaseResultMap" type="com.an.wm.entity.LocationSet">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="location" property="location" jdbcType="VARCHAR"/>
+        <result column="section" property="section" jdbcType="VARCHAR"/>
+        <result column="warehouse" property="warehouse" jdbcType="VARCHAR"/>
+        <result column="goods_code" property="pn" jdbcType="VARCHAR"/>
+        <result column="location_barcode" property="locationBarcode" jdbcType="VARCHAR"/>
+        <result column="goods_barcode" property="barcode" jdbcType="VARCHAR"/>
+        <result column="stock_baseline" property="stockBaseline" jdbcType="NUMERIC"/>
+    </resultMap>
+    <sql id="Example_Where_Clause">
+        <where>
+            <if test="location != null and location != ''">location = #{location}</if>
+            <if test="section != null and section != ''">and section = #{section}</if>
+            <if test="warehouse != null and warehouse != ''">and warehouse = #{warehouse}</if>
+            <if test="pn != null and pn != ''">and goods_code = #{pn}</if>
+            <if test="locationBarcode != null and locationBarcode != ''">and location_barcode = #{locationBarcode}</if>
+            <if test="barcode != null and barcode != ''">and goods_barcode = #{barcode}</if>
+        </where>
+    </sql>
+
+    <sql id="Base_Column_List">
+        id, location, location_barcode, warehouse, section, goods_code,goods_barcode, stock_baseline
+    </sql>
+    <select id="selectByExample" resultMap="BaseResultMap" parameterType="java.util.HashMap">
+        select
+        <include refid="Base_Column_List"/>
+        from "ag"."T_WM_LOCATION_SET"
+        <include refid="Example_Where_Clause"/>
+        <if test="_BY != null">order by ${_BY}</if>
+
+
+    </select>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+        select
+        <include refid="Base_Column_List"/>
+        from "ag"."T_WM_LOCATION_SET"
+        where id = #{id,jdbcType=INTEGER}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+        delete from "ag"."T_WM_LOCATION_SET"
+        where id = #{id,jdbcType=INTEGER}
+    </delete>
+
+    <insert id="insert" parameterType="com.an.wm.entity.LocationSet">
+        insert into "ag"."T_WM_LOCATION_SET"
+        ( location, location_barcode, warehouse,
+        section, goods_code,goods_barcode, stock_baseline)
+        values ( #{location,jdbcType=VARCHAR}, #{locationBarcode,jdbcType=VARCHAR},
+        #{warehouse,jdbcType=VARCHAR}, #{section,jdbcType=VARCHAR},
+        #{pn,jdbcType=VARCHAR}, #{barcode,jdbcType=VARCHAR}, #{stockBaseline,jdbcType=NUMERIC}
+        )
+        <selectKey resultType="java.lang.Integer" keyProperty="id">
+            select currval('"ag"."T_WM_LOCATION_SET_id_seq"') AS id
+        </selectKey>
+    </insert>
+    <select id="countByExample" parameterType="java.util.HashMap" resultType="java.lang.Integer">
+        select count(*) from "ag"."T_WM_LOCATION_SET"
+        <include refid="Example_Where_Clause"/>
+    </select>
+
+    <update id="updateByPrimaryKey" parameterType="com.an.wm.entity.LocationSet">
+        update "ag"."T_WM_LOCATION_SET"
+        set
+        location = #{location,jdbcType=VARCHAR},
+        location_barcode = #{locationBarcode,jdbcType=VARCHAR},
+        warehouse = #{warehouse,jdbcType=VARCHAR},
+        section = #{section,jdbcType=VARCHAR},
+        goods_code = #{pn,jdbcType=VARCHAR},
+        goods_barcode = #{barcode,jdbcType=VARCHAR},
+        stock_baseline = #{stockBaseline,jdbcType=NUMERIC}
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+</mapper>

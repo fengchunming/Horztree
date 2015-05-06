@@ -1,0 +1,238 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <script>
+        $(function () {
+            App.Trash = App.Model.extend({
+                urlRoot: 'rest/wb/TS',
+                idAttribute: 'id',
+                defaults: {type: 'IN', billDate: new Date().format('isoDate')},
+                edit: function () {
+                    if(!this.isNew()) App.details.load('rest/wb/detail/' + this.id);
+                }
+            });
+
+            App.TrashList = App.Collection.extend({
+                model: App.Trash,
+                columns: [
+                    {label: '损益单号', key: 'billCode'},
+                    {label: '仓库', key: 'warehouse', local: 'sys/kv/warehouse'},
+                    {label: '日期', key: 'trashDate'},
+                    {label: '状态', key: 'status', local: 'billStatus'}
+                ]
+            });
+
+            App.TrashFormView = App.FormView.extend({
+                toolbar: ['inport', 'check', 'print', 'create', 'trash', 'save', 'hide'],
+                size: {width: 900},
+                prepare: function (param) {
+                    param.items = App.details.toJSON();
+                    return param;
+                },
+                check: function () {
+                    if (confirm('是否确认该单据无误，此操作会根据收货单生成库存，且操作不可退回！')) {
+                        $.ajax({
+                            contentType: 'application/json',
+                            dataType: 'json',
+                            data: JSON.stringify(this.model.toJSON()),
+                            type: 'POST',
+                            precessData: false,
+                            url: 'rest/wm/checkTrash/' + $("#billCode").val(),
+                            success: function (data) {
+                                $.sticky('已生成库存数据！');
+                            }
+                        })
+                    }
+                },
+                inport: function () {
+                    $("#dialog-form").dialog({
+                        height: 300,
+                        width: 600,
+                        modal: true,
+                        buttons: {
+                            "取消": function () {
+                                $(this).dialog("close");
+                            }
+                        }
+                    });
+                },
+                print: function () {
+                    $.printPage('rest/wm/trashBillReport/' + this.model.id + '.html');
+                }
+            });
+
+            App.TrashGrid = App.Grid.extend({
+                collection: new App.TrashList(),
+                form: new App.TrashFormView,
+                qel:'.queryBar',
+                toolbar: ['create']
+            });
+
+            App.trashGrid = new App.TrashGrid();
+
+            /*
+             * 明细
+             */
+            App.TrashDetail = App.Model.extend({
+                idAttribute: 'id'
+            });
+
+            App.TrashDetailList = App.Collection.extend({
+                model: App.TrashDetail,
+                columns: [
+                    {key: 'id', type: 'checkbox'},
+                    {label: '商品名称', key: 'name'},
+                    {label: '商品编号', key: 'pn'},
+                    {label: '生产日期', key: 'productDate'},
+                    {label: '度量单位', key: 'uom.id', local: 'base/kv/uom'},
+                    {label: '收货数量', key: 'quantity'},
+                    {label: '报废', key: 'trash'}
+                ]
+            });
+
+            App.details = new App.TrashDetailList();
+
+            App.TrashRow = App.Row.extend({
+                listen: function () {
+                    var view = this;
+                    this.$el.find('input[name=pn]').autocomplete({
+                        source: function (request, response) {
+                            $.ajax({
+                                url: 'rest/wm/item/list',
+                                dataType: "json",
+                                data: {supplier: +$('#supplier').val(), _SH: request.term, _LM: 50},
+                                success: function (data) {
+                                    response($.map(data.list, function (item) {
+                                        return {
+                                            label: item.pn + " - " + item.name,
+                                            value: item
+                                        }
+                                    }));
+                                }
+                            });
+                        },
+                        focus: function (event, ui) {
+                            $(this).val(ui.item.label);
+                            return false;
+                        },
+                        select: function (event, ui) {
+                            var goods = ui.item.value;
+                            goods.uom = goods.skuUom;
+                            view.model.set(goods);
+                        },
+                        change: function (event, ui) {
+                            if (!ui.item) {
+                                var id = view.model.id;
+                                view.model.clear();
+                                view.model.set({'id': id});
+                            }
+                        }
+                    });
+                }
+            });
+
+            App.DetailGrid = App.Grid.extend({
+                el: '#tab_2',
+                toolbar: ['append', 'remove'],
+                editable: true,
+                row: App.TrashRow,
+                collection: App.details
+            });
+
+            App.detailGrid = new App.DetailGrid();
+        });
+    </script>
+</head>
+<body>
+
+<div id="article">
+    <form class="queryBar">
+        <ul>
+            <li>
+                <label>单号：</label>
+                <input type="text" name="billCode"/>
+            </li>
+            <li>
+                <label>状态：</label>
+                <select name="status" data-local="billStatus" data-value="0">
+                    <option value="">所有</option>
+                </select>
+            </li>
+            <li>
+                <label>日期：</label>
+                <input type="text" class="mindatepicker" name="sdate"/> -
+                <input type="text" class="maxdatepicker" name="edate"/>
+            </li>
+            <li>
+                <label>仓库：</label>
+                <select name="warehouse" data-local="sys/kv/warehouse">
+                    <option value=""></option>
+                </select>
+            </li>
+            <li>
+                <button class="search"><i></i>查询</button>
+            </li>
+            <li class="toolBar"></li>
+        </ul>
+    </form>
+    <div class="dataGrid">
+        <table class="app"></table>
+    </div>
+    <div class="page"></div>
+</div>
+
+<div class="navPanel">
+    <div class="toolBar"></div>
+    <div class="editorPanel">
+        <div id="tabs">
+            <ul>
+                <li><a href="#tab_1"><span>基本信息</span></a></li>
+                <li><a href="#tab_2"><span>货物明细</span></a></li>
+            </ul>
+            <div id="tab_1">
+                <form name="norEditForm" id="norEditForm">
+                    <ol>
+                        <li>
+                            <label>损益单号:</label>
+                            <input type="text" name="billCode" id="billCode" readonly>
+                        </li>
+                        <li>
+                            <label>制单日期:</label>
+                            <input type="text" name="billDate" placeholder="制单日期" readonly>
+                        </li>
+                        <li>
+                            <label>来源单号:</label>
+                            <input type="text" name="originBill.billCode" readonly>
+                        </li>
+                        <li>
+                            <label>仓库:</label>
+                            <select name="org.orgCode" data-local="sys/kv/warehouse"></select>
+                        </li>
+                        <li>
+                            <label>总数量:</label>
+                            <input type="number" name="quantity" readonly>
+                        </li>
+                        <li>
+                            <label>报废原因:</label>
+                            <select name="reason"></select>
+                        </li>
+                        <li>
+                            <label>备注:</label>
+                            <textarea name="remark"></textarea>
+                        </li>
+                        <li>
+                            <label>单据状态:</label>
+                            <select name="status" data-local="billStatus" disabled></select>
+                        </li>
+                    </ol>
+                </form>
+            </div>
+            <div id="tab_2">
+                <table class="app"></table>
+                <div class="leftPanel ui-buttonset" style="margin-top:20px;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

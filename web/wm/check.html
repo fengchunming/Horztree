@@ -1,0 +1,296 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <script>
+        $(function () {
+            App.Inventory = App.Model.extend({
+                urlRoot: 'rest/wb/CK',
+                idAttribute: 'id',
+                defaults: {type: 'CK', billDate: new Date().format('isoDate')},
+                edit: function () {
+                    if (!this.isNew()) App.details.load('rest/wb/detail/' + this.id);
+                }
+            });
+
+            App.InventoryList = App.Collection.extend({
+                sortCol: 'enterAt',
+                sortDirect: 'desc',
+                model: App.Inventory,
+                columns: [
+                    {label: '移库单号', key: 'billCode'},
+                    {label: '仓库', key: 'warehouse.orgCode', local: 'sys/kv/warehouse'},
+                    {label: '单据日期', key: 'billDate'},
+                    {label: '负责人', key: 'chargeStaff'},
+                    {label: '状态', key: 'status', local: 'billStatus'}
+                ]
+            });
+
+            App.InventoryForm = App.FormView.extend({
+                toolbar: ['create', 'check', 'print', 'save', 'trash', 'hide'],
+                size:{width:900},
+                check: function () {
+                    if (confirm('是否确认该单据无误，操作不可退回！')) {
+                        $.ajax({
+                            contentType: 'application/json',
+                            dataType: 'json',
+                            type: 'POST',
+                            url: 'rest/wm/checkInventory/' + $("#billCode").val(),
+                            success: function (data) {
+                                $.sticky('盘点记录已确认数据！');
+                            }
+                        });
+                    }
+                },
+                print: function () {
+                    $.printPage('rest/wm/inventoryBillReport/' + this.model.id + '.html');
+                },
+                prepare: function (param) {
+                    param.items = App.details.toJSON();
+                    return param;
+                }
+            });
+
+            App.InventoryGrid = App.Grid.extend({
+                collection: new App.InventoryList,
+                form: new App.InventoryForm,
+                qel: '.queryBar',
+                toolbar: ['create']
+            });
+
+            App.inventoryGrid = new App.InventoryGrid();
+
+            /*
+             * 库存查询
+             */
+            App.Stock = App.Model.extend({
+                idAttribute: 'stockId'
+            });
+
+            App.StockList = App.Collection.extend({
+                model: App.Stock,
+                urlRoot: 'rest/wm/stock/list',
+                columns: [
+                    {key: 'stockId', type: 'checkbox'},
+                    {label: '名称', key: 'name'},
+                    {label: '编码', key: 'pn'},
+                    {label: '单位', key: 'goodsUnit.id', local: 'base/kv/uom'},
+                    {label: '数量', key: 'realQuantity'},
+                    {label: '库区', key: 'location.sectionCode'},
+                    {label: '储位', key: 'location.locationCode'},
+                    {label: '批次属性', key: 'lotAttr', type: 'form'}
+                ]
+            });
+
+            App.stockList = new App.StockList();
+            App.StockGrid = App.Grid.extend({
+                el: '#tab_3',
+                toolbar: [
+                    {'inport': '选择'}
+                ],
+                pel: '.page',
+                qel: '.queryForm',
+                collection: App.stockList,
+                inport: function () {
+                    _.each(this.collection.models, function (model) {
+                        if (model.checked) {
+                            var cache = App.details.get(model.id);
+                            if (cache) {
+                                cache.set('status', 'input');
+                                cache.row.show();
+                            } else {
+                                var elem = model.clone();
+                                elem.set({'planQuantity': model.get('realQuantity'), 'realQuantity': null})
+                                App.details.add(elem);
+                            }
+                        }
+                    });
+                    $('#tabs').tabs({active: 1});
+                }
+            });
+            new App.StockGrid();
+
+            /*
+             * 明细
+             */
+            App.InventoryDetail = App.Model.extend({
+                idAttribute: 'stockId'
+            });
+
+            App.InventoryDetailList = App.Collection.extend({
+                model: App.InventoryDetail,
+                columns: [
+                    {label: '&nbsp;', key: 'id', type: 'checkbox'},
+                    {label: '商品名称', key: 'name'},
+                    {label: '商品编号', key: 'pn'},
+                    {label: '批次属性', key: 'lotAttr', type: 'form'},
+                    {label: '度量单位', key: 'goodsUnit.uomCode', local: 'base/kv/uom'},
+                    {label: '当前库区', key: 'location.sectionCode', type: 'form'},
+                    {label: '当前货位', key: 'location.locationCode'},
+                    {label: '系统数量', key: 'planQuantity'},
+                    {label: '实际数量', key: 'realQuantity', editable: true},
+                    {label: '差异数量', key: 'adjustQuantity'}
+                ]
+            });
+
+            App.details = new App.InventoryDetailList();
+
+            App.LocationFormView = App.FormView.extend({
+                el: "#location"
+            });
+
+            App.lineForm = new App.LocationFormView;
+
+            App.InventoryRowView = App.Row.extend({
+                listen: function () {
+                    var view = this;
+                    $('td[name=realQuantity]', this.$el).focusout(function () {
+                        var qty = 0;
+                        if ($(this).text() == '' || isNaN($(this).text())) {
+                            qty = view.model.get('planQuantity');
+                        } else {
+                            qty = parseFloat($(this).text());
+                        }
+                        if (qty < 0) qty = 0;
+                        view.model.set({'realQuantity': qty, 'adjustQuantity': qty - view.model.get('planQuantity')});
+                    });
+                }
+            });
+
+            App.InventoryDetailView = App.Grid.extend({
+                el: '#tab_2',
+                row: App.InventoryRowView,
+                collection: App.details,
+                form: new App.LocationFormView,
+                toolbar: ['append', 'remove'],
+                append: function () {
+                    $('#tabs').tabs({active: 2});
+                }
+            });
+            App.inventoryDetailView = new App.InventoryDetailView();
+
+            $('#import-form').submit(function () {
+                App.stockList.fetch();
+                return false;
+            });
+
+
+
+        });
+    </script>
+</head>
+<body>
+<div id="article">
+    <form class="queryBar">
+        <ul>
+            <li>
+                <label>单号：</label>
+                <input type="text" name="billCode"/>
+            </li>
+            <li>
+                <label>单据日期：</label>
+                <input type="text" name="billDate" class="datepicker"/>
+            </li>
+            <li>
+                <button class="search"><i></i>查询</button>
+            </li>
+            <li class="toolBar"></li>
+        </ul>
+    </form>
+    <div class="dataGrid">
+        <table class="app"></table>
+    </div>
+    <div class="page"></div>
+</div>
+
+<nav class="navPanel">
+    <div class="toolBar"></div>
+    <div class="editorPanel">
+        <div id="tabs">
+            <ul>
+                <li><a href="#tab_1"><span>盘点单</span></a></li>
+                <li><a href="#tab_2"><span>盘点明细</span></a></li>
+                <li><a href="#tab_3"><span>库存查询</span></a></li>
+            </ul>
+            <div id="tab_1">
+                <form name="norEditForm" id="norEditForm">
+                    <ol>
+                        <li>
+                            <label>盘点单号:</label>
+                            <input type="text" name="billCode" id="billCode" readonly>
+                        </li>
+                        <li>
+                            <label>制单日期:</label>
+                            <input type="text" name="billDate" placeholder="制单日期" readonly>
+                        </li>
+                        <li>
+                            <label>确认日期:</label>
+                            <input type="text" name="realDate" placeholder="确认日期" class="datepicker" readonly>
+                        </li>
+                        <li>
+                            <label>仓库:</label>
+                            <select name="warehouse.id" data-local="sys/kv/warehouse"></select>
+                        </li>
+                        <li>
+                            <label>备注:</label>
+                            <textarea name="remark" style="width:250px;height:150px;"></textarea>
+                        </li>
+                        <li>
+                            <label>单据状态:</label>
+                            <select name="status" data-local="billStatus" disabled></select>
+                        </li>
+                    </ol>
+                </form>
+            </div>
+            <div id="tab_2">
+                <table class="app"></table>
+                <div class="toolBar"></div>
+                <form id="location" class="inline-form">
+                    <ol>
+                        <li>
+                            <label>库区</label>
+                            <select name="sectionCode" data-local="wm/filterSection.do?usageType=003"
+                                    id="targetSection"></select>
+                        </li>
+                        <li>
+                            <label>储位</label>
+                            <select name="locationCode" id="targetLocation"></select>
+                        </li>
+                    </ol>
+                </form>
+            </div>
+            <div id="tab_3">
+                <form id="queryForm" class="queryBar">
+                    <ul>
+                        <li>
+                            <label>商品</label>
+                            <input type="text" name="pn">
+                        </li>
+                        <li>
+                            <label>客户</label>
+                            <select name="orgType" style="width:100px">
+                                <option value=""></option>
+                            </select>
+                        </li>
+                        <li>
+                            <label>库区</label>
+                            <select name="sectionCode" data-local="wm/loadSectionKV.do" style="width:100px">
+                                <option value=""></option>
+                            </select>
+                        </li>
+                        <li>
+                            <label>储位</label>
+                            <select name="locationCode" data-local="wm/loadLocationKV.do" style="width:100px">
+                                <option value=""></option>
+                            </select>
+                            <button type="submit" class="search"><i></i>查询</button>
+                        </li>
+                        <li class="toolBar"></li>
+                    </ul>
+                </form>
+                <table class="app"></table>
+            </div>
+        </div>
+    </div>
+</nav>
+</body>
+</html>

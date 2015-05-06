@@ -1,0 +1,103 @@
+<!DOCTYPE HTML> 
+<html> 
+<head> 
+<script>
+$(function() {
+	App.SaleBill = App.Model.extend({
+		urlRoot : 'rest/pos/saleBill',
+		idAttribute: 'billCode',
+		edit : function(){
+			App.saleDetailList.load('rest/pos/saleBillDetail/'+ this.get('billCode'));
+		}
+	})
+	
+	App.SaleBills = App.Collection.extend({
+		sortCol: 'sale_stamp',
+		sortDirect: 'desc',
+		urlRoot : 'rest/pos/saleBillList',
+		model : App.SaleBill,
+		columns : [
+		   		    {label:'门店编号',key:'org.orgCode',sort:'org_code'},
+		   		    {label:'门店名称',key:'org.orgCode',local:'sys/loadStoreKV.do'},
+		   		 	{label:'单据号码',key:'billCode',sort:'bill_code'},
+				    {label:'营业日期',key:'billDate',sort:'bill_date'},
+				    {label:'销售时间',key:'saleStamp',sort:'sale_stamp'},
+				    {label:'设备号码',key:'terminalCode'},
+				    {label:'营业员',key:'cashierCode'},
+				    {label:'金额',key:'amount',sort:'amount'}
+				]
+	})
+	
+	App.SaleFormView = App.FormView.extend({
+		toolbar : ['hide']
+	})
+
+	App.SaleBillGrid = App.Grid.extend({
+		collection: new App.SaleBills,
+		editorView: App.SaleFormView,
+		toolbar : [],
+		querybar : '.queryBar'
+	});
+	App.saleBillGrid = new App.SaleBillGrid();
+	
+	App.SaleDetailList = App.Collection.extend({
+		columns : [
+	        {label:'商品名称',key:'name'},
+		    {label:'商品编号',key:'pn'},
+		    {label:'价格',key:'standardSalePrice'},
+		    {label:'单位',key:'goodsUnit.uomCode',local: 'base/kv/uom'},
+		    {label:'数量',key:'realQuantity'},
+		    {label:'小计',key:'saleTotal'}
+		]
+	});
+	
+	App.saleDetailList = new  App.SaleDetailList;
+	App.SaleDetailGrid = App.Grid.extend({
+		el : '#detail-table',
+		collection : App.saleDetailList,
+		pel :'#detail-table .pageBar'
+	})
+	App.saleDetailGrid = new App.SaleDetailGrid;
+});
+</script>
+</head>
+<body>
+<div id="article">
+	<form class="queryBar queryPanel">
+    <ul>
+        <li>
+        <label>门店：</label>
+        <select name="orgCode" data-local="sys/loadStoreKV.do">
+        	<option value=""></option>
+        </select>
+        </li>
+        <li>
+        <label>营业日期：</label>
+        <input type="text" class="datepicker" name="billDate">
+        <button class="search"><i></i>查询</button>
+        </li>
+        <li>
+        <label>单据号：</label>
+        <input type="text" name="billCode">
+        </li>
+    </ul>
+    </form>
+	<div class="toolBar"></div>
+	<div class="dataGrid">
+		<table class="app"><thead></thead><tbody></tbody></table>
+	</div>
+	<div class="statusBar"></div>
+</div>
+
+<div class="navPanel">
+	<div class="toolBar"></div>
+	<div class="editorPanel" id="detail-table">
+   		<table class="app">
+			<thead></thead>
+		    <tbody></tbody>
+		</table>
+		<div class="pageBar"></div>
+	</div>
+</div>
+</body>
+</html>

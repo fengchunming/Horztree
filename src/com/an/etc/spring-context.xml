@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans
+        http://www.springframework.org/schema/beans/spring-beans-4.0.xsd
+        http://www.springframework.org/schema/context
+        http://www.springframework.org/schema/context/spring-context-4.0.xsd"
+       default-lazy-init="true">
+
+    <context:property-placeholder
+            location="classpath:com/an/etc/bonecp.properties"/>
+
+    <bean id="dataSource" class="com.jolbox.bonecp.BoneCPDataSource"
+          destroy-method="close">
+        <property name="driverClass" value="${bonecp.driverClass}"/>
+        <property name="jdbcUrl" value="${bonecp.jdbcUrl}"/>
+        <property name="username" value="${bonecp.username}"/>
+        <property name="password" value="${bonecp.password}"/>
+        <property name="idleConnectionTestPeriodInMinutes" value="${bonecp.idleConnectionTestPeriodInMinutes}"/>
+        <property name="idleMaxAgeInMinutes" value="${bonecp.idleMaxAgeInMinutes}"/>
+        <property name="maxConnectionsPerPartition" value="${bonecp.maxConnectionsPerPartition}"/>
+        <property name="minConnectionsPerPartition" value="${bonecp.minConnectionsPerPartition}"/>
+        <property name="partitionCount" value="${bonecp.partitionCount}"/>
+        <property name="acquireIncrement" value="${bonecp.acquireIncrement}"/>
+        <property name="statementsCacheSize" value="${bonecp.statementsCacheSize}"/>
+        <property name="releaseHelperThreads" value="${bonecp.releaseHelperThreads}"/>
+    </bean>
+
+    <bean id="txManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"/>
+    </bean>
+
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="configLocation" value="classpath:com/an/etc/mybatis-config.xml"/>
+        <property name="mapperLocations" value="classpath:com/an/**/mapper/*.xml"/>
+    </bean>
+
+    <bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate" scope="prototype">
+        <constructor-arg index="0" ref="sqlSessionFactory"/>
+    </bean>
+
+    <bean id="securityFilter" class="com.an.core.service.SecurityFilter"/>
+
+
+    <bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+        <property name="maxUploadSize" value="1104857600"/>
+        <property name="maxInMemorySize" value="4096"/>
+        <property name="defaultEncoding" value="UTF-8"/>
+    </bean>
+
+<!--
+    <bean id="targetConnectionFactory" class="org.apache.activemq.ActiveMQConnectionFactory">
+        <property name="brokerURL" value="tcp://121.40.209.114:61616"/>
+        <property name="useAsyncSend" value="true"/>
+    </bean>
+
+    <bean id="connectionFactory" class="org.springframework.jms.connection.SingleConnectionFactory">
+        <property name="targetConnectionFactory" ref="targetConnectionFactory"/>
+        <property name="reconnectOnException" value="true"/>
+    </bean>
+
+    <bean id="queueDestination" class="org.apache.activemq.command.ActiveMQQueue">
+        <constructor-arg>
+            <value>queue</value>
+        </constructor-arg>
+    </bean>
+    <bean id="jsonMessageConverter" class="com.an.api.jms.JSONMessageConverter">
+        <property name="idClassMapping">
+            <map>
+                <entry key="Item[]" value="com.an.wm.entity.Item[]"/>
+            </map>
+        </property>
+    </bean>
+
+    <bean id="jmsProducerTemplate" class="org.springframework.jms.core.JmsTemplate">
+        <property name="connectionFactory" ref="connectionFactory"/>
+        <property name="defaultDestination" ref="queueDestination"/>
+        <property name="messageConverter" ref="jsonMessageConverter"/>
+        <property name="timeToLive" value="1000000"/>
+        <property name="receiveTimeout" value="222222"/>
+    </bean>
+
+
+    <bean id="messageListenerAdapter" class="org.springframework.jms.listener.adapter.MessageListenerAdapter">
+        <property name="delegate">
+            <bean class="com.an.api.jms.JmsMessageConsumer"/>
+        </property>
+        <property name="defaultListenerMethod" value="receiveMessage"/>
+        <property name="messageConverter" ref="jsonMessageConverter"/>
+    </bean>
+
+    <bean id="jmsContainer" class="org.springframework.jms.listener.DefaultMessageListenerContainer">
+        <property name="connectionFactory" ref="connectionFactory"/>
+        <property name="destination" ref="queueDestination"/>
+        <property name="messageListener" ref="messageListenerAdapter"/>
+    </bean>
+
+
+    <bean id="processEngineConfiguration" class="org.activiti.spring.SpringProcessEngineConfiguration">
+        <property name="dataSource" ref="dataSource"/>
+        <property name="enableSafeBpmnXml" value="true"/>
+        <property name="transactionManager" ref="txManager"/>
+        <property name="databaseSchemaUpdate" value="true"/>
+        <property name="jobExecutorActivate" value="true"/>
+        <property name="history" value="full"/>
+
+        <property name="mailServerHost" value="smtp.exmail.qq.com"/>
+        <property name="mailServerPort" value="465"/>
+        <property name="mailServerDefaultFrom" value="test@expectsun.com"/>
+        <property name="mailServerUsername" value="test@expectsun.com"/>
+        <property name="mailServerPassword" value="test010101"/>
+        <property name="mailServerUseSSL" value="true"/>
+        <property name="mailServerUseTLS" value="false"/>
+
+        <property name="activityFontName" value="微软雅黑"/>
+        <property name="labelFontName" value="微软雅黑"/>
+    </bean>
+
+    <bean id="processEngine" class="org.activiti.spring.ProcessEngineFactoryBean">
+        <property name="processEngineConfiguration" ref="processEngineConfiguration"/>
+    </bean>
+
+    <bean id="repositoryService" factory-bean="processEngine" factory-method="getRepositoryService"/>
+    <bean id="runtimeService" factory-bean="processEngine" factory-method="getRuntimeService"/>
+    <bean id="taskService" factory-bean="processEngine" factory-method="getTaskService"/>
+    <bean id="historyService" factory-bean="processEngine" factory-method="getHistoryService"/>
+    <bean id="managementService" factory-bean="processEngine" factory-method="getManagementService"/>
+    <bean id="identityService" factory-bean="processEngine" factory-method="getIdentityService"/>
+    <bean id="formService" factory-bean="processEngine" factory-method="getFormService"/>
+
+    -->
+</beans>

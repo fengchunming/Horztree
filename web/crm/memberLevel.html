@@ -1,0 +1,97 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <script>
+        $(function () {
+            App.Level = App.Model.extend({
+                urlRoot: 'rest/crm/memberLevel',
+                idAttribute: 'id'
+            });
+
+            App.Levels = App.Collection.extend({
+                model: App.Level,
+                columns: [
+                    {label: '等级', key: 'level', sort: true},
+                    {label: '名称', key: 'name', sort: true},
+                    {label: '积分系数', key: 'point'},
+                    {label: '折扣系数', key: 'rebate'},
+                    {label: '升级要求', key: 'needPoint'},
+                    {label: '状态', key: 'status', local: 'status'}
+                ]
+            });
+
+            App.LevelGrid = App.Grid.extend({
+                qel: '.queryBar',
+                collection: new App.Levels,
+                form: new App.FormView,
+                toolbar: ['create']
+            });
+            new App.LevelGrid();
+        });
+    </script>
+</head>
+<body>
+<div id="article">
+    <form class="queryBar">
+        <ul>
+            <li>
+                <label>名称：</label>
+                <input type="text" name="name"/>
+            </li>
+            <li>
+                <label>状态：</label>
+                <select name="status" data-local="status">
+                    <option value="">所有</option>
+                </select>
+            </li>
+            <li>
+                <button class="search"><i></i>查询</button>
+            </li>
+            <li class="toolBar"></li>
+        </ul>
+    </form>
+    <div class="dataGrid">
+        <table class="app"></table>
+    </div>
+    <div class="page"></div>
+</div>
+
+<div class="navPanel">
+    <div class="toolBar"></div>
+    <div class="editorPanel">
+        <form>
+            <ol>
+                <li>
+                    <label>名称:</label>
+                    <input type="text" name="name" required/>
+                </li>
+                <li>
+                    <label>等级:</label>
+                    <input type="text" name="level" required/>
+                </li>
+                <li>
+                    <label>积分系数:</label>
+                    <input type="text" name="point"/>
+                </li>
+                <li>
+                    <label>折扣系数:</label>
+                    <input type="text" name="rebate"/>
+                </li>
+                <li>
+                    <label>升级要求:</label>
+                    <input type="text" name="needPoint"/>
+                </li>
+                <li>
+                    <label>说明:</label>
+                    <input type="text" name="remark"/>
+                </li>
+                <li>
+                    <label>状态:</label>
+                    <select name="status" data-local="status"></select>
+                </li>
+            </ol>
+        </form>
+    </div>
+</div>
+</body>
+</html>

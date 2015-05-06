@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="zh-cn">
+<head>
+    <title>Horztree</title>
+    <link href="css/default.css" rel="stylesheet"/>
+    <link href="css/jquery-ui.min.css" rel="stylesheet"/>
+    <link href="css/sticky.css" rel="stylesheet"/>
+    <script src="js/lib/jquery.min.js"></script>
+    <script src="js/lib/jquery-ui.min.js"></script>
+    <script src="js/lib/json2.js"></script>
+    <script src="js/lib/underscore-min.js"></script>
+    <script src="js/lib/backbone-min.js"></script>
+    <script src="js/lib/jquery.sha1.js"></script>
+    <script src="js/lib/jquery.history.js"></script>
+    <script src="js/lib/sticky.js"></script>
+    <script src="js/lib/jquery.validate.min.js"></script>
+    <script src="js/jquery.validate.plugin.js"></script>
+    <script src="js/util.js"></script>
+    <script src="js/app.js"></script>
+    <style>
+        .main {
+            width: 700px;
+            height: 300px;
+            margin: 100px auto;
+            border: 1px solid #eee;
+            border-radius: 4px;
+            box-shadow: 2px 2px 8px #aaa;
+        }
+    </style>
+    <script>
+
+        $(function () {
+            $.ajaxSetup({
+                headers: {'X-XSRFToken': Request.getCookie('_xsrf')}
+            });
+            $('#loginForm').validate({
+                submitHandler: function (form) {
+                    var param = $(form).serializeObject();
+                    param.password = $.sha1($.sha1(param.username + param.password) + param.recaptcha);
+                    $.ajax({
+                        url: 'rest/sec/login?_=' + new Date().getTime(),
+                        type: "POST",
+                        data: param,
+                        error: function (jqxhr) {
+                            var ex = {};
+                            try {
+                                ex = JSON.parse(jqxhr.responseText);
+                            } catch (e) {
+                                ex['exception'] = "错误:" + jqxhr.status + "，" + jqxhr.statusText;
+                            }
+
+                            if (jqxhr.status == 0 && jqxhr.statusText == 'error') {
+                                ex['exception'] = "系统错误<br>无法连接服务器";
+                            } else if (jqxhr.status == 0 && jqxhr.statusText == 'canceled') {
+                                ex['exception'] = "请求失败，被系统取消";
+                            } else if (jqxhr.status == 406) {
+                                $('#force').val(confirm(ex.exception));
+                                $(form).submit();
+                            } else {
+                                $.sticky(ex.exception);
+                                reloadRecaptcha();
+                            }
+                        },
+                        success: function (data) {
+                            localStorage.setItem("user", JSON.stringify(data));
+                            location.reload();
+                        }
+                    });
+                    return false;
+                }
+            });
+
+            $("button").button();
+            $('.recaptcha').click(function () {
+                reloadRecaptcha();
+            });
+            var reloadRecaptcha = function () {
+                $("#recaptcha").attr('src', "recaptcha.jpg?_=" + new Date().getTime());
+            };
+            reloadRecaptcha();
+        });
+    </script>
+</head>
+<body>
+<div class="main ui-widget-content">
+    <div style="float:left;padding-top:80px;padding-left:80px;">
+        <img src="images/logo.png" style="height:150px">
+
+        <div>Horztree</div>
+        <div style="font-size:10px;"></div>
+    </div>
+    <div style="float:right; width:50%; padding:80px 20px 0 0;">
+        <form id="loginForm" method="post">
+            <ol>
+                <li>
+                    <label>用户名:</label>
+                    <input name="username" type="text" autocomplete="off" placeholder="请输入用户名" value="cnliba" required>
+                    <input name=force type=hidden id="force">
+                </li>
+                <li>
+                    <label>密码:</label>
+                    <input name=password type="password" required value="06677Xjarpass" placeholder="请输入密码">
+                </li>
+                <li>
+                    <label>验证码:</label>
+                    <input name=recaptcha type="text" autocomplete="off" maxlength=4 required style="ime-mode:disabled" autofocus placeholder="请输入下面图片中的内容">
+                </li>
+                <li>
+                    <label></label>
+                    <img id="recaptcha" style="margin:5px 1px;height:37px;" class="recaptcha"/>
+                    <a href='javascript:void(0)' class="recaptcha">看不清楚?换个图片</a>
+                </li>
+                <li>
+                    <label></label>
+                    <button type="submit" class="lock"><i></i>登录</button>
+                </li>
+            </ol>
+        </form>
+    </div>
+
+</div>
+<noscript>
+    <div style="position:absolute; top:50%;left:40%;">
+        您好，要正常运行系统，浏览器必须支持Javascript
+    </div>
+</noscript>
+
+</body>
+</html>

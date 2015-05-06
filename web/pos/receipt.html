@@ -1,0 +1,130 @@
+<!DOCTYPE HTML> 
+<html> 
+<head> 
+<script>
+$(function() {
+	App.StockChangeBill = App.Model.extend({
+		urlRoot : 'rest/pos/stockChangeBill',
+		idAttribute: 'billCode',
+		edit : function(){
+			this.fetch();
+			this.editor.setData( this );
+			App.detailList.load('rest/pos/stockChangeList/'+ this.get('billCode'));
+		}
+	})
+	
+	App.StockChangeBillList = App.Collection.extend({
+		urlRoot : 'rest/pos/stockChangeBillList/receipt',
+		model : App.StockChangeBill,
+		columns : [
+			        {label:'收货单号',key:'billCode',sort:'bill_code'},
+				    {label:'门店编号',key:'org.orgCode'},
+				    {label:'门店名称',key:'org.orgCode',local:'sys/loadStoreKV.do'},
+				    {label:'日期',key:'realDate',sort:'ocur_date'},
+				    {label:'收银员',key:'staffCode'}
+				]
+	})
+
+	App.StockChangeBillFormView = App.FormView.extend({
+		toolbar : ['hide']
+	})
+	
+	App.StockChangeBillGrid = App.Grid.extend({
+		collection: new App.StockChangeBillList(),
+		editorView: App.StockChangeBillFormView,
+		toolbar : [],
+		querybar : '.queryBar'
+	});
+
+	App.billView = new App.StockChangeBillGrid();
+	
+	
+	App.DetailList = App.Collection.extend({
+		model : App.Model,
+		columns : [
+			        {label:'商品名称',key:'name'},
+				    {label:'商品编号',key:'pn'},
+				    {label:'数量',key:'realQuantity'},
+				    {label:'度量单位',key:'goodsUnit.uomCode',local:'base/kv/uom'}
+				]
+	})
+	
+	App.detailList = new App.DetailList();
+	
+	App.DetailGrid = App.Grid.extend({
+		el : '#tab_2',
+		pel: '#tab_2 .pageBar',
+		toolbar: [],
+		collection : App.detailList
+	})	
+	
+	App.detailGrid = new App.DetailGrid();
+});
+</script>
+</head>
+<body>
+<div id="article">
+	<form class="queryBar queryPanel">
+    <ul>
+        <li>
+        <label>门店：</label>
+        <select name="orgCode" data-local="sys/loadStoreKV.do">
+        	<option value=""></option>
+        </select>
+        </li>
+        <li>
+        <label>营业日期：</label>
+        <input type="text" class="datepicker" name="billDate">
+        <button class="search"><i></i>查询</button>
+        </li>
+        <li>
+        <label>单据号：</label>
+        <input type="text" name="billCode">
+        </li>
+    </ul>
+    </form>
+	<div class="toolBar"></div>
+	<div class="dataGrid">
+		<table class="app"><thead></thead><tbody></tbody></table>
+	</div>
+	<div class="statusBar"></div>
+</div>
+
+<div class="navPanel">
+	<div class="toolBar"></div>
+	<div class="editorPanel">
+	<div id="tabs" >
+	    <ul>
+	        <li><a href="#tab_1"><span>基本信息</span></a></li>
+	        <li><a href="#tab_2"><span>明细</span></a></li>
+	    </ul>
+		<div id="tab_1">
+			<form name="norEditForm" id="norEditForm">
+				<ol>
+					<li>
+						<label>收货单号:</label>
+					    <input type="text" name="billCode" disabled>
+					</li>
+					<li>
+						<label>门店:</label>
+					    <select name="org.orgCode" data-local="sys/loadStoreKV.do" disabled></select>
+					</li>
+					<li>
+						<label>收货日期:</label>
+					    <input type="text" class="datepicker" name="realDate" placeholder="收货时间" disabled>
+					</li>
+				</ol>
+			</form>
+		</div>
+	 	<div id="tab_2">
+	   		<table class="app">
+				<thead></thead>
+			     <tbody></tbody>
+			 </table>
+			 <div class="pageBar"></div>
+  		</div>
+	</div>
+</div>
+</div>
+</body>
+</html>

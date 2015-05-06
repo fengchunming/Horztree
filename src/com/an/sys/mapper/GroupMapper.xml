@@ -1,0 +1,132 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="SYS.GroupMapper">
+    <resultMap id="BaseResultMap" type="com.an.sys.entity.Group">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="name" property="name" jdbcType="VARCHAR"/>
+        <result column="step" property="step" jdbcType="INTEGER"/>
+        <result column="type" property="type" jdbcType="VARCHAR"/>
+        <result column="depth" property="depth" jdbcType="VARCHAR"/>
+        <result column="is_leaf" property="isLeaf" jdbcType="CHAR"/>
+        <result column="path" property="path" jdbcType="VARCHAR"/>
+        <result column="parent" property="parent" jdbcType="INTEGER"/>
+        <result column="sort" property="sort" jdbcType="INTEGER"/>
+        <result column="remark" property="remark" jdbcType="VARCHAR"/>
+        <result column="tel" property="tel" jdbcType="VARCHAR"/>
+        <result column="linkman" property="linkman" jdbcType="VARCHAR"/>
+        <result column="mobile" property="mobile" jdbcType="VARCHAR"/>
+        <result column="email" property="email" jdbcType="VARCHAR"/>
+        <result column="fax" property="fax" jdbcType="VARCHAR"/>
+        <result column="status" property="status" jdbcType="CHAR"/>
+        <result column="enter_by" property="enterBy" jdbcType="INTEGER"/>
+        <result column="enter_at" property="enterAt" jdbcType="DATE"/>
+        <result column="region_id" property="regionId" jdbcType="INTEGER"/>
+        <result column="abbr" property="abbr" jdbcType="VARCHAR"/>
+    </resultMap>
+    <sql id="Base_Column_List">
+        id, name, abbr, step, depth, is_leaf, path, parent, sort, remark, tel,
+        linkman, mobile, email, fax, status, enter_by, enter_at, type
+    </sql>
+    <sql id="Where_Clause">
+        <where>
+            status != 'd'
+            <if test="own">and id in (#groups)</if>
+            <if test="region != null and region != ''">and path like concat('%,', #{region}, ',%')</if>
+            <if test="type != null and type != ''">and type = #{type}</if>
+            <if test="name != null and name != ''">and upper(NAME) like concat('%', upper(#{name}), '%')</if>
+            <if test="parent != null ">and parent = #{parent, jdbcType=INTEGER}</if>
+        </where>
+    </sql>
+    <!-- 部门总数 -->
+    <select id="countByExample" resultType="int" parameterType="java.util.Map">
+        select count(1) from SYS_GROUP
+        <include refid="Where_Clause"/>
+    </select>
+
+    <!--部门列表查询 -->
+    <select id="selectByExample" resultMap="BaseResultMap" parameterType="java.util.Map">
+        select
+        <include refid="Base_Column_List"/>
+        from SYS_GROUP
+        <include refid="Where_Clause"/>
+        <if test="_BY != null">order by ${_BY}</if>
+    </select>
+
+    <!-- 根据主键查询部门 -->
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from SYS_GROUP
+        where id = #{id}
+    </select>
+
+    <!-- 根据部门ID查询单个用户 -->
+    <select id="selectUserByCode" parameterType="int" resultMap="BaseResultMap">
+        select
+        <include refid="Base_Column_List"/>
+        from SYS_GROUP where ID = #{value}
+    </select>
+
+    <!-- 删除部门 -->
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+        delete from SYS_GROUP
+        where ID = #{id,jdbcType=INTEGER}
+    </delete>
+    <!-- 新增部门 -->
+    <insert id="insert" parameterType="com.an.sys.entity.Group">
+        insert into SYS_GROUP ( name, type,
+        step, depth, is_leaf, path,
+        parent, sort, remark,
+        tel, linkman, mobile,
+        email, fax, status, enter_by,
+        enter_at, abbr)
+        values ( #{name,jdbcType=VARCHAR},#{type,jdbcType=VARCHAR},
+        #{step,jdbcType=INTEGER}, #{depth,jdbcType=VARCHAR}, #{isLeaf,jdbcType=CHAR}, #{path,jdbcType=VARCHAR},
+        #{parent,jdbcType=INTEGER}, #{sort,jdbcType=INTEGER}, #{remark,jdbcType=VARCHAR},
+        #{tel,jdbcType=VARCHAR}, #{linkman,jdbcType=VARCHAR}, #{mobile,jdbcType=VARCHAR},
+        #{email,jdbcType=VARCHAR}, #{fax,jdbcType=VARCHAR}, #{status,jdbcType=CHAR}, #userId,
+        sysdate(), #{abbr,jdbcType=VARCHAR})
+        <selectKey resultType="java.lang.Integer" keyProperty="id">
+            SELECT @@IDENTITY AS id
+        </selectKey>
+    </insert>
+
+
+    <!-- 更新部门信息 -->
+    <update id="updateByPrimaryKey" parameterType="com.an.sys.entity.Group">
+        update SYS_GROUP
+        set name = #{name,jdbcType=VARCHAR},
+        step = #{step,jdbcType=INTEGER},
+        depth = #{depth,jdbcType=VARCHAR},
+        is_leaf = #{isLeaf,jdbcType=CHAR},
+        path = #{path,jdbcType=VARCHAR},
+        parent = #{parent,jdbcType=INTEGER},
+        sort = #{sort,jdbcType=INTEGER},
+        remark = #{remark,jdbcType=VARCHAR},
+        tel = #{tel,jdbcType=VARCHAR},
+        linkman = #{linkman,jdbcType=VARCHAR},
+        mobile = #{mobile,jdbcType=VARCHAR},
+        email = #{email,jdbcType=VARCHAR},
+        fax = #{fax,jdbcType=VARCHAR},
+        status = #{status,jdbcType=CHAR},
+        enter_by = #userId,
+        enter_at = sysdate(),
+        type = #{type,jdbcType=VARCHAR},
+        abbr = #{abbr,jdbcType=VARCHAR}
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+
+    <update id="updateLeaf">
+        update SYS_GROUP
+        set path = concat(#{path},#{id},','), step = #{step} + 1,
+        depth = concat(#{depth}, LPAD(#{sort}, 4, 0), LPAD(id, 4, 0))
+        where parent = #{id}
+    </update>
+
+    <select id="selectKV" resultType="java.util.HashMap" parameterType="java.util.Map">
+        select id as k,name as v
+        from SYS_GROUP where status = 't'
+        <if test="type != null"> and type = #{type} </if>
+        <if test="own"> and id in (#groups) </if>
+    </select>
+</mapper>

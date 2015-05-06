@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="RoleMapper">
+	<resultMap id="BaseResultMap" type="com.an.sys.entity.Role">
+		<id property="roleId" column="role_id" />
+		<result property="roleName" column="role_name"/>
+		<result property="status" column="status"/>
+		<result property="remark" column="remark"/>
+		<result property="createBy" column="create_by"/>
+		<result property="createAt" column="create_at"/>
+	</resultMap>
+	
+	<sql id="Where_Clause" >
+    	<where >
+    		status !='d'
+    		<if test="roleName != null and roleName != ''">
+    			and role_name like concat('%',#{roleName},'%')
+    		</if>
+    	</where>
+    </sql>
+    
+    <sql id="Column_List" >
+    	role_id,role_name,status,remark,create_by,create_at
+    </sql>
+	
+	<!-- 查询角色列表 -->
+	<select id="selectByExample" resultMap="BaseResultMap" parameterType="java.util.HashMap">
+        SELECT <include refid="Column_List"/>
+        FROM SYS_ROLE <include refid="Where_Clause"/>
+        <if test="_BY != null"> order by ${_BY} </if>
+	</select>
+	
+	<select id="countByExample" resultType="java.lang.Integer">
+		select count(1) from SYS_ROLE
+		<include refid="Where_Clause" />
+	</select>
+	
+	<!-- 查询角色详情 -->
+	<select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="int">
+		select 
+		<include refid="Column_List" /> 
+		from SYS_ROLE
+		where role_id = #{roleId}
+	</select>
+	
+	<!-- 新增角色 -->
+	<insert id="insert" parameterType="com.an.sys.entity.Role">
+		insert into SYS_ROLE (role_name,status,remark,create_by,create_at)
+		values(
+			#{roleName,jdbcType=VARCHAR}, #{status,jdbcType=VARCHAR},
+			#{remark,jdbcType=VARCHAR}, #userId, now())
+
+        <selectKey resultType="java.lang.Integer" keyProperty="roleId">
+            SELECT @@IDENTITY AS id
+        </selectKey>
+	</insert>
+	
+	<!-- 修改角色 -->
+	<update id="updateByPrimaryKey" parameterType="com.an.sys.entity.Role">
+		update SYS_ROLE set
+		role_name = #{roleName,jdbcType=VARCHAR},
+		status = #{status,jdbcType=VARCHAR},
+		remark = #{remark,jdbcType=VARCHAR},
+		create_by=#userId, create_at =now()
+		 where role_id = #{roleId}
+	</update>
+	
+	<!-- 删除角色 -->
+	<delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+		update SYS_ROLE 
+		set status = 'd',create_at = now()
+		where role_id = #{roleId}
+	</delete>
+	<!-- 查询角色权限 -->
+	<select id="selectGrantedModule" parameterType="int" resultType="java.lang.Integer">
+		select module_id
+		from SYS_PERMISSION
+		where role_id =#{roleId}
+		and status = 't'
+	</select>
+	
+	<!-- 新增角色权限 -->
+	<insert id="insertGrantedModule" parameterType="java.util.Map">
+		insert into SYS_PERMISSION
+		(role_id,module_id,status,create_by,create_at)  values (
+		 #{roleId,jdbcType=INTEGER},
+		 #{moduleId,jdbcType=INTEGER},
+		 #{status,jdbcType=VARCHAR},
+		 #userId, now())
+        <selectKey resultType="java.lang.Integer" keyProperty="id">
+            SELECT @@IDENTITY AS id
+        </selectKey>
+	</insert>
+	
+	<!-- 删除角色权限 -->
+	<update id="updateGrantedModule" parameterType="java.util.Map">
+		update SYS_PERMISSION
+		set status = #{status,jdbcType=VARCHAR}, 
+		create_at = now()
+		where role_id = #{roleId}
+		and module_id = #{moduleId}
+	</update>
+
+	<!-- 查询角色授权用户 -->
+	<select id="selectGrantedUser" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+		select user_id
+		from SYS_AUTHORITY
+		where role_id = #{roleId}
+		and status = 't'
+	</select>
+	
+	<!-- 新增角色授权用户 -->
+	<insert id="insertGrantedUser" parameterType="java.util.Map">
+		insert into SYS_AUTHORITY
+		(user_id,role_id,status,create_by,create_at)
+		values (
+        #{userId,jdbcType=INTEGER}, #{roleId,jdbcType=INTEGER},
+		 #{status,jdbcType=VARCHAR}, #userId, now() )
+        <selectKey resultType="java.lang.Integer" keyProperty="id">
+            SELECT @@IDENTITY AS id
+        </selectKey>
+	</insert>
+	
+	<!-- 删除角色授权用户 -->
+	<update id="updateGrantedUser" parameterType="hashmap">
+		update SYS_AUTHORITY
+		set status = #{status}, create_at =now()
+		where role_id = #{roleId}
+		and user_id = #{userId}
+	</update>
+</mapper>

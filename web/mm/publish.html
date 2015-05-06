@@ -1,0 +1,260 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <script>
+        $(function () {
+            var pattern = 'goods';
+            App.Goods = App.Model.extend({
+                urlRoot: 'rest/mm/goods',
+                idAttribute: 'goodsId',
+                disabled: true,
+                focus: function () {
+                    var m = this;
+                    if (pattern === 'goods') {
+                        App.goodsGrid.focus = m;
+                        if (m.get('link')) {
+                            App.groupGrid.afterLoad();
+                        } else {
+                            $.get('rest/mm/goodsGroup', {'goods': this.id}, function (data) {
+                                m.set('link', data.length ? data : []);
+                                App.groupGrid.afterLoad();
+                            })
+                        }
+                    }
+                },
+                change: function () {
+                    if (pattern === 'group' && App.groupGrid.focus) {
+                        var link = App.groupGrid.focus.get('link');
+                        var gid = this.id;
+                        link = _.reject(link, function (n) {
+                            return n.gid == gid
+                        });
+                        if (this.selected) {
+                            link.push({gid: this.id, price: this.get('price')});
+                        }
+                        App.groupGrid.focus.set('link', link);
+                    }
+                },
+                locked: function () {
+                    return this.disabled;
+                }
+            });
+
+            App.GoodsList = App.Collection.extend({
+                model: App.Goods,
+                columns: [
+                    {key: 'selected', thcss: 'width:25px', type: 'checkbox', sort: true},
+                    {label: '名称', key: 'name', sort: true},
+                    {label: '编码', key: 'pn', sort: 'goods_code', thcss: 'width:200px'},
+                    {label: '价格', key: 'salePrice', thcss: 'width:70px'},
+                    {label: '网点价', key: 'price', type: 'text', thcss: 'width:70px'}
+                ]
+            });
+            App.GoodsGrid = App.Grid.extend({
+                el: '#goodsGrid',
+                collection: new App.GoodsList,
+                tel: '.toolBar',
+                qel: '.queryBar',
+                toolbar: [{'toggle': '切换'}, {'allsale': '所有可售', visible: false}, 'save'],
+                toggle: function () {
+                    if (pattern === 'goods') {
+                        $('#goodsGrid').css('float', 'right');
+                        $('#groupGrid').css('float', 'left');
+                        pattern = 'group';
+                    } else {
+                        $('#goodsGrid').css('float', 'left');
+                        $('#groupGrid').css('float', 'right');
+                        pattern = 'goods';
+                    }
+                    App.goodsGrid.reset();
+                    App.groupGrid.reset();
+                },
+                afterLoad: function () {
+                    if (App.groupGrid.focus) {
+                        var links = App.groupGrid.focus.get('link');
+                        _.each(this.collection.models, function (model) {
+                            var group = _.findWhere(links, {gid: model.id})
+                            if (group) {
+                                model.set('price', group.price);
+                                model.selected = true;
+                            } else {
+                                model.set('price', null);
+                                model.selected = false;
+                            }
+                            model.disabled = false;
+                            model.row.render();
+                        });
+                    }
+                },
+                reset: function () {
+                    this.focus = null;
+                    _.each(this.collection.models, function (model) {
+                        model.disabled = true;
+                        model.selected = false;
+                        model.set('price', null);
+                    })
+                },
+                save: function () {
+                    if (pattern === 'goods') {
+                        $.ajax({
+                            contentType: 'application/json',
+                            dataType: 'json',
+                            data: JSON.stringify(this.focus.get('link')),
+                            type: 'POST',
+                            precessData: false,
+                            url: 'rest/mm/goodsGroup/' + this.focus.id
+                        });
+                    } else {
+                        $.ajax({
+                            contentType: 'application/json',
+                            dataType: 'json',
+                            data: JSON.stringify(App.groupGrid.focus.get('link')),
+                            type: 'POST',
+                            precessData: false,
+                            url: 'rest/mm/groupGoods/' + App.groupGrid.focus.id
+                        });
+                    }
+                },
+                allsale: function () {
+                    if (pattern === 'goods') {
+                        if (confirm("确认要关联所有网点？")) {
+                            $.post('rest/mm/goodsGroup/all', {
+                                "goods": this.focus.id
+                            }, function () {
+                                App.goodsGrid.focus.select()
+                            });
+                        }
+                    } else {
+                        if (confirm("确认要关联所有商品？")) {
+                            $.post('rest/mm/groupGoods/all', {
+                                "group": App.groupGrid.focus.id
+                            }, function () {
+                                App.groupGrid.focus.select()
+                            });
+                        }
+                    }
+                }
+            });
+
+            App.goodsGrid = new App.GoodsGrid();
+
+            App.Group = App.Model.extend({
+                disabled: true,
+                focus: function () {
+                    var m = this;
+                    if (pattern === 'group') {
+                        App.groupGrid.focus = m;
+                        if (m.get('link')) {
+                            App.goodsGrid.afterLoad();
+                        } else {
+                            $.get('rest/mm/groupGoods', {'group': this.id}, function (data) {
+                                m.set('link', data.length ? data : []);
+                                App.goodsGrid.afterLoad();
+                            })
+                        }
+                    }
+                },
+                change: function () {
+                    if (pattern === 'goods') {
+                        var link = App.goodsGrid.focus.get('link');
+                        var gid = this.id;
+                        link = _.reject(link, function (n) {
+                            return n.gid == gid
+                        });
+                        if (this.selected) {
+                            link.push({gid: this.id, price: this.get('price')});
+                        }
+                        App.goodsGrid.focus.set('link', link);
+                    }
+                },
+                locked: function () {
+                    return this.disabled;
+                }
+            });
+
+            App.GroupList = App.Collection.extend({
+                urlRoot: 'rest/sys/group/own',
+                model: App.Group,
+                pageSize: 0,
+                columns: [
+                    {key: 'id', type: 'checkbox', thcss: 'width:25px'},
+                    {key: 'name', label: '网点'},
+                    {key: 'price', label: '网点价', type: 'text', thcss: 'width:70px'}
+                ]
+            });
+
+            App.groupList = new App.GroupList;
+
+            App.GroupGrid = App.Grid.extend({
+                el: '#groupGrid',
+                collection: App.groupList,
+                toolbar: [],
+                afterLoad: function () {
+                    if (App.goodsGrid.focus) {
+                        var links = App.goodsGrid.focus.get('link');
+                        _.each(this.collection.models, function (model) {
+                            var goods = _.findWhere(links, {gid: model.id});
+                            if (goods) {
+                                model.set('price', goods.price);
+                                model.selected = true;
+                            } else {
+                                model.set('price', null);
+                                model.selected = false;
+                            }
+                            model.disabled = false;
+                            model.row.render();
+                        });
+                    }
+                },
+                reset: function () {
+                    this.focus = null;
+                    _.each(this.collection.models, function (model) {
+                        model.disabled = true;
+                        model.selected = false;
+                        model.set('price', null);
+                    })
+                }
+            });
+            App.groupGrid = new App.GroupGrid();
+            convertLocal();
+        });
+    </script>
+</head>
+<body>
+<div style="margin:5px;">
+    <form class="queryBar" style="margin:5px 0 5px 10px;">
+        <ul>
+            <li>
+                <label>商品名称：</label>
+                <input type="text" name="name"/>
+            </li>
+            <li>
+                <label>商品编号：</label>
+                <input type="text" name="pn"/>
+            </li>
+            <li>
+                <label>分类：</label>
+                <select name="category" data-local="mm/kv/category">
+                    <option value="">所有</option>
+                </select>
+            </li>
+            <li>
+                <button class="search"><i></i>查询</button>
+            </li>
+            <li class="toolBar"></li>
+        </ul>
+    </form>
+    <div id="goodsGrid" style="float:left;width:74%;">
+        <div class="dataGrid">
+            <table class="app"></table>
+        </div>
+        <div class="page"></div>
+    </div>
+    <div style="width:25%;float:right;overflow:auto;height:600px" id="groupGrid" class="side-right">
+        <div class="dataGrid">
+            <table class="app"></table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

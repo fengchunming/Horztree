@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="WmBillMapper">
+    <resultMap id="BaseResultMap" type="com.an.wm.entity.WorkBill">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="bill_type" property="type" jdbcType="VARCHAR"/>
+        <result column="bill_code" property="billCode" jdbcType="VARCHAR"/>
+        <result column="bill_date" property="billDate" jdbcType="DATE"/>
+        <result column="plan_date" property="planDate" jdbcType="DATE"/>
+        <result column="real_date" property="realDate" jdbcType="DATE"/>
+        <result column="real_time" property="realTime" jdbcType="TIME"/>
+        <result column="origin_bill_code" property="originBill.billCode" jdbcType="VARCHAR"/>
+        <result column="origin_bill_type" property="originBill.type" jdbcType="VARCHAR"/>
+        <result column="belong_id" property="belong.id" jdbcType="INTEGER"/>
+        <result column="belong_type" property="belong.orgType" jdbcType="VARCHAR"/>
+        <result column="from_warehouse" property="from.warehouse" jdbcType="INTEGER"/>
+        <result column="to_warehouse" property="to.warehouse" jdbcType="INTEGER"/>
+        <result column="target_id" property="target.id" jdbcType="INTEGER"/>
+        <result column="target_type" property="target.orgType" jdbcType="VARCHAR"/>
+        <result column="region" property="target.addr.region" jdbcType="VARCHAR"/>
+        <result column="address" property="target.addr.addr" jdbcType="VARCHAR"/>
+        <result column="linkman" property="target.addr.linkman" jdbcType="VARCHAR"/>
+        <result column="telephone" property="target.addr.tel" jdbcType="VARCHAR"/>
+        <result column="mobile" property="target.addr.mobile" jdbcType="VARCHAR"/>
+        <result column="shipment" property="shipment" jdbcType="VARCHAR"/>
+        <result column="ship_code" property="shipCode" jdbcType="VARCHAR"/>
+        <result column="ship_fee" property="shipCost" jdbcType="NUMERIC"/>
+        <result column="batch_code" property="batchCode" jdbcType="VARCHAR"/>
+        <result column="status" property="status" jdbcType="VARCHAR"/>
+        <result column="print_status" property="printStatus" jdbcType="NUMERIC"/>
+        <result column="item_total" property="itemTotal" jdbcType="NUMERIC"/>
+        <result column="quantity" property="quantity" jdbcType="NUMERIC"/>
+        <result column="create_by" property="createBy" jdbcType="INTEGER"/>
+        <result column="check_by" property="checkBy" jdbcType="INTEGER"/>
+        <result column="deal_by" property="dealBy" jdbcType="INTEGER"/>
+        <result column="remark" property="remark" jdbcType="VARCHAR"/>
+    </resultMap>
+    <sql id="Example_Where_Clause">
+        <where>
+           status != 'd'
+            <if test="billType != null and billType !=''">and bill_type = #{billType,jdbcType=VARCHAR}</if>
+            <if test="billCode != null and billCode !=''">and bill_code = #{billCode,jdbcType=VARCHAR}</if>
+            <if test="status != null and status !=''">and status = #{status,jdbcType=VARCHAR}</if>
+            <if test="target != null and target !=''">and target_id = #{target,jdbcType=INTEGER}</if>
+            <if test="belong != null and belong !=''">and belong_id = #{belong,jdbcType=INTEGER}</if>
+            <if test="shipCode != null and shipCode !=''">and ship_code = #{shipCode,jdbcType=VARCHAR}</if>
+            <if test="shipName != null and shipName !=''">and linkman = #{shipName,jdbcType=VARCHAR}</if>
+            <if test="address != null and address !=''">and address = #{address,jdbcType=VARCHAR}</if>
+            <if test="originBill != null and originBill !=''">and origin_bill_code like
+                concat('%',#{originBill,jdbcType=VARCHAR},'%')
+            </if>
+            <if test="billDate != null and billDate !=''">and bill_date = #{billDate,jdbcType=DATE}</if>
+            <if test="batchCode != null and batchCode !=''">and batch_code = #{batchCode,jdbcType=VARCHAR}</if>
+            <if test="sdate != null and sdate !=''">and bill_date &gt;= #{sdate,jdbcType=DATE}</if>
+            <if test="edate != null and edate !=''">and bill_date &lt;= #{edate,jdbcType=DATE}</if>
+            <if test="printStatus != null"><![CDATA[  and print_status & #{printStatus} = 0  ]]></if>
+            <if test="billCodes != null">and bill_code in
+                <foreach collection="billCodes" index="index" item="item" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+        </where>
+    </sql>
+
+    <sql id="Base_Column_List">
+        id, bill_type, bill_code, bill_date, plan_date, real_date, origin_bill_code, origin_bill_type, print_status,
+        belong_id, belong_type, target_id, target_type, status, enter_at, item_total, quantity,batch_code,
+        real_time,  create_by, check_by, deal_by, remark, to_warehouse,
+        from_warehouse,address,mobile,telephone,linkman,region,shipment,ship_code,ship_fee
+    </sql>
+
+    <select id="selectByExample" resultMap="BaseResultMap" parameterType="java.util.HashMap">
+        select
+        <include refid="Base_Column_List"/>
+        from WM_WORK_BILL
+        <include refid="Example_Where_Clause"/>
+        <if test="_BY != null">order by ${_BY}</if>
+        <if test="_BY == null">order by bill_code</if>
+
+
+    </select>
+
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+        select
+        <include refid="Base_Column_List"/>
+        from WM_WORK_BILL
+        where id = #{value,jdbcType=VARCHAR}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+        update WM_WORK_BILL
+        set status = 'd', enter_at = now()
+        where id = #{value,jdbcType=VARCHAR}
+    </delete>
+
+    <insert id="insert" parameterType="com.an.wm.entity.WorkBill">
+        insert into WM_WORK_BILL (bill_type, bill_code,
+        origin_bill_code, origin_bill_type, belong_id, belong_type, from_warehouse, to_warehouse,
+        bill_date, plan_date, real_date, real_time, status, enter_at, print_status,
+        address,mobile,telephone,linkman,
+        region,shipment,ship_code, ship_fee , batch_code,
+        target_id, target_type, item_total, quantity, create_by, deal_by, check_by )
+        values (#{type,jdbcType=VARCHAR}, #{billCode,jdbcType=VARCHAR},
+        #{originBill.billCode,jdbcType=VARCHAR}, #{originBill.type,jdbcType=VARCHAR},
+        #{belong.id,jdbcType=INTEGER}, #{belong.orgType,jdbcType=VARCHAR},
+        #{from.warehouse,jdbcType=INTEGER},#{to.warehouse,jdbcType=INTEGER},
+        #{billDate,jdbcType=DATE}, #{planDate,jdbcType=DATE}, #{realDate,jdbcType=DATE}, #{realTime,jdbcType=TIME},
+        #{status,jdbcType=VARCHAR}, now(), #{printStatus,jdbcType=NUMERIC},
+        #{target.addr.addr,jdbcType=VARCHAR}, #{target.addr.mobile,jdbcType=VARCHAR},
+        #{target.addr.tel,jdbcType=VARCHAR}, #{target.addr.linkman,jdbcType=VARCHAR},
+        #{target.addr.region,jdbcType=VARCHAR}, #{shipment,jdbcType=VARCHAR},
+        #{shipCode,jdbcType=VARCHAR}, #{shipCost,jdbcType=NUMERIC}, #{batchCode,jdbcType=VARCHAR},
+        #{target.id,jdbcType=INTEGER}, #{target.orgType,jdbcType=VARCHAR},
+        #{itemTotal,jdbcType=NUMERIC}, #{quantity,jdbcType=NUMERIC},
+        #{createBy,jdbcType=INTEGER},#{dealBy,jdbcType=INTEGER},#{checkBy,jdbcType=INTEGER} )
+        <selectKey resultType="java.lang.Integer" keyProperty="id">
+            SELECT @@IDENTITY AS id
+        </selectKey>
+    </insert>
+
+    <select id="countByExample" parameterType="java.util.HashMap" resultType="java.lang.Integer">
+        select count(*) from WM_WORK_BILL
+        <include refid="Example_Where_Clause"/>
+    </select>
+
+    <update id="updateByPrimaryKey" parameterType="com.an.wm.entity.WorkBill">
+        update WM_WORK_BILL
+        set bill_type = #{type,jdbcType=VARCHAR},
+        origin_bill_code = #{originBill.billCode,jdbcType=VARCHAR},
+        origin_bill_type = #{originBill.type,jdbcType=VARCHAR},
+        belong_id = #{belong.id,jdbcType=INTEGER},
+        belong_type = #{belong.orgType,jdbcType=VARCHAR},
+        from_warehouse = #{from.warehouse,jdbcType=INTEGER},
+        to_warehouse = #{to.warehouse,jdbcType=INTEGER},
+        plan_date = #{planDate,jdbcType=DATE},
+        real_date = #{realDate,jdbcType=DATE},
+        real_time = #{realTime,jdbcType=TIME},
+        bill_date = #{billDate,jdbcType=DATE},
+        target_id = #{target.id,jdbcType=INTEGER},
+        target_type = #{target.orgType,jdbcType=VARCHAR},
+        enter_at = now(),
+        address = #{target.addr.addr,jdbcType=VARCHAR},
+        mobile = #{target.addr.mobile,jdbcType=VARCHAR},
+        telephone = #{target.addr.tel,jdbcType=VARCHAR},
+        linkman = #{target.addr.linkman,jdbcType=VARCHAR},
+        region = #{target.addr.region,jdbcType=VARCHAR},
+        shipment = #{shipment,jdbcType=VARCHAR},
+        ship_code = #{shipCode,jdbcType=VARCHAR},
+        ship_fee = #{shipCost,jdbcType=NUMERIC},
+        batch_code = #{batchCode,jdbcType=VARCHAR},
+        item_total = #{itemTotal,jdbcType=NUMERIC},
+        quantity = #{quantity,jdbcType=NUMERIC},
+        deal_by = #{dealBy,jdbcType=INTEGER},
+        create_by = #{createBy,jdbcType=INTEGER},
+        check_by = #{checkBy,jdbcType=INTEGER}
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+
+    <update id="updateStatus" parameterType="com.an.wm.entity.WorkBill">
+        update WM_WORK_BILL set
+        <if test="status != null">
+            status = #{status,jdbcType=VARCHAR},
+        </if>
+        <if test="printStatus != null">
+            print_status = #{printStatus,jdbcType=NUMERIC},
+        </if>
+        <if test="realDate != null">
+            real_date = #{realDate,jdbcType=DATE},
+        </if>
+        <if test="dealBy != null">
+            deal_by = #{dealBy,jdbcType=INTEGER},
+        </if>
+        enter_at = now()
+        where bill_code = #{billCode,jdbcType=VARCHAR}
+    </update>
+</mapper>

@@ -1,0 +1,110 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <script>
+
+        $(function () {
+            App.Comment = App.Model.extend({
+                urlRoot: 'rest/crm/comment',
+                idAttribute: 'id'
+            });
+
+            App.CommentList = App.Collection.extend({
+                model: App.Comment,
+                autoLoad: false,
+                columns: [
+                    {label: '订单号', key: 'orderNo',thcss:'width:100px'},
+                    {label: '商品', key: 'goods'},
+                    {label: '综合评价', key: 'readTimes', thcss:'width:100px', sort: true},
+                    {label: '商品评价', key: 'type', thcss:'width:100px'},
+                    {label: '服务评价', key: 'createBy', thcss:'width:100px'},
+                    {label: '网点', key: 'createBy', thcss:'width:100px'},
+                    {label: '会员', key: 'customer', thcss:'width:100px'},
+                    {label: '日期', key: 'createAt', thcss:'width:100px'}
+                ]
+            });
+
+            App.CommentForm = App.FormView.extend({
+                size: { width: 900 },
+                toolbar: ['trash', 'hide'],
+                check: function () {
+                    if (confirm('是否要发布？')) {
+                        this.model.set({'status': '1'});
+                        $.post('rest/crm/commentCheck/' + this.model.id);
+                    }
+                }
+            });
+
+            App.CommentGrid = App.Grid.extend({
+                qel: '.queryBar',
+                form: new App.CommentForm,
+                collection: new App.CommentList,
+                toolbar: ['trash'],
+                trash: function(){
+
+                }
+            });
+            App.commentGrid = new App.CommentGrid();
+        });
+    </script>
+</head>
+<body>
+<div id="article">
+    <form class="queryBar">
+        <ul>
+            <li><label>会员：</label><input type="text" name="member"/></li>
+            <li><label>商品：</label><input type="text" name="product"/></li>
+            <li><label>订单号：</label><input type="text" name="orderNo"/></li>
+            <li><label>网点：</label>
+                <select name="store" data-local="sys/kv/org">
+                    <option value="">所有</option>
+                </select>
+            </li>
+            <li><label>日期：</label>
+                <input class="mindatepicker" name="startTime" size="10"/>
+                -
+                <input class="maxdatepicker" name="endTime" size="10"/>
+            </li>
+            <li>
+                <button class="search"><i></i>查询</button>
+                <button type="reset" class="reset"><i></i>清空</button>
+            </li>
+            <li class="toolBar"></li>
+        </ul>
+    </form>
+    <div class="dataGrid">
+        <table class="app"></table>
+    </div>
+    <div class="page"></div>
+</div>
+
+<div class="navPanel">
+    <div class="toolBar"></div>
+    <div class="editorPanel">
+        <form>
+            <ol class="left-align">
+                <li>
+                    <label>标题：</label>
+                    <input name="title" type="text" placeholder="请输入新闻标题" required style="width:500px;"/>
+                </li>
+                <li>
+                    <label>类型：
+                        <select name="type" required></select>
+                    </label>
+                    <label>状态：
+                        <select name="status" data-local="status"></select>
+                    </label>
+                    <label>点击量：
+                        <input name=readTimes type="text" disabled />
+                    </label>
+                </li>
+                <li>
+                    <textarea id="content" style="width:400px;height:200px;"></textarea>
+                </li>
+            </ol>
+        </form>
+    </div>
+</div>
+</body>
+</html>
+        

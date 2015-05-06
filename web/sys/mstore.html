@@ -1,0 +1,127 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <script>
+        $(function () {
+            _LocalKV.store_status = {
+                "t": "启用",
+                "f": "停用",
+                "s": "休息"
+            };
+            App.Group = App.Model.extend({
+                urlRoot: 'rest/sys/group/m',
+                idAttribute: 'id',
+                defaults: {sort: 50, type:'m'},
+                edit: function () {
+                    $('#path').stepSelection('load');
+                }
+            });
+
+            App.GroupList = App.Collection.extend({
+                model: App.Group,
+                columns: [
+                    {label: '店名', key: 'name', thcss: 'width:300px'},
+                    {label: '简称', key: 'abbr', thcss: 'width:100px'},
+                    {label: '电话', key: 'tel'},
+                    {label: '邮箱', key: 'email'},
+                    {label: '负责人', key: 'linkman'},
+                    {label: '状态', key: 'status', local: 'store_status',thcss:'width:50px'}
+                ]
+            });
+
+            App.GroupEditor = App.FormView.extend({
+                size: {width: 700}
+            });
+
+            App.GroupTable = App.Grid.extend({
+                qel: '.queryBar',
+                form: new App.GroupEditor,
+                collection: new App.GroupList,
+                toolbar: ['create']
+            });
+
+            new App.GroupTable();
+
+            $('#path').stepSelection({
+                urlRoot: 'rest/base/region/list',
+                callback: function (id,ids) {
+                    $('#parent').val(id);
+                    $('#path').val(','+ ids+ ',');
+                }
+            });
+
+        });
+    </script>
+</head>
+<body>
+<div id="article">
+    <form class="queryBar">
+        <ul>
+            <li>
+                <label>名称：</label>
+                <input type="text" name="name"/>
+            </li>
+            <li>
+                <label>区域：</label>
+                <select name="region" data-local="base/kv/region">
+                    <option></option>
+                </select>
+            </li>
+            <li>
+                <button class="search"><i></i>查询</button>
+                <button type="reset" class="reset"><i></i>重置</button>
+            </li>
+            <li class="toolBar"></li>
+        </ul>
+    </form>
+    <div class="dataGrid">
+        <table class="app"></table>
+    </div>
+    <div class="page"></div>
+</div>
+
+<div class="navPanel">
+    <div class="toolBar"></div>
+    <div class="editorPanel">
+        <form>
+            <ol>
+                <li>
+                    <label>名称:</label>
+                    <input type="text" name="name" placeholder="请输入" required/>
+                </li>
+                <li>
+                    <label>简称:</label>
+                    <input type="text" name="abbr" placeholder="简称" required/>
+                </li>
+                <li>
+                    <label>负责人:</label>
+                    <input type="text" name="linkman"/>
+                </li>
+                <li>
+                    <label>电话:</label>
+                    <input type="text" name="tel"/>
+                </li>
+                <li>
+                    <label>邮箱:</label>
+                    <input type="text" name="email"/>
+                </li>
+
+                <li style="height:30px;">
+                    <label>所属区域:</label>
+                    <input type="text" name="parent" id="parent" style="display:none"/>
+                    <input type="text" name="path" id="path" style="display:none"/>
+                </li>
+                <li>
+                    <label>说明:</label>
+                    <textarea name="remark" style="width:515px;height:120px;resize:none;"></textarea>
+                </li>
+                <li>
+                    <label>状态:</label>
+                    <select name="status" data-local="store_status" style="width:203px;"></select>
+                </li>
+            </ol>
+        </form>
+    </div>
+</div>
+</body>
+</html>

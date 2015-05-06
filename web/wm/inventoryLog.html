@@ -1,0 +1,116 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <script>
+        $(function () {
+            App.Stock = App.Model.extend({
+                idAttribute: 'id',
+                edit: function () {
+                    App.stockList.load('rest/wm/warehouseStockList/' + this.get('pn'));
+                }
+            })
+
+            App.StockList = App.Collection.extend({
+                urlRoot: 'rest/mm/orgGoodsList',
+                model: App.Stock,
+                columns: [
+                    {label: '名称', key: 'name', sort: 'goods_name'},
+                    {label: '编码', key: 'pn', sort: 'goods_code'},
+                    {label: '组织', key: 'org.orgCode', sort: 'org_code', local: 'sys/kv/org'},
+                    {label: '分类', key: 'category.categoryCode', local: 'mm/kv/category'},
+                    {label: '基准单位', key: 'skuUom.uomCode', local: 'base/kv/uom'},
+                    {label: '总库存', key: 'summary', sort: 'summary'},
+                    {label: '状态', key: 'status', local: 'status'}
+                ]
+            })
+
+            App.StockFormView = App.FormView.extend({
+                toolbar: ['hide']
+            })
+
+            App.StockGrid = App.Grid.extend({
+                collection: new App.StockList,
+                formView: App.StockFormView,
+                toolbar: ['export'],
+                qel: '.queryBar',
+                export: function () {
+                    window.open('rest/wm/stockExport?_SH=' + $('#search_sh').val())
+                }
+            });
+
+            new App.StockGrid();
+
+
+            App.Detail = App.Model.extend({
+                idAttribute: 'stockId',
+            })
+            App.DetailList = App.Collection.extend({
+                model: App.Detail,
+                columns: [
+                    {label: '商品名称', key: 'name'},
+                    {label: '编号', key: 'pn'},
+                    {label: '数量', key: 'realQuantity'},
+                    {label: '单位', key: 'goodsUnit.uomCode', local: 'base/kv/uom'},
+                    {label: '规格', key: 'goodsUnit.packQuantity'},
+                    {label: '库区', key: 'location.sectionCode'},
+                    {label: '储位', key: 'location.locationCode'},
+                    {label: '收货日期', key: 'receiptDate'},
+                    {label: '批次属性', key: 'lotAttr', type: 'form'}
+                ]
+            });
+
+            App.detailList = new App.DetailList;
+
+            App.DetailListView = App.Grid.extend({
+                el: '.editorPanel',
+                collection: App.detailList
+            });
+
+            new App.DetailListView;
+        });
+    </script>
+</head>
+<body>
+<div id="article">
+    <form class="queryBar">
+        <ul>
+            <li>
+                <label>商品</label>
+                <input name="pn"></li>
+            <li>
+                <label>分类</label>
+                <select name="category" data-local="mm/kv/category">
+                    <option value=""></option>
+                </select></li>
+            <li>
+                <label>货主</label>
+                <select name="orgCode" data-local="sys/kv/org">
+                    <option value=""></option>
+                </select></li>
+            <li>
+                <label>项目</label>
+                <input name="project"/></li>
+            <li>
+                <label>订单编号</label>
+                <input name="billCode"/></li>
+            <li>
+                <label>业务编号</label>
+                <input name="ywCode"/>
+                <button class="search"><i></i>查询</button>
+            </li>
+        </ul>
+    </form>
+    <div class="dataGrid">
+        <table class="app"></table>
+    </div>
+    <div class="page"></div>
+</div>
+
+<div class="navPanel">
+    <div class="toolBar"></div>
+    <div class="editorPanel">
+        <table class="app"></table>
+    </div>
+</div>
+</body>
+</html>

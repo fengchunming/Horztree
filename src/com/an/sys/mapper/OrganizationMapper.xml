@@ -1,0 +1,165 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="OrganizationMapper">
+    <resultMap id="BaseResultMap" type="com.an.sys.entity.Organization">
+        <id column="id" property="id" jdbcType="INTEGER"/>
+        <result column="org_code" property="orgCode" jdbcType="VARCHAR"/>
+        <result column="org_name" property="orgName" jdbcType="VARCHAR"/>
+        <result column="short_name" property="shortName" jdbcType="VARCHAR"/>
+        <result column="status" property="status" jdbcType="VARCHAR"/>
+        <result column="parent" property="parent" jdbcType="VARCHAR"/>
+        <result column="level" property="level" jdbcType="INTEGER"/>
+        <result column="depth" property="depth" jdbcType="VARCHAR"/>
+        <result column="is_leaf" property="isLeaf" jdbcType="BIT"/>
+        <result column="is_outer" property="isOuter" jdbcType="BIT"/>
+        <result column="remark" property="remark" jdbcType="VARCHAR"/>
+        <result column="org_type" property="orgType" jdbcType="VARCHAR"/>
+        <result column="address" property="addr.addr" jdbcType="VARCHAR"/>
+        <result column="telephone" property="addr.tel" jdbcType="VARCHAR"/>
+        <result column="linkman" property="addr.linkman" jdbcType="VARCHAR"/>
+        <result column="fax" jdbcType="VARCHAR" property="addr.fax"/>
+        <result column="zip" jdbcType="VARCHAR" property="addr.zip"/>
+        <result column="email" jdbcType="VARCHAR" property="addr.email"/>
+        <result column="mobile" jdbcType="VARCHAR" property="addr.mobile"/>
+        <result column="status" jdbcType="VARCHAR" property="status"/>
+        <result column="status_start_date" jdbcType="DATE" property="statusStartDate"/>
+        <result column="status_end_date" jdbcType="DATE" property="statusEndDate"/>
+        <result column="house_bank" jdbcType="VARCHAR" property="houseBank"/>
+        <result column="house_bank_account" jdbcType="VARCHAR" property="houseBankAccount"/>
+        <result column="booking_day" typeHandler="com.an.core.mybatis.handlers.JsonTypeHandler" property="bookingDay"/>
+        <result column="receipt_day" typeHandler="com.an.core.mybatis.handlers.JsonTypeHandler" property="receiptDay"/>
+        <result column="sync_stamp" jdbcType="TIMESTAMP" property="syncStamp"/>
+        <result column="token" jdbcType="VARCHAR" property="token"/>
+        <!--<result column="secrect" jdbcType="VARCHAR" property="secrect"/>-->
+        <result column="type" jdbcType="VARCHAR" property="type"/>
+        <result column="partner_no" jdbcType="VARCHAR" property="partnerNo"/>
+        <result column="open_date" jdbcType="DATE" property="openDate"/>
+        <result column="close_date" jdbcType="DATE" property="closeDate"/>
+        <result column="longitude" jdbcType="VARCHAR" property="longitude"/>
+        <result column="latitude" jdbcType="VARCHAR" property="latitude"/>
+    </resultMap>
+    <sql id="Example_Where_Clause">
+        <where>
+           status != 'd'
+            <if test="orgType != null and orgType !=''">and org_type = #{orgType}</if>
+            <if test="orgName != null and orgName != ''">and org_name ilike concat('%',#{orgName},'%')</if>
+            <if test="status != null and status != ''">and status = #{status}</if>
+        </where>
+    </sql>
+    <sql id="Base_Column_List">
+        id, org_code, org_name, short_name, status, parent, level, depth, is_leaf,
+        remark, org_type, address, telephone, linkman, is_outer,
+        fax, zip, email, mobile, status_start_date, status_end_date, house_bank,
+        house_bank_account, booking_day, receipt_day, open_date, close_date,
+        latitude, longitude, warehouse, token, sync_stamp, partner_no, type
+    </sql>
+    <select id="selectByExample" resultMap="BaseResultMap" parameterType="java.util.HashMap">
+        select
+        <include refid="Base_Column_List"/>
+        from SYS_ORGANIZATION
+        <include refid="Example_Where_Clause"/>
+        <if test="_BY != null">order by ${_BY}</if>
+    </select>
+    
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer">
+        select
+        <include refid="Base_Column_List"/>
+        from SYS_ORGANIZATION
+        where id = #{value,jdbcType=VARCHAR}
+    </select>
+
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
+        delete from SYS_ORGANIZATION
+        where id = #{value,jdbcType=VARCHAR}
+    </delete>
+
+    <insert id="insert" parameterType="com.an.sys.entity.Organization">
+        insert into SYS_ORGANIZATION (org_code, org_name,
+        short_name, status, parent, level, depth,
+        is_leaf, remark, enter_at, org_type, address,
+        telephone, linkman, is_outer, fax, zip,
+        email, mobile, status_start_date, status_end_date, house_bank,
+        house_bank_account, booking_day, receipt_day, open_date, close_date,
+        latitude, longitude, token, sync_stamp, partner_no, type)
+        values (#{orgCode,jdbcType=VARCHAR}, #{orgName,jdbcType=VARCHAR},
+        #{shortName,jdbcType=VARCHAR}, #{status,jdbcType=VARCHAR}, #{parent,jdbcType=VARCHAR},
+        #{level,jdbcType=INTEGER}, #{depth,jdbcType=VARCHAR},
+        #{isLeaf,jdbcType=BIT}, #{remark,jdbcType=VARCHAR}, now(),
+        #{orgType,jdbcType=VARCHAR}, #{addr.addr,jdbcType=VARCHAR},
+        #{addr.tel,jdbcType=VARCHAR}, #{addr.linkman,jdbcType=VARCHAR}, #{isOuter,jdbcType=BIT},
+        #{addr.fax,jdbcType=VARCHAR}, #{addr.zip,jdbcType=VARCHAR},
+        #{addr.email,jdbcType=VARCHAR}, #{addr.mobile,jdbcType=VARCHAR}, #{statusStartDate,jdbcType=DATE},
+        #{statusEndDate,jdbcType=DATE}, #{houseBank,jdbcType=VARCHAR},
+        #{houseBankAccount,jdbcType=VARCHAR}, #{bookingDay,typeHandler=com.an.core.mybatis.handlers.JsonTypeHandler},
+        #{receiptDay,typeHandler=com.an.core.mybatis.handlers.JsonTypeHandler},
+        #{openDate,jdbcType=DATE}, #{closeDate,jdbcType=DATE},
+        #{latitude}, #{longitude}, #{token,jdbcType=VARCHAR}, #{syncStamp,jdbcType=TIMESTAMP},
+        #{partnerNo,jdbcType=VARCHAR},#{type,jdbcType=VARCHAR})
+
+        <selectKey resultType="java.lang.Integer" keyProperty="id">
+            SELECT @@IDENTITY AS id
+        </selectKey>
+    </insert>
+
+    <select id="countByExample" parameterType="java.util.HashMap" resultType="java.lang.Integer">
+        select count(*) from SYS_ORGANIZATION
+        <include refid="Example_Where_Clause"/>
+    </select>
+
+    <update id="updateByPrimaryKey" parameterType="com.an.sys.entity.Organization">
+        update SYS_ORGANIZATION
+        set
+        org_code = #{orgCode,jdbcType=VARCHAR},
+        org_name = #{orgName,jdbcType=VARCHAR},
+        short_name = #{shortName,jdbcType=VARCHAR},
+        status = #{status,jdbcType=VARCHAR},
+        parent = #{parent,jdbcType=VARCHAR},
+        level = #{level,jdbcType=INTEGER},
+        depth = #{depth,jdbcType=VARCHAR},
+        is_leaf = #{isLeaf,jdbcType=BIT},
+        remark = #{remark,jdbcType=VARCHAR},
+        enter_at = now(),
+        org_type = #{orgType,jdbcType=VARCHAR},
+        address = #{addr.addr,jdbcType=VARCHAR},
+        telephone = #{addr.tel,jdbcType=VARCHAR},
+        linkman = #{addr.linkman,jdbcType=VARCHAR},
+        is_outer = #{isOuter,jdbcType=BIT},
+        fax = #{addr.fax,jdbcType=VARCHAR},
+        zip = #{addr.zip,jdbcType=VARCHAR},
+        email = #{addr.email,jdbcType=VARCHAR},
+        mobile = #{addr.mobile,jdbcType=VARCHAR},
+        status_start_date = #{statusStartDate,jdbcType=DATE},
+        status_end_date = #{statusEndDate,jdbcType=DATE},
+        house_bank = #{houseBank,jdbcType=VARCHAR},
+        house_bank_account = #{houseBankAccount,jdbcType=VARCHAR},
+        booking_day = #{bookingDay,typeHandler=com.an.core.mybatis.handlers.JsonTypeHandler},
+        receipt_day = #{receiptDay,typeHandler=com.an.core.mybatis.handlers.JsonTypeHandler},
+        latitude = #{latitude,jdbcType=VARCHAR},
+        longitude = #{longitude,jdbcType=VARCHAR},
+        token = #{token,jdbcType=VARCHAR},
+        partner_no = #{partnerNo,jdbcType=VARCHAR},
+        type = #{type,jdbcType=VARCHAR},
+        open_date = #{openDate,jdbcType=DATE},
+        close_date = #{closeDate,jdbcType=DATE}
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+
+    <select id="selectByPartnerNo" resultMap="BaseResultMap" parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List"/>
+        from SYS_ORGANIZATION
+        where partner_no = #{value,jdbcType=VARCHAR}
+    </select>
+
+    <update id="updateSync" parameterType="com.an.sys.entity.Organization">
+        update SYS_ORGANIZATION
+        set sync_stamp = #{syncStamp,jdbcType=TIMESTAMP}
+        where id = #{id,jdbcType=VARCHAR}
+    </update>
+
+    <select id="selectKV" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+        select id k,org_name v from SYS_ORGANIZATION
+        <include refid="Example_Where_Clause"/>
+        ORDER BY depth
+    </select>
+</mapper>

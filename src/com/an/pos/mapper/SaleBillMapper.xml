@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="SaleBillMapper">
+    <resultMap id="BaseResultMap" type="com.an.pos.entity.SaleBill">
+        <id column="id" property="id" jdbcType="BIGINT"/>
+        <result column="bill_code" property="billCode" jdbcType="VARCHAR"/>
+        <result column="bill_type" property="type" jdbcType="VARCHAR"/>
+        <result column="member_id" property="memberId" jdbcType="BIGINT"/>
+        <result column="terminal_code" property="terminalCode" jdbcType="VARCHAR"/>
+        <result column="cashier_code" property="cashierCode" jdbcType="VARCHAR"/>
+        <result column="quantity" property="quantity" jdbcType="NUMERIC"/>
+        <result column="amount" property="amount" jdbcType="NUMERIC"/>
+        <result column="pay_able" property="payAble" jdbcType="NUMERIC"/>
+        <result column="currency_code" property="currencyCode" jdbcType="VARCHAR"/>
+        <result column="is_invoice" property="isInvoice" jdbcType="BIT"/>
+        <result column="status" property="status" jdbcType="VARCHAR"/>
+        <result column="pay_type_code" property="payTypeCode" jdbcType="VARCHAR"/>
+        <result column="org_code" property="org.orgCode" jdbcType="VARCHAR"/>
+        <result column="org_type" property="org.orgType" jdbcType="VARCHAR"/>
+        <result column="cost_total" property="costTotal" jdbcType="NUMERIC"/>
+        <result column="discount_amount" property="discountAmount" jdbcType="NUMERIC"/>
+        <result column="bill_date" property="billDate" jdbcType="DATE"/>
+        <result column="sale_stamp" property="saleStamp" jdbcType="TIMESTAMP"/>
+        <result column="refund_amount" property="refundAmount" jdbcType="NUMERIC"/>
+        <result column="cancel_amount" property="cancelAmount" jdbcType="NUMERIC"/>
+        <result column="print_no" property="printNo" jdbcType="VARCHAR"/>
+        <result column="line_count" property="lineCount" jdbcType="INTEGER"/>
+        <result column="weight" property="weight" jdbcType="NUMERIC"/>
+    </resultMap>
+    <sql id="Example_Where_Clause">
+        <where>
+           status != 'd'
+            <if test="_SH != null and _SH != ''"><![CDATA[
+    		and ( bill_code ilike concat('%',#{_SH} )
+    	 ]]></if>
+            <if test="billCode != null and billCode != ''">and bill_code = #{billCode,jdbcType=VARCHAR}</if>
+            <if test="billDate != null and billDate != ''">and bill_date = #{billDate,jdbcType=DATE}</if>
+            <if test="orgCode != null and orgCode != ''">and org_code = #{orgCode, jdbcType=VARCHAR}</if>
+        </where>
+    </sql>
+    <sql id="Base_Column_List">
+        id, bill_code, bill_type, member_id, terminal_code, cashier_code, quantity,
+        amount, pay_able, currency_code, is_invoice, status, enter_at, pay_type_code, org_code,
+        org_type, cost_total, discount_amount, bill_date, sale_stamp, refund_amount,
+        cancel_amount, print_no, line_count, weight
+    </sql>
+    <select id="selectByExample" resultMap="BaseResultMap" parameterType="java.util.HashMap">
+        select
+        <include refid="Base_Column_List"/>
+        from "ag"."T_POS_SALE_BILL"
+        <include refid="Example_Where_Clause"/>
+        <if test="_BY != null">order by ${_BY}</if>
+
+
+    </select>
+    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.String">
+        select
+        <include refid="Base_Column_List"/>
+        from "ag"."T_POS_SALE_BILL"
+        where bill_code = #{value,jdbcType=VARCHAR}
+    </select>
+    <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+        update "ag"."T_POS_SALE_BILL"
+        set status = 'trash',enter_at = now()
+        where bill_code = #{value,jdbcType=VARCHAR}
+    </delete>
+    <insert id="insert" parameterType="com.an.pos.entity.SaleBill">
+        insert into "ag"."T_POS_SALE_BILL" (bill_code, bill_type,
+        member_id, terminal_code,
+        cashier_code, quantity, amount,
+        pay_able, currency_code,
+        status, enter_at, pay_type_code,
+        org_code, org_type, cost_total,
+        discount_amount, bill_date, sale_stamp,
+        refund_amount, cancel_amount, print_no,
+        line_count, weight)
+        values (#{billCode,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR},
+        #{memberId,jdbcType=BIGINT}, #{terminalCode,jdbcType=VARCHAR},
+        #{cashierCode,jdbcType=VARCHAR}, #{quantity,jdbcType=NUMERIC}, #{amount,jdbcType=NUMERIC},
+        #{payAble,jdbcType=NUMERIC}, #{currencyCode,jdbcType=VARCHAR},
+        #{status,jdbcType=VARCHAR}, now(), #{payTypeCode,jdbcType=VARCHAR},
+        #{org.orgCode,jdbcType=VARCHAR}, #{org.orgType,jdbcType=VARCHAR}, #{costTotal,jdbcType=NUMERIC},
+        #{discountAmount,jdbcType=NUMERIC}, #{billDate,jdbcType=DATE}, #{saleStamp,jdbcType=TIMESTAMP},
+        #{refundAmount,jdbcType=NUMERIC}, #{cancelAmount,jdbcType=NUMERIC}, #{printNo,jdbcType=VARCHAR},
+        #{lineCount,jdbcType=INTEGER}, #{weight,jdbcType=NUMERIC})
+    </insert>
+
+    <select id="countByExample" parameterType="java.util.HashMap" resultType="java.lang.Integer">
+        select count(*) from "ag"."T_POS_SALE_BILL"
+        <include refid="Example_Where_Clause"/>
+    </select>
+
+    <update id="updateByPrimaryKey" parameterType="com.an.pos.entity.SaleBill">
+        update "ag"."T_POS_SALE_BILL"
+        set bill_type = #{type,jdbcType=VARCHAR},
+        member_id = #{memberId,jdbcType=BIGINT},
+        terminal_code = #{terminalCode,jdbcType=VARCHAR},
+        cashier_code = #{cashierCode,jdbcType=VARCHAR},
+        quantity = #{quantity,jdbcType=NUMERIC},
+        amount = #{amount,jdbcType=NUMERIC},
+        pay_able = #{payAble,jdbcType=NUMERIC},
+        currency_code = #{currencyCode,jdbcType=VARCHAR},
+        enter_at = now(),
+        pay_type_code = #{payTypeCode,jdbcType=VARCHAR},
+        org_code = #{org.orgCode,jdbcType=VARCHAR},
+        org_type = #{org.orgType,jdbcType=VARCHAR},
+        cost_total = #{costTotal,jdbcType=NUMERIC},
+        discount_amount = #{discountAmount,jdbcType=NUMERIC},
+        bill_date = #{billDate,jdbcType=DATE},
+        sale_stamp = #{saleStamp,jdbcType=TIMESTAMP},
+        refund_amount = #{refundAmount,jdbcType=NUMERIC},
+        cancel_amount = #{cancelAmount,jdbcType=NUMERIC},
+        print_no = #{printNo,jdbcType=VARCHAR},
+        line_count = #{lineCount,jdbcType=INTEGER},
+        weight = #{weight,jdbcType=NUMERIC}
+        where bill_code = #{billCode,jdbcType=VARCHAR}
+    </update>
+</mapper>
