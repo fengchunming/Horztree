@@ -43,8 +43,7 @@ public class ItemController {
     }
 
     @RequestMapping(value = "/item/{id}", method = RequestMethod.GET)
-    public Item load(@PathVariable("id") int id)
-            throws BadRequestException {
+    public Item load(@PathVariable("id") int id) throws BadRequestException {
         return itemDao.selectOne(id);
     }
 
@@ -68,16 +67,14 @@ public class ItemController {
 
 
     @RequestMapping(value = "/item/{id}", method = RequestMethod.DELETE)
-    public void delete(@PathVariable("id") int id)
-            throws BadRequestException {
+    public void delete(@PathVariable("id") int id) throws BadRequestException {
         if (itemDao.delete(id) <= 0)
             throw new BadRequestException("删除失败");
     }
 
 
     @RequestMapping(value = "/kv/item", method = RequestMethod.GET)
-    public Collection<Map<Integer, String>> loadKV()
-            throws BadRequestException {
+    public Collection<Map<Integer, String>> loadKV() throws BadRequestException {
         return itemDao.selectKV();
     }
 
@@ -86,9 +83,7 @@ public class ItemController {
      * 查询商品分类列表
      */
     @RequestMapping(value = "/goods/autocomplete/{orgCode}", method = RequestMethod.GET)
-    public Collection<Item> autocomplete(
-            @PathVariable("orgCode") String code, @RequestParam String q,
-            @RequestParam String limit) throws BadRequestException {
+    public Collection<Item> autocomplete(@PathVariable("orgCode") String code, @RequestParam String q, @RequestParam String limit) throws BadRequestException {
         Map<String, Object> mParam = new HashMap<String, Object>();
         if (code != null && !code.equals("")) {
             mParam.put("supplier", code);

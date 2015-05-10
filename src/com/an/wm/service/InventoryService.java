@@ -186,8 +186,7 @@ public class InventoryService {
 
     private void split(Item item, String usage) {
         // 转换到SKU单位数量
-        BigDecimal skuQty = item.getRealQuantity().multiply(
-                item.getUom().getPackQuantity());
+        BigDecimal skuQty = item.getRealQuantity().multiply(item.getUom().getPackQuantity());
 
         Collection<Item> stocks = loadStocks(item, usage);
         for (Item stock : stocks) {

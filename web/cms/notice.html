@@ -5,9 +5,14 @@
     <script src="js/umeditor/umeditor.config.js"></script>
     <script src="js/umeditor/umeditor.min.js"></script>
     <script>
-        _LocalKV.noticetype = {
+        _LocalKV.noticeType = {
             '1': '公告',
             '2': '广告'
+        };
+        _LocalKV.noticeStatus = {
+            "t": "启用",
+            "f": "停用",
+            "p": "发布",
         };
         var um = UM.getEditor('htmlEditor');
 
@@ -33,10 +38,10 @@
                 columns: [
                     {label: '标题', key: 'title'},
                     {label: '点击量', key: 'readTimes', thcss:'width:100px', sort: true},
-                    {label: '类型', key: 'type', local: 'noticetype', thcss:'width:100px'},
+                    {label: '类型', key: 'type', local: 'noticeType', thcss:'width:100px'},
                     {label: '创建人', key: 'createBy', local: 'sys/kv/user', thcss:'width:100px'},
                     {label: '创建日期', key: 'createAt', sort: true, thcss:'width:100px'},
-                    {label: '状态', key: 'status', local: 'status', thcss:'width:100px', sort: true}
+                    {label: '状态', key: 'status', local: 'noticeStatus', thcss:'width:100px'}
                 ]
             });
 
@@ -45,7 +50,7 @@
                 toolbar: ['create', 'save', {'check': '发布', 'id': 'cms.notice.check'}, 'trash', 'hide'],
                 check: function () {
                     if (confirm('是否要发布？')) {
-                        this.model.set({'status': '1'});
+                        this.model.set({'status': 'p'});
                         $.post('rest/cms/noticeCheck/' + this.model.id);
                     }
                 },
@@ -70,14 +75,14 @@
     <form class="queryBar">
         <ul>
             <li><label>标题：</label><input type="text" name="title"/></li>
-            <li><label>内容：</label><input type="text" name="content"/></li>
+            <!-- <li><label>内容：</label><input type="text" name="content"/></li> -->
             <li><label>状态：</label>
-                <select name="status" data-local="status">
+                <select name="status" data-local="noticeStatus">
                     <option value="">所有</option>
                 </select>
             </li>
             <li><label>消息类型：</label>
-                <select name="type" data-local="noticetype">
+                <select name="type" data-local="noticeType">
                     <option value="">所有</option>
                 </select>
             </li>
@@ -88,7 +93,7 @@
             </li>
             <li>
                 <button class="search"><i></i>查询</button>
-                <button type="reset" class="reset"><i></i>清空</button>
+                <!-- <button type="reset" class="reset"><i></i>清空</button> -->
             </li>
             <li class="toolBar"></li>
         </ul>
@@ -111,17 +116,17 @@
                 </li>
                 <li>
                     <label>类型：
-                        <select name="type" data-local="noticetype" required></select>
+                        <select name="type" data-local="noticeType" required></select>
                     </label>
                     <label>状态：
-                        <select name="status" data-local="status"></select>
+                        <select name="status" data-local="noticeStatus"></select>
                     </label>
                     <label>点击量：
-                        <input name=readTimes type="text" disabled />
+                        <input name="readTimes" type="text" disabled />
                     </label>
                 </li>
                 <li>
-                    <script type="text/plain" id="htmlEditor" style="width:750px;height:500px;"></script>
+                    <script type="text/plain" id="htmlEditor" style="width:750px;height:440px;"></script>
                 </li>
             </ol>
         </form>

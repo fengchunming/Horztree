@@ -27,8 +27,8 @@ public class NoticeDao extends BaseDao<Notice, Integer> {
     }
 
     public int publish(Integer id) {
-        Notice not = selectOne(id);
-        not.setStatus("p");
-        return sqlSession.update(namespace + ".check", not);
+        Notice notice = selectOne(id);
+        notice.setStatus("p");
+        return sqlSession.update(namespace + ".updateState", notice);
     }
 }

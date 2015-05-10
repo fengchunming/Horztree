@@ -23,8 +23,7 @@ import java.util.Map;
 @RequestMapping("/cms")
 public class NoticeController {
 
-    private static final Logger logger = LoggerFactory
-            .getLogger(NoticeController.class);
+    private static final Logger logger = LoggerFactory.getLogger(NoticeController.class);
 
     @Autowired
     private NoticeDao noticeDao;
@@ -33,8 +32,7 @@ public class NoticeController {
      * 查询公告列表
      */
     @RequestMapping(value = "/notice/list", method = RequestMethod.GET)
-    public Map<?, ?> query(WebRequest request)
-            throws BadRequestException {
+    public Map<?, ?> query(WebRequest request) throws BadRequestException {
         Map<String, Object> mParam = Util.GetRequestMap(request);
         Map<String, Object> result = new HashMap<>();
         result.put("list", noticeDao.selectList(mParam));
@@ -43,25 +41,21 @@ public class NoticeController {
     }
 
     /**
-     * 通过主键ID查询公告详情
+     * 查询公告详情
      */
     @RequestMapping(value = "/notice/{id}", method = RequestMethod.GET)
-    public Notice load(@PathVariable(value="id") Integer id)
-            throws BadRequestException {
+    public Notice load(@PathVariable(value="id") Integer id) throws BadRequestException {
         return noticeDao.selectInit(id);
     }
 
-
     /**
-     * 保存公告
+     * 保存公告信息
      */
     @RequestMapping(value = "/notice", method = RequestMethod.POST)
-    public Notice insert(@RequestBody @Valid Notice notice, Errors rst)
-            throws BadRequestException {
+    public Notice insert(@RequestBody @Valid Notice notice, Errors rst) throws BadRequestException {
         if (rst.hasErrors()) {
             throw new BadRequestException(rst);
         }
-
         if (noticeDao.insert(notice) != 1) {
             throw new BadRequestException("保存失败！");
         } else {
@@ -70,7 +64,7 @@ public class NoticeController {
     }
 
     /**
-     * 更新公告
+     * 更新公告信息
      */
     @RequestMapping(value = "/notice/{id}", method = RequestMethod.PUT)
     public Notice update(@RequestBody @Valid Notice notice, Errors rst) throws BadRequestException {
@@ -81,18 +75,16 @@ public class NoticeController {
         } else {
             return notice;
         }
-
     }
 
     /**
-     * 审核
+     * 发布公告信息
      */
     @RequestMapping(value = "/noticePublish/{id}", method = RequestMethod.POST)
     public void publish(@PathVariable(value="id") Integer id) throws BadRequestException {
         if (noticeDao.publish(id) != 1) {
             throw new BadRequestException("保存失败！");
         }
-
     }
 
     /**

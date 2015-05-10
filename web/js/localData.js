@@ -8,7 +8,7 @@ var _LocalKV = {
         "t": "启用",
         "f": "停用"
     },
-    priority: {
+    "priority": {
         '50': '普通',
         '70': '紧急',
         '90': '最紧急'
@@ -37,7 +37,7 @@ var _LocalKV = {
         'WX': '微信',
         'OF': '线下'
     },
-    printStatus: {
+    "printStatus": {
         "0": "",
         "1": "运",
         "2": "配",
