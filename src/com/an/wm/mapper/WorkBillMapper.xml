@@ -153,6 +153,9 @@
         deal_by = #{dealBy,jdbcType=INTEGER},
         create_by = #{createBy,jdbcType=INTEGER},
         check_by = #{checkBy,jdbcType=INTEGER}
+        <if test="status != null">
+            ,status = #{status,jdbcType=VARCHAR}
+        </if>
         where id = #{id,jdbcType=INTEGER}
     </update>
 

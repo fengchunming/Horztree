@@ -42,7 +42,7 @@
         <where>
            status != 'd'
             <if test="orgType != null and orgType !=''">and org_type = #{orgType}</if>
-            <if test="orgName != null and orgName != ''">and org_name ilike concat('%',#{orgName},'%')</if>
+            <if test="orgName != null and orgName != ''">and org_name like concat('%', #{orgName}, '%')</if>
             <if test="status != null and status != ''">and status = #{status}</if>
         </where>
     </sql>

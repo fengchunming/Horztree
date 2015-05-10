@@ -176,7 +176,7 @@
 
     <select id="staffKV" resultType="java.util.HashMap">
         select staff_code k, concat(staff_code, ' - ' ,real_name) v
-        from SYS_USER where status = 't'
+        from SYS_USER where status = 't' and staff_code != ''
     </select>
 
 

@@ -3,7 +3,10 @@ package com.an.base.entity;
 import java.io.Serializable;
 
 public class Uom implements Serializable {
-    public enum UomType {
+
+	private static final long serialVersionUID = 1L;
+
+	public enum UomType {
         QTY, VOL, WGT
     }
 

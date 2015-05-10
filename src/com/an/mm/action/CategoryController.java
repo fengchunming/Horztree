@@ -100,15 +100,17 @@ public class CategoryController {
      * 通过主键ID查询商品分类详情
      */
     @RequestMapping(value = "/kv/category", method = RequestMethod.GET)
-    public Collection<Map<Integer, String>> selectCategory()
-            throws BadRequestException {
-
+    public Collection<Map<Integer, String>> selectCategory() throws BadRequestException {
         return categoryDao.selectKV(new HashMap<String, String>());
     }
 
+    /**
+     * 查询叶子节点的分类KV值
+     * @return
+     * @throws BadRequestException
+     */
     @RequestMapping(value = "/kv/categoryLeaf", method = RequestMethod.GET)
-    public Collection<Map<Integer, String>> loadSmallCategoryKV()
-            throws BadRequestException {
+    public Collection<Map<Integer, String>> loadSmallCategoryKV() throws BadRequestException {
         Map<String, String> param = new HashMap<>();
         param.put("isLeaf", "t");
         return categoryDao.selectKV(param);

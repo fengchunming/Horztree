@@ -33,13 +33,8 @@ public class ItemDao extends BaseDao<Item, Integer> {
         return sqlSession.selectOne(namespace + ".selectByPn", pn);
     }
 
-    public List<Item> selectByGoods(String goods) {
-        return sqlSession.selectList(namespace + ".selectByGoodsId", goods);
-    }
-
     public int updateMovingAveragePrice(Item goods) {
-        return sqlSession
-                .update(namespace + ".updateMovingAveragePrice", goods);
+        return sqlSession.update(namespace + ".updateMovingAveragePrice", goods);
     }
 
 

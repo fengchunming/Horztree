@@ -17,7 +17,7 @@
     <sql id="Where_Clause">
         <where>
             status != 'd'
-            <if test="name != null and name != ''"> and upper(name) like concat('%',upper(#{name}),'%')</if>
+            <if test="name != null and name != ''"> and upper(name) like concat('%', upper(#{name}), '%')</if>
             <if test="status != null and status != ''"> and status = #{status}</if>
         </where>
     </sql>

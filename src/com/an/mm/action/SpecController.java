@@ -19,20 +19,23 @@ import javax.validation.Valid;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * 后台系统-商品规格管理
+ *
+ * @author Karas   2012-03-08
+ */
+
 @Controller
 @RequestMapping("/mm")
 public class SpecController {
 
-    private static final Logger logger = LoggerFactory
-            .getLogger(SpecController.class);
+    private static final Logger logger = LoggerFactory.getLogger(SpecController.class);
 
     @Autowired
     private SpecDao specDao;
 
-
     @RequestMapping(value = "/spec/list", method = RequestMethod.GET)
-    public Map<?, ?> query(WebRequest request)
-            throws BadRequestException {
+    public Map<?, ?> query(WebRequest request) throws BadRequestException {
         Map<String, Object> mParam = Util.GetRequestMap(request);
         Map<String, Object> result = new HashMap<>();
         result.put("list", specDao.selectList(mParam));
@@ -41,15 +44,13 @@ public class SpecController {
     }
 
     @RequestMapping(value = "/spec/{id}", method = RequestMethod.GET)
-    public Spec load(@PathVariable(value="id") Integer id)
-            throws BadRequestException {
+    public Spec load(@PathVariable(value="id") Integer id) throws BadRequestException {
         return specDao.selectOne(id);
     }
 
 
     @RequestMapping(value = "/spec", method = RequestMethod.POST)
-    public Spec insert(@RequestBody @Valid Spec spec, Errors rst)
-            throws BadRequestException {
+    public Spec insert(@RequestBody @Valid Spec spec, Errors rst) throws BadRequestException {
         if (rst.hasErrors()) {
             throw new BadRequestException(rst);
         }

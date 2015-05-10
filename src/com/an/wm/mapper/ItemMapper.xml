@@ -4,77 +4,69 @@
     <cache eviction="LRU" type="com.an.core.mybatis.cache.RedisCache" />
     <resultMap id="BaseResultMap" type="com.an.wm.entity.Item">
         <id column="id" property="itemId" jdbcType="INTEGER"/>
-        <result column="goods_id" property="goodsId" jdbcType="INTEGER"/>
         <result column="pn" property="pn" jdbcType="VARCHAR"/>
+        <result column="barcode" property="barcode" jdbcType="VARCHAR"/>
         <result column="name" property="name" jdbcType="VARCHAR"/>
         <result column="type" property="type" jdbcType="VARCHAR"/>
-
-        <result column="barcode" property="barcode" jdbcType="VARCHAR"/>
+        <result column="short_name" property="shortName" jdbcType="VARCHAR"/>
         <result column="category" property="category" jdbcType="INTEGER"/>
         <result column="sku_uom" property="skuUom.id" jdbcType="INTEGER"/>
-
+        <result column="loss_rate" property="lossRate" jdbcType="NUMERIC"/>
         <result column="cost_price" property="costPrice" jdbcType="NUMERIC"/>
         <result column="avg_price" property="avgPrice" jdbcType="NUMERIC"/>
         <result column="sale_price" property="salePrice" jdbcType="NUMERIC"/>
-
-        <result column="input_tax" property="inputTax.id" jdbcType="INTEGER"/>
-        <result column="output_tax" property="outputTax.id" jdbcType="INTEGER"/>
-        <result column="turnover" property="turnover" jdbcType="INTEGER"/>
-        <result column="storage_type" property="storageType" jdbcType="INTEGER"/>
-        <result column="loss_rate" property="lossRate" jdbcType="NUMERIC"/>
-
-        <result column="safe_line" property="safeLine" jdbcType="INTEGER"/>
-        <result column="shelf_life" property="shelfLife" jdbcType="INTEGER"/>
-        <result column="remain_life" property="remainLife" jdbcType="INTEGER"/>
-        <result column="status" property="status" jdbcType="VARCHAR"/>
-        <result column="remark" property="remark" jdbcType="VARCHAR"/>
-
-        <result column="weight" property="weight" jdbcType="NUMERIC"/>
-        <result column="volume" property="volume" jdbcType="NUMERIC"/>
         <result column="supplier" property="supplier.id" jdbcType="INTEGER"/>
         <result column="belong" property="belong.id" jdbcType="INTEGER"/>
-
+        <result column="input_tax" property="inputTax.id" jdbcType="INTEGER"/>
+        <result column="output_tax" property="outputTax.id" jdbcType="INTEGER"/>
         <result column="batch_attr" property="batchAttr" typeHandler="com.an.core.mybatis.handlers.JsonTypeHandler"/>
+        <result column="usage_type" property="usageType" jdbcType="INTEGER"/> 
+        <result column="storage_type" property="storageType" jdbcType="INTEGER"/>             
+        <result column="turnover" property="turnover" jdbcType="INTEGER"/>
+        <result column="shelf_life" property="shelfLife" jdbcType="INTEGER"/>
+        <result column="remain_life" property="remainLife" jdbcType="INTEGER"/>
+        <result column="safe_line" property="safeLine" jdbcType="INTEGER"/>
+        <result column="weight" property="weight" jdbcType="NUMERIC"/>
+        <result column="volume" property="volume" jdbcType="NUMERIC"/>
+        <result column="status" property="status" jdbcType="VARCHAR"/>
+        <result column="remark" property="remark" jdbcType="VARCHAR"/>
     </resultMap>
+
     <sql id="Example_Where_Clause">
         <where>
             status != 'd'
-            <if test="_SH != null and _SH !=''">
-                and ( pn like concat('%',#{_SH},'%')
-                or name like concat('%',#{_SH},'%') )
+            <if test="_SH != null and _SH != ''">
+                and (pn like concat('%', #{_SH}, '%') or name like concat('%', #{_SH}, '%'))
             </if>
-            <if test="brand != null and brand !=''">
-                and brand = #{brand}
+            <if test="goodsName != null and goodsName != ''">
+                and name like concat('%', #{goodsName}, '%')
             </if>
-            <if test="pn != null and pn !=''">
+            <if test="pn != null and pn != ''">
                 and pn like concat('%', #{pn}, '%')
             </if>
-            <if test="goodsId != null and goodsId !=''">
-                and exists (select 1 from MM_GOODS_COMB where MM_GOODS_COMB.goods_id = #{goodsId} and MM_GOODS_COMB.item_id = WM_ITEM.id)
-            </if>
-            <if test="goodsCode != null and goodsCode !=''">
+            <if test="goodsCode != null and goodsCode != ''">
                 and pn = #{goodsCode}
             </if>
-            <if test="barcode != null and barcode !=''">
+            <if test="barcode != null and barcode != ''">
                 and barcode like concat('%', #{barcode}, '%')
             </if>
-            <if test="category != null and category !=''">
-                and exists (select 1 from MM_CATEGORY_GOODS where MM_GOODS.goods_id = MM_CATEGORY_GOODS.goods_id and category_id = #{category})
+            <if test="category != null and category != ''">
+                and category_id = #{category}
             </if>
-            <if test="goodsName != null and goodsName !=''">
-                and name like concat('%', #{goodsName}, '%')
+            <if test="brand != null and brand != ''">
+                and brand = #{brand}
             </if>
         </where>
     </sql>
 
     <sql id="Base_Column_List">
-        id, goods_id, pn, name, type, short_name,
-        barcode, category, shelf_life, remain_life, sku_uom,
-        cost_price, avg_price, sale_price, batch_attr,
-        input_tax, output_tax, turnover, storage_type,
-        loss_rate, weight, volume, safe_line,
-        supplier, belong, status, enter_at, remark
+        id, pn, barcode, name, type, short_name,
+        category, sku_uom, loss_rate, cost_price, avg_price, sale_price,
+        supplier, belong, input_tax, output_tax, batch_attr, usage_type,
+        storage_type, turnover, shelf_life, remain_life, safe_line, weight,
+        volume, status, remark, enter_at
     </sql>
+
     <select id="selectByExample" resultMap="BaseResultMap" parameterType="map">
         select
         <include refid="Base_Column_List"/>
@@ -90,13 +82,6 @@
         where id = #{value}
     </select>
 
-    <select id="selectByGoodsId" resultMap="BaseResultMap" parameterType="int">
-        select
-        <include refid="Base_Column_List"/>
-        from WM_ITEM
-        where goods_id = #{value}
-    </select>
-
     <select id="selectByPn" resultMap="BaseResultMap" parameterType="java.lang.String">
         select
         <include refid="Base_Column_List"/>
@@ -107,28 +92,20 @@
     <delete id="deleteByPrimaryKey" parameterType="int">
         update WM_ITEM
         set status = 'd', enter_at = now()
-        where id = #{id,jdbcType=INTEGER}
+        where id = #{id, jdbcType=INTEGER}
     </delete>
 
     <insert id="insert" parameterType="com.an.wm.entity.Item">
-        insert into WM_ITEM (
-            goods_id, pn, name, type, short_name, batch_attr,
-            barcode, category, shelf_life, remain_life, sku_uom,
-            cost_price, avg_price, sale_price,
-            input_tax, output_tax, turnover, storage_type,
-            loss_rate, weight, volume, safe_line,
-            supplier, belong, status, enter_at, remark )
-        values ( #{goodsId,jdbcType=INTEGER}, #{pn,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR},
-            #{type,jdbcType=VARCHAR}, #{shortName,jdbcType=VARCHAR},
-            #{batchAttr,typeHandler=com.an.core.mybatis.handlers.JsonTypeHandler},#{barcode,jdbcType=VARCHAR},
-            #{category,jdbcType=INTEGER}, #{shelfLife,jdbcType=INTEGER},
-            #{remainLife,jdbcType=INTEGER}, #{skuUom.id,jdbcType=INTEGER},
-            #{costPrice,jdbcType=NUMERIC}, #{costPrice,jdbcType=NUMERIC}, #{salePrice,jdbcType=NUMERIC},
-            #{inputTax.id,jdbcType=INTEGER}, #{outputTax.id,jdbcType=INTEGER},
-            #{turnover,jdbcType=INTEGER}, #{storageType,jdbcType=INTEGER}, #{lossRate,jdbcType=NUMERIC},
-            #{weight,jdbcType=NUMERIC}, #{volume,jdbcType=NUMERIC}, #{safeLine,jdbcType=INTEGER},
-            #{supplier.id,jdbcType=INTEGER}, #{belong.id,jdbcType=INTEGER},
-            #{status,jdbcType=VARCHAR}, now(), #{remark,jdbcType=VARCHAR} )
+        insert into WM_ITEM (pn, barcode, name, type, short_name,
+            category, sku_uom, loss_rate, cost_price, avg_price, sale_price,
+            supplier, belong, input_tax, output_tax, batch_attr, usage_type,
+            storage_type, turnover, shelf_life, remain_life, safe_line, weight,
+            volume, status, remark, enter_at)
+        values (#{pn,jdbcType=VARCHAR}, #{barcode,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, #{shortName,jdbcType=VARCHAR},
+            #{category,jdbcType=INTEGER}, #{skuUom.id,jdbcType=INTEGER}, #{lossRate,jdbcType=NUMERIC}, #{costPrice,jdbcType=NUMERIC}, #{avgPrice,jdbcType=NUMERIC}, #{salePrice,jdbcType=NUMERIC},
+            #{supplier.id,jdbcType=INTEGER}, #{belong.id,jdbcType=INTEGER}, #{inputTax.id,jdbcType=INTEGER}, #{outputTax.id,jdbcType=INTEGER}, #{batchAttr,typeHandler=com.an.core.mybatis.handlers.JsonTypeHandler}, #{usageType,jdbcType=INTEGER},
+            #{storageType,jdbcType=INTEGER}, #{turnover,jdbcType=INTEGER}, #{shelfLife,jdbcType=INTEGER}, #{remainLife,jdbcType=INTEGER}, #{safeLine,jdbcType=INTEGER}, #{weight,jdbcType=NUMERIC},
+            #{volume,jdbcType=NUMERIC}, #{status,jdbcType=VARCHAR}, #{remark,jdbcType=VARCHAR}, now())
         <selectKey resultType="int" keyProperty="id">
             SELECT @@IDENTITY AS id
         </selectKey>
@@ -140,34 +117,33 @@
     </select>
 
     <update id="updateByPrimaryKey" parameterType="com.an.wm.entity.Item">
-        update WM_ITEM
-        set
-        goods_id = #{goodsId,jdbcType=INTEGER},
-        barcode = #{barcode,jdbcType=VARCHAR},
+        update WM_ITEM set
         pn = #{pn,jdbcType=VARCHAR},
-        remark = #{remark,jdbcType=VARCHAR},
+        barcode = #{barcode,jdbcType=VARCHAR},
         name = #{name,jdbcType=VARCHAR},
         type = #{type,jdbcType=VARCHAR},
         short_name = #{shortName,jdbcType=VARCHAR},
-        supplier = #{supplier.id,jdbcType=INTEGER},
-        belong = #{belong.id,jdbcType=INTEGER},
         category = #{category,jdbcType=INTEGER},
-        shelf_life = #{shelfLife,jdbcType=INTEGER},
-        remain_life = #{remainLife,jdbcType=INTEGER},
         sku_uom = #{skuUom.id,jdbcType=INTEGER},
         loss_rate = #{lossRate,jdbcType=NUMERIC},
         cost_price = #{costPrice,jdbcType=NUMERIC},
+        avg_price = #{avgPrice,jdbcType=NUMERIC},
         sale_price = #{salePrice,jdbcType=NUMERIC},
-        safe_line = #{safeLine,jdbcType=INTEGER},
+        supplier = #{supplier.id,jdbcType=INTEGER},
+        belong = #{belong.id,jdbcType=INTEGER},
         input_tax = #{inputTax.id,jdbcType=INTEGER},
         output_tax = #{outputTax.id,jdbcType=INTEGER},
         batch_attr = #{batchAttr,typeHandler=com.an.core.mybatis.handlers.JsonTypeHandler},
-        turnover = #{turnover,jdbcType=INTEGER},
-        storage_type = #{storageType,jdbcType=INTEGER},
         usage_type = #{usageType,jdbcType=INTEGER},
-        status = #{status,jdbcType=VARCHAR},
+        storage_type = #{storageType,jdbcType=INTEGER},
+        turnover = #{turnover,jdbcType=INTEGER},
+        shelf_life = #{shelfLife,jdbcType=INTEGER},
+        remain_life = #{remainLife,jdbcType=INTEGER},
+        safe_line = #{safeLine,jdbcType=INTEGER},
         weight = #{weight,jdbcType=NUMERIC},
         volume = #{volume,jdbcType=NUMERIC},
+        status = #{status,jdbcType=VARCHAR},
+        remark = #{remark,jdbcType=VARCHAR},
         enter_at = now()
         where id = #{itemId,jdbcType=INTEGER}
     </update>

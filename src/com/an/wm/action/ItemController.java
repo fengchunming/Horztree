@@ -19,7 +19,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 /**
- * 后台系统商品分类管理
+ * 后台系统货品档案管理
  *
  * @author Karas   2012-03-08
  */
@@ -28,15 +28,13 @@ import java.util.Map;
 @RequestMapping("/wm")
 public class ItemController {
 
-    private static final Logger logger = LoggerFactory
-            .getLogger(ItemController.class);
+    private static final Logger logger = LoggerFactory.getLogger(ItemController.class);
 
     @Autowired
     private ItemDao itemDao;
 
     @RequestMapping(value = "/item/list", method = RequestMethod.GET)
-    public Map<?, ?> query(WebRequest request)
-            throws BadRequestException {
+    public Map<?, ?> query(WebRequest request) throws BadRequestException {
         Map<String, Object> mParam = Util.GetRequestMap(request);
         Map<String, Object> result = new HashMap<>();
         result.put("list", itemDao.selectList(mParam));

@@ -26,7 +26,6 @@ import java.util.Map;
 @Service
 public class InventoryService {
 
-
     @Autowired
     private InventoryDao invDao;
 
@@ -41,7 +40,6 @@ public class InventoryService {
 
     /**
      * 收货
-     *
      * @param item 收货明细
      * @return 库存记录
      * @throws BadRequestException
@@ -69,8 +67,7 @@ public class InventoryService {
     }
 
     /**
-     * 调拨入库
-     *
+     * 调拨出库入库
      * @param item
      * @throws BadRequestException
      */
@@ -81,10 +78,8 @@ public class InventoryService {
         append(item);
     }
 
-
     /**
      * 发货出库
-     *
      * @param item
      * @throws BadRequestException
      */
@@ -125,8 +120,7 @@ public class InventoryService {
 
         Item stock = invDao.selectOne(item.getStockId());
         stock.setAdjustQuantity(item.getRealQuantity().negate());
-        stock.setRealQuantity(stock.getRealQuantity().subtract(
-                item.getRealQuantity()));
+        stock.setRealQuantity(stock.getRealQuantity().subtract(item.getRealQuantity()));
         invDao.save(stock);
         stock.setTarget(item.getTarget());
         snapshot(stock, item.getBillId());
@@ -218,7 +212,9 @@ public class InventoryService {
                 newOne.setRealQuantity(skuQty);
                 newOne.setAdjustQuantity(skuQty);
                 newOne.setUom(stock.getSkuUom());
+                newOne.setTarget(item.getTarget());
                 invDao.save(newOne);
+                
                 snapshot(newOne, item.getBillId());
 
                 // 如果剩余数量可以整除原库存单位
@@ -267,8 +263,7 @@ public class InventoryService {
      */
     private void reduce(Item item) throws BadRequestException {
         // 转换到SKU单位数量
-        BigDecimal skuQty = item.getRealQuantity().multiply(
-                item.getUom().getPackQuantity());
+        BigDecimal skuQty = item.getRealQuantity().multiply(item.getUom().getPackQuantity());
 
         Collection<Item> stocks = loadStocks(item, "normal");
         for (Item stock : stocks) {
@@ -277,32 +272,24 @@ public class InventoryService {
                 continue;
 
             // 库存足够扣减
-            if (stock.getRealQuantity()
-                    .multiply(stock.getUom().getPackQuantity())
-                    .compareTo(skuQty) > 0) {
+            if (stock.getRealQuantity().multiply(stock.getUom().getPackQuantity()).compareTo(skuQty) > 0) {
 
                 // 转换库存单位数量
-                BigDecimal stockQty = stock.getRealQuantity().multiply(
-                        stock.getUom().getPackQuantity());
+                BigDecimal stockQty = stock.getRealQuantity().multiply(stock.getUom().getPackQuantity());
                 stockQty = stockQty.subtract(skuQty);
 
                 // 如果剩余数量可以整除原库存单位
-                if (stockQty.divide(stock.getUom().getPackQuantity(), 0,
-                        BigDecimal.ROUND_CEILING).compareTo(
-                        stockQty.divide(stock.getUom().getPackQuantity(),
-                                0, BigDecimal.ROUND_FLOOR)) == 0) {
+                if (stockQty.divide(stock.getUom().getPackQuantity(), 0, BigDecimal.ROUND_CEILING).compareTo(
+                        stockQty.divide(stock.getUom().getPackQuantity(), 0, BigDecimal.ROUND_FLOOR)) == 0) {
 
                     // 把剩余数量转换成原库存单位
-                    stock.setRealQuantity(stockQty.divide(stock.getUom()
-                            .getPackQuantity(), 0, BigDecimal.ROUND_CEILING));
+                    stock.setRealQuantity(stockQty.divide(stock.getUom().getPackQuantity(), 0, BigDecimal.ROUND_CEILING));
                     stock.setAdjustQuantity(skuQty.negate());
                 } else {
                     // 转换成SKU单位
                     stock.setUom(stock.getSkuUom());
                     stock.setRealQuantity(stockQty);
-                    stock.setAdjustQuantity(skuQty.divide(
-                            stock.getUom().getPackQuantity(), 4,
-                            BigDecimal.ROUND_HALF_UP).negate());
+                    stock.setAdjustQuantity(skuQty.divide(stock.getUom().getPackQuantity(), 4, BigDecimal.ROUND_HALF_UP).negate());
                 }
 
                 // 足够扣减，归零
@@ -310,11 +297,10 @@ public class InventoryService {
 
             } else { // 库存不足扣减
                 stock.setAdjustQuantity(stock.getRealQuantity().negate());
-                skuQty = skuQty.subtract(stock.getRealQuantity().multiply(
-                        stock.getUom().getPackQuantity()));
+                skuQty = skuQty.subtract(stock.getRealQuantity().multiply(stock.getUom().getPackQuantity()));
                 stock.setRealQuantity(new BigDecimal(0));
             }
-
+            stock.setTarget(item.getTarget());
             snapshot(stock, item.getBillId());
             invDao.save(stock);
             if (skuQty.compareTo(new BigDecimal(0)) == 0) {
@@ -376,7 +362,7 @@ public class InventoryService {
         Map<String,Object> param = new HashMap<>();
 //      goodsDao.updateStock();Integer groupId, String pn, Integer itemId
 //      logDao.save(stock);
-        Integer groupId = stock.getBill().getTo().getWarehouse();
+        Integer groupId = stock.getTarget().getWarehouse();
         String pn = stock.getPn();
         Integer itemId = bill;
         goodsDao.updateStock(groupId, pn, itemId);

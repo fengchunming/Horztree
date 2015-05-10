@@ -27,12 +27,10 @@ import java.util.Map;
 @RequestMapping("/base")
 public class UomController {
 
-    private static final Logger logger = LoggerFactory
-            .getLogger(UomController.class);
+    private static final Logger logger = LoggerFactory.getLogger(UomController.class);
 
     @Autowired
     private UomDao uomDao;
-
 
     @RequestMapping(value = "/uom/list", method = RequestMethod.GET)
     public Map<?, ?> query(WebRequest request) throws BadRequestException {
@@ -48,7 +46,6 @@ public class UomController {
     public Uom load(@PathVariable("id") int id) throws BadRequestException {
         return uomDao.selectOne(id);
     }
-
 
     @RequestMapping(value = "/uom", method = RequestMethod.POST)
     public Uom insert(@RequestBody Uom uom) throws BadRequestException {
@@ -69,18 +66,15 @@ public class UomController {
     }
 
     @RequestMapping(value = "/uom/{id}", method = RequestMethod.DELETE)
-    public void delete(@PathVariable("id") int id)
-            throws BadRequestException {
+    public void delete(@PathVariable("id") int id) throws BadRequestException {
         if (uomDao.delete(id) <= 0)
             throw new BadRequestException("删除失败");
     }
 
     @RequestMapping(value = "/kv/uom", method = RequestMethod.GET)
-    public Collection<Map<Integer, String>> selectUom()
-            throws BadRequestException {
+    public Collection<Map<Integer, String>> selectUom() throws BadRequestException {
         return uomDao.selectKV();
     }
-
 
     @ExceptionHandler(BadRequestException.class)
     @ResponseStatus(value = HttpStatus.BAD_REQUEST)

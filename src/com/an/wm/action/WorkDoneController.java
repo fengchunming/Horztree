@@ -70,8 +70,7 @@ public class WorkDoneController {
 
     @RequestMapping(value = "/checkIssue/{billCode}", method = RequestMethod.GET)
     @Transactional
-    public void checkIssueBill(@PathVariable("billCode") int id)
-            throws BadRequestException {
+    public void checkIssueBill(@PathVariable("billCode") int id) throws BadRequestException {
         WorkBill bill = billDao.selectOne(id);
         if (bill.getStatus().equals("1"))
             throw new BadRequestException("发货单已确认！");
@@ -91,9 +90,14 @@ public class WorkDoneController {
         billDao.updateStatus(bill);
     }
 
+    /**
+     * 调拨单确认
+     * @param billCode
+     * @throws BadRequestException
+     */
     @RequestMapping(value = "/checkTransit/{billCode}", method = RequestMethod.GET)
-    public void checkTransit(@PathVariable("billCode") int billCode)
-            throws BadRequestException {
+    @Transactional
+    public void checkTransit(@PathVariable("billCode") int billCode) throws BadRequestException {
         WorkBill bill = billDao.selectOne(billCode);
         if ("1".equals(bill.getStatus())) {
             throw new BadRequestException("调拨单已确认!");
@@ -103,8 +107,8 @@ public class WorkDoneController {
         for (Item item : items) {
             if (item.getStatus().equals("1"))
                 continue;
-            item.setStatus("1");
             stockService.transit(item);
+            item.setStatus("1");
             detailDao.save(item);
         }
 
@@ -117,8 +121,7 @@ public class WorkDoneController {
      * @param billCode
      */
     @RequestMapping(value = "/checkMove/{billCode}", method = RequestMethod.GET)
-    public void checkMove(@PathVariable("billCode") int billCode)
-            throws BadRequestException {
+    public void checkMove(@PathVariable("billCode") int billCode) throws BadRequestException {
         WorkBill bill = billDao.selectOne(billCode);
         if ("1".equals(bill.getStatus())) {
             throw new BadRequestException("移库单已确认!");
@@ -142,9 +145,7 @@ public class WorkDoneController {
      * 生成上架单并 保存上架明细
      */
     @RequestMapping(value = "/saveOnshelfDetails/{billCode}", method = RequestMethod.POST)
-    public void saveOnshelfDetails(@RequestBody Item items[],
-                                   @PathVariable("billCode") String billCode)
-            throws BadRequestException {
+    public void saveOnshelfDetails(@RequestBody Item items[], @PathVariable("billCode") String billCode) throws BadRequestException {
         WorkBill bill;
         WorkBill origin = billDao.selectByCode(billCode);
         List<WorkBill> bills = billDao.selectByOrigin(billCode, "input");

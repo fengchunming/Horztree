@@ -32,10 +32,8 @@
            status != 'd'
             <if test="itemId != null and itemId != ''">and item_id = #{itemId}</if>
             <if test="pn != null and pn != ''">and pn = #{pn}</if>
-            <if test="name != null and name != ''">and name like concat('%',#{goods},'%')</if>
-            <if test="goods != null and goods != ''">and
-                ( pn = #{goods} or barcode = #{goods} or name like concat('%',#{goods},'%') )
-            </if>
+            <if test="name != null and name != ''">and name like concat('%', #{goods}, '%')</if>
+            <if test="goods != null and goods != ''">and (pn = #{goods} or barcode = #{goods} or name like concat('%', #{goods}, '%'))</if>
             <if test="belong != null and belong != ''">and belong = #{belong}</if>
             <if test="warehouse != null and warehouse != ''">and warehouse = #{warehouse}</if>
             <!--<if test="usage != null and usage != ''">and usage_type = #{usage}</if>-->

@@ -9,13 +9,14 @@
         <result column="abbr" jdbcType="VARCHAR" property="abbr"/>
         <result column="type" jdbcType="VARCHAR" property="type"/>
         <result column="symbol" jdbcType="VARCHAR" property="symbol"/>
-        <result column="status" jdbcType="VARCHAR" property="status"/>
         <result column="remark" jdbcType="VARCHAR" property="remark"/>
+        <result column="status" jdbcType="VARCHAR" property="status"/>
     </resultMap>
     <sql id="Base_Where_Clause">
         <where>
            status != 'd'
-            <if test="uomName != null and uomName != ''">and name like concat('%',#{name},'%')</if>
+            <if test="name != null and name != ''">and name like concat('%', #{name}, '%')</if>
+            <if test="status != null and status != ''">and status = #{status}</if>
         </where>
     </sql>
     <sql id="Base_Column_List">
@@ -27,7 +28,6 @@
         <include refid="Base_Column_List"/>
         from BASE_UOM
         <include refid="Base_Where_Clause"/>
-
         <if test="_BY != null">order by ${_BY}</if>
     </select>
 
@@ -37,8 +37,7 @@
         from BASE_UOM
     </select>
 
-    <select id="selectByPrimaryKey" parameterType="java.lang.Integer"
-            resultMap="BaseResultMap">
+    <select id="selectByPrimaryKey" parameterType="java.lang.Integer" resultMap="BaseResultMap">
         select
         <include refid="Base_Column_List"/>
         from BASE_UOM
@@ -47,21 +46,20 @@
 
     <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
         update BASE_UOM
-        set status = 'trash', enter_at = now()
+        set status = 'd', enter_at = now()
         where id = #{id,jdbcType=INTEGER}
     </delete>
     
     <insert id="insert" parameterType="com.an.base.entity.Uom">
-        insert into BASE_UOM (code, name, abbr,
-        type, symbol, remark, status , enter_at)
-        values (#{code,jdbcType=VARCHAR},
-        #{name,jdbcType=VARCHAR},#{abbr,jdbcType=VARCHAR},
-        #{type,jdbcType=VARCHAR},#{symbol,jdbcType=VARCHAR},
+        insert into BASE_UOM (code, name, abbr, type, symbol, remark, status, enter_at)
+        values (#{code,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR},#{abbr,jdbcType=VARCHAR},
+        #{type,jdbcType=VARCHAR}, #{symbol,jdbcType=VARCHAR},
         #{remark,jdbcType=VARCHAR}, #{status,jdbcType=VARCHAR}, now())
         <selectKey resultType="java.lang.Integer" keyProperty="id">
             SELECT @@IDENTITY AS id
         </selectKey>
     </insert>
+    
     <select id="countByExample" parameterType="map" resultType="java.lang.Integer">
         select count(1) from BASE_UOM
         <include refid="Base_Where_Clause"/>
@@ -69,13 +67,14 @@
     <update id="updateByPrimaryKey" parameterType="com.an.base.entity.Uom">
         update BASE_UOM
         set
+        code = #{code,jdbcType=VARCHAR},
         name = #{name,jdbcType=VARCHAR},
         abbr = #{abbr,jdbcType=VARCHAR},
         type = #{type,jdbcType=VARCHAR},
         symbol = #{symbol,jdbcType=VARCHAR},
+        remark = #{remark,jdbcType=VARCHAR}
         status = #{status,jdbcType=VARCHAR},
         enter_at = now(),
-        remark = #{remark,jdbcType=VARCHAR}
         where id = #{id,jdbcType=INTEGER}
     </update>
     <select id="selectKV" resultType="java.util.HashMap">

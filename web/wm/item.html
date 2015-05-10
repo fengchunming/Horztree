@@ -19,9 +19,9 @@
                     {label: '编码', key: 'pn', sort: true, thcss: 'width:100px'},
                     {label: '名称', key: 'name', sort: true},
                     {label: '条码', key: 'barcode', sort: true, thcss: 'width:100px'},
-                    {label: '分类', key: 'category', local: 'mm/kv/category', sort: true, thcss: 'width:200px'},
-                    {label: '价格', key: 'costPrice', sort: true, thcss: 'width:70px;'},
-                    {label: '安全库存', key: 'safeLine', sort: true, thcss: 'width:70px;'},
+//                    {label: '分类', key: 'category', local: 'mm/kv/category', thcss: 'width:200px'},
+                    {label: '价格', key: 'costPrice', thcss: 'width:70px;'},
+                    {label: '安全库存', key: 'safeLine', thcss: 'width:70px;'},
                     {label: '单位', key: 'skuUom.id', local: 'base/kv/uom', thcss: 'width:60px;'},
                     {label: '状态', key: 'status', local: 'status', thcss: 'width:45px;'}
                 ]
@@ -54,6 +54,7 @@
                 <label>商品条码：</label>
                 <input type="text" name="barcode"/>
             </li>
+            <!-- 
             <li>
                 <label>分类：</label>
                 <select name="category" data-local="mm/kv/categoryLeaf">
@@ -66,6 +67,7 @@
                     <option value="">所有</option>
                 </select>
             </li>
+             -->
             <li>
                 <button class="search"><i></i>查询</button>
             </li>
