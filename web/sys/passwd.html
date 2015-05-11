@@ -52,9 +52,37 @@
                 params.newPasswd = $.sha1(user.userName + params.newPasswd);
                 params.oldPasswd = $.sha1($.sha1(user.userName + params.oldPasswd) + params.newPasswd);
                 delete params.rePasswd;
-                $.post('rest/sec/passwd', params, function () {
-                    location.reload();
+                
+                $.ajax({
+                    url: 'rest/sec/passwd',
+                    type: "POST",
+                    data: params,
+                    error: function (jqxhr) {
+                        var ex = {};
+                        try {
+                            ex = JSON.parse(jqxhr.responseText);
+                        } catch (e) {
+                            ex['exception'] = "错误:" + jqxhr.status + "，" + jqxhr.statusText;
+                        }
+
+                        if (jqxhr.status == 0 && jqxhr.statusText == 'error') {
+                            ex['exception'] = "系统错误<br>无法连接服务器";
+                        } else if (jqxhr.status == 0 && jqxhr.statusText == 'canceled') {
+                            ex['exception'] = "请求失败，被系统取消";
+                        } else if (jqxhr.status == 406) {
+                            
+                        } else {
+                            $.sticky(ex.exception);
+                        }
+                    },
+                    success: function (data) {
+                        location.reload();
+                    }
                 });
+                
+                
+                
+                
                 return false;
             });
             $('#logout').click(function () {

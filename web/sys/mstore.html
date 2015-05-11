@@ -3,7 +3,7 @@
 <head>
     <script>
         $(function () {
-            _LocalKV.store_status = {
+            _LocalKV.mstoreStatus = {
                 "t": "启用",
                 "f": "停用",
                 "s": "休息"
@@ -25,7 +25,7 @@
                     {label: '电话', key: 'tel'},
                     {label: '邮箱', key: 'email'},
                     {label: '负责人', key: 'linkman'},
-                    {label: '状态', key: 'status', local: 'store_status',thcss:'width:50px'}
+                    {label: '状态', key: 'status', local: 'mstoreStatus',thcss:'width:50px'}
                 ]
             });
 
@@ -117,7 +117,7 @@
                 </li>
                 <li>
                     <label>状态:</label>
-                    <select name="status" data-local="store_status" style="width:203px;"></select>
+                    <select name="status" data-local="mstoreStatus" style="width:203px;"></select>
                 </li>
             </ol>
         </form>

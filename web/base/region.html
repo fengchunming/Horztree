@@ -3,6 +3,11 @@
 <head>
     <script>
         $(function () {
+            _LocalKV.regionStatus = {
+                "t": "启用",
+                "f": "停用",
+                "s": "休息"
+            };
             App.Region = App.Model.extend({
                 urlRoot: 'rest/base/region',
                 idAttribute: 'id',
@@ -89,7 +94,7 @@
                 </li>
                 <li>
                     <label>状态:</label>
-                    <select name="status" data-local="status"></select>
+                    <select name="status" data-local="regionStatus"></select>
                 </li>
             </ol>
         </form>

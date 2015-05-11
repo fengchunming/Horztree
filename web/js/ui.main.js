@@ -92,7 +92,7 @@ $(function () {
                 + '</div><div id="userinfo">'
                 + '<a href="#sys/message.html"><i class="white" style="background-position: -16px -113px;"></i><span id="messageNum"></span></a>'
                 + '<i class="white" style="background-position:-144px -97px;"></i>'
-                + '<span style="text-align:left;display: inline-block; max-width: 120px; height:13px;vertical-align: bottom; white-space: nowrap; word-break: keep-all; overflow: hidden; text-overflow: ellipsis; padding-left: 5px;">'
+                + '<span style="text-align:left;display: inline-block; max-width: 250px; height:13px;vertical-align: bottom; white-space: nowrap; word-break: keep-all; overflow: hidden; text-overflow: ellipsis; padding-left: 5px;">'
                 + data['user'].userName + " - " + data['user'].realName + '</span>'
                 + ' [<a href="rest/sec/logout?_=' + new Date().getTime() + '" style="color:#fff;">退出</a>]'
                 + '<span class="contact" style="color:#fff;margin-left:7px"><i class="white"></i></span>'
