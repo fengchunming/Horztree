@@ -18,6 +18,7 @@
     <sql id="Example_Where_Clause">
         <where>
             status != 'd'
+            <if test="own">and group_id in (#groups)</if>
             <if test="group != null and group !=''">and group_id = #{group,jdbcType=INTEGER}</if>
             <if test="parent != null and parent > -1 "> and parent = #{parent,jdbcType=INTEGER}</if>
             <if test="step != null and step > 0 ">and step = #{step,jdbcType=INTEGER}</if>
@@ -91,7 +92,12 @@
         depth = concat(#{depth}, LPAD(#{sort}, 4, 0), LPAD(id, 4, 0))
         where parent = #{id}
     </update>
-
+    
+    <update id="updateStatus" parameterType="com.an.base.entity.Region">
+        update BASE_REGION
+        set status = #{status,jdbcType=VARCHAR}
+        where id = #{id}
+    </update>
 
     <select id="selectKV" resultType="java.util.HashMap">
         select id as k, name as v, step from BASE_REGION

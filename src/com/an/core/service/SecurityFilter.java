@@ -24,7 +24,7 @@ public class SecurityFilter extends HttpServlet implements Filter {
     private static final long serialVersionUID = -4275105240038370264L;
     private static Logger logger = Logger.getLogger(SecurityFilter.class);
 
-    private static final String exclude = "sys/login.html,sec/logout,sec/user,sec/login";
+    private static final String exclude = "sys/login.html,sec/logout,sec/user,sec/login,sec/passwd";
     public static ThreadLocal<User> threadLocal = new ThreadLocal<>();
 
     public void init(FilterConfig config) throws ServletException {

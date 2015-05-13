@@ -30,11 +30,11 @@ import java.util.Map;
 @Controller
 @RequestMapping("/sys")
 public class UserController {
-    private static final Logger logger = LoggerFactory
-            .getLogger(UserController.class);
+
+    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
+
     @Autowired
     private UserDao userDao;
-
 
     /**
      * 查询用户列表

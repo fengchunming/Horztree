@@ -29,7 +29,7 @@ public class GroupController {
     private GroupDao groupDao;
 
     /**
-     * 分类查询当前用户所属的所有网点
+     * 分类查询所有网点
      * @param type w-总仓,s-网点,m-夜猫店
      * @param request
      * @return

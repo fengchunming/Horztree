@@ -65,5 +65,9 @@ public class RegionDao extends BaseDao<Region, Integer> {
     public Collection<Map<Integer, String>> selectKV() {
         return sqlSession.selectList(namespace + ".selectKV");
     }
+    public int updateStatus(Region region) {
+        return sqlSession.update(namespace + ".updateStatus", region);
+    }
+    
 
 }

@@ -23,8 +23,7 @@ public class UserDao extends BaseDao<User, Integer> {
     }
 
     public boolean authority(String username, String password, String salt) {
-        String pwd = sqlSession.selectOne(namespace + ".selectPassword",
-                username);
+        String pwd = sqlSession.selectOne(namespace + ".selectPassword", username);
         return pwd != null && Digest.SHA1(
                 Digest.byte2Hex(Base64.decodeBase64(pwd)) + salt,
                 Digest.Cipher.HEX)
