@@ -3,10 +3,18 @@
 <head>
     <script>
         $(function () {
+        	_LocalKV.newTradeStatus = {
+                "0": "待支付",
+                "1": "<span style='color:red;font-weight:bold;'>待发货</span>",
+                "3": "已发货",
+                "4": "已完结",
+                "5": "已取消"
+            },
             App.Trade = App.Model.extend({
                 defaults: {discountTotal: 0, billDate: new Date().format('isoDate'), amount: 0, itemTotal: 0},
                 urlRoot: 'rest/trade/bill',
                 idAttribute: 'id',
+                //双击调用edit
                 edit: function () {
                     if (this.isNew()) App.details.reset();
                     else App.details.load('rest/trade/details/' + this.id);
@@ -22,7 +30,7 @@
                     {key: 'id', type: 'checkbox', style: "width:20px"},
                     {label: '订单号', key: 'billCode', sort: true, thcss: 'width:100px'},
                     {label: '下单时间', key: 'dealStamp', sort: true, thcss: 'width:120px'},
-                    {label: '状态', key: 'status', local: 'tradeStatus', thcss: 'width:60px'},
+                    {label: '状态', key: 'status', local: 'newTradeStatus', thcss: 'width:60px'},
                     {label: '类型', key: 'billType', sort: true, local: 'tradeType', thcss: 'width:60px'},
                     {label: '收货人', key: 'addr.linkman', sort: 'ship_name', thcss: 'width:80px'},
                     {label: '金额', key: 'amount', sort: true, thcss: 'width:60px'},
@@ -95,6 +103,43 @@
                 form: new App.TradeFormView,
                 toolbar: [{'print': '打印'}, {'check': '发货'}],
                 qel: '.queryBar',
+                search: function () { // 查询列表
+                	
+                    this.collection.currentPage = 0;
+                    if (this.querybar) {
+                        _.extend(this.collection.param, this.querybar.serializeObject());
+                    }
+                   
+                    if (this.collection.param.autoSearchFlag === true) {
+                    	var self = this;
+                    	window.autoSearchInterval = setInterval(function(){   
+                    		self.collection.load();
+                    	}, 1000*60*5);
+                    } else {
+                    	window.clearInterval(window.autoSearchInterval);
+                    }
+                    
+                    this.collection.load();
+                },
+                
+                afterLoad: function () {
+                    var hasUnSend = false;
+                    _.each(this.collection.models, function (model) {
+                    	if (model.get("status") == '1') {
+                    		hasUnSend = true;
+                    		return false;
+                    	}
+                    });
+                    if (hasUnSend) {
+                    	$.sticky("您有未发货订单，请及时处理!");
+                    	if(document.getElementById("autoSearch").checked){
+	                    	var myAuto = document.getElementById('myaudio');
+	                		myAuto.load();
+	                		myAuto.play();
+                    	}
+                    }
+                },
+
                 check: function () {
                     if (confirm('是否确认发货？')) {
                         var ids = this.collection.selectIds();
@@ -302,10 +347,10 @@
                 <input type="text" class="mindatepicker" name="sdate"> -
                 <input type="text" class="maxdatepicker" name="edate">
             </li>
-            <li>
+            <!-- <li>
                 <label>会员：</label>
                 <input type="text" name="consumer">
-            </li>
+            </li> -->
             <li>
                 <label>订单信息：</label>
                 <input type="text" name="receiver">
@@ -316,6 +361,11 @@
                     <option></option>
                 </select>
             </li>
+            <li>
+                <label title="自动查询，有未发货订单，播放铃声"><input type="checkbox" name="autoSearchFlag" id="autoSearch">铃声    </label>&nbsp;&nbsp;&nbsp;                   
+                <audio id="myaudio" src="images/music.mp3"  ></audio>
+            </li>
+            
             <li>
                 <button class="search"><i></i>查询</button>
                 <button type="reset" class="reset"><i></i>重置</button>
