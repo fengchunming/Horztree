@@ -42,6 +42,7 @@
 
             App.GoodsList = App.Collection.extend({
                 model: App.Goods,
+                param:{status:'t'},
                 columns: [
                     {key: 'selected', thcss: 'width:25px', type: 'checkbox', sort: true},
                     {label: '名称', key: 'name', sort: true},
@@ -79,8 +80,6 @@
                                 model.selected = true;
                             } else {
                                 model.set('price', null);
-                                model.isRemoved = true ;
-                                //model.set('tr','display:none');
                                 model.selected = false;
                             }
                             model.disabled = false;
@@ -143,7 +142,7 @@
             App.Group = App.Model.extend({
                 disabled: true,
                 focus: function () {
-                    var m = this; 
+                    var m = this;
                     if (pattern === 'group') {
                         App.groupGrid.focus = m;
                         if (m.get('link')) {
@@ -202,10 +201,6 @@
                             } else {
                                 model.set('price', null);
                                 model.selected = false;
-                                model.hidden=true;
-                                model.set({display:'none'});
-                                //model.displ='none';
-                                //model.set('display','none');
                             }
                             model.disabled = false;
                             model.row.render();
@@ -243,14 +238,13 @@
                 <select name="category" data-local="mm/kv/category">
                     <option value="">所有</option>
                 </select>
-            </li>
-           
+            </li>           
             <li>
                 <button class="search"><i></i>查询</button>
             </li>
             <li class="toolBar"></li>
         </ul>
-        <input type="hidden" name="status" value="t"></input> 
+      <!--   <input type="hidden" name="status" value="t"></input>  -->
     </form>
     <div id="goodsGrid" style="float:left;height:620px;width:74%;overflow:auto">
         <div class="dataGrid">

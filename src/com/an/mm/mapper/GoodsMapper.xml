@@ -29,7 +29,12 @@
 
     <sql id="Example_Where_Clause">
         <where>
-            status != 'd'
+            <if test="status == null">
+                status != 'd' 
+            </if>
+            <if test="status != null and status !=''">
+                status = #{status}
+            </if>
             <if test="_SH != null and _SH !=''">
                 and ( goods_code like concat('%',#{_SH},'%')
                 or goods_name like concat('%',#{_SH},'%') )
@@ -45,9 +50,6 @@
             </if>
             <if test="name != null and name !=''">
                 and goods_name like concat('%', #{name}, '%')
-            </if>
-            <if test="status != null and status !=''">
-                and status = #{status}
             </if>
             <if test="category != null and category !=''">
                 and exists (select 1 from MM_CATEGORY_GOODS where MM_GOODS.goods_id = goods_id and category_id =
