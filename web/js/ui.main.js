@@ -213,6 +213,12 @@ $(function () {
             $('.buttonset').buttonset();
             $('button').button();
         });
+        
+        //每十分钟自动请求一次，临时解决超时问题
+        setInterval(function(){
+        	$.get("sys/main.html?_=" + new Date(), function(data,status){});
+        }, 1000*60*10);//
+        	
     });
 
 });
