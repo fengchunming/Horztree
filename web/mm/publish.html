@@ -79,6 +79,8 @@
                                 model.selected = true;
                             } else {
                                 model.set('price', null);
+                                model.isRemoved = true ;
+                                //model.set('tr','display:none');
                                 model.selected = false;
                             }
                             model.disabled = false;
@@ -141,7 +143,7 @@
             App.Group = App.Model.extend({
                 disabled: true,
                 focus: function () {
-                    var m = this;
+                    var m = this; 
                     if (pattern === 'group') {
                         App.groupGrid.focus = m;
                         if (m.get('link')) {
@@ -200,6 +202,10 @@
                             } else {
                                 model.set('price', null);
                                 model.selected = false;
+                                model.hidden=true;
+                                model.set({display:'none'});
+                                //model.displ='none';
+                                //model.set('display','none');
                             }
                             model.disabled = false;
                             model.row.render();
@@ -221,7 +227,7 @@
     </script>
 </head>
 <body>
-<div style="margin:5px;">
+<div style="margin:5px;width:100%;height:100%;overflow:auto;">
     <form class="queryBar" style="margin:5px 0 5px 10px;">
         <ul>
             <li>
@@ -238,19 +244,21 @@
                     <option value="">所有</option>
                 </select>
             </li>
+           
             <li>
                 <button class="search"><i></i>查询</button>
             </li>
             <li class="toolBar"></li>
         </ul>
+        <input type="hidden" name="status" value="t"></input> 
     </form>
-    <div id="goodsGrid" style="float:left;width:74%;">
+    <div id="goodsGrid" style="float:left;height:620px;width:74%;overflow:auto">
         <div class="dataGrid">
             <table class="app"></table>
         </div>
         <div class="page"></div>
     </div>
-    <div style="width:25%;float:right;overflow:auto;height:600px" id="groupGrid" class="side-right">
+    <div style="width:26%;float:right;overflow-y:auto;overflow-x:hidden;height:600px" id="groupGrid" class="side-right">
         <div class="dataGrid">
             <table class="app"></table>
         </div>
