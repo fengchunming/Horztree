@@ -47,10 +47,11 @@
                     {key: 'selected', thcss: 'width:25px', type: 'checkbox', sort: true},
                     {label: '名称', key: 'name', sort: true},
                     {label: '编码', key: 'pn', sort: 'goods_code', thcss: 'width:200px'},
-                    {label: '价格', key: 'salePrice', thcss: 'width:70px'},
-                    {label: '网点价', key: 'price', type: 'text', thcss: 'width:70px'}
+                    {label: '价格', key: 'salePrice', thcss: 'width:70px'}/* ,
+                    {label: '网点价', key: 'price', type: 'text', thcss: 'width:70px'} */
                 ]
             });
+            
             App.GoodsGrid = App.Grid.extend({
                 el: '#goodsGrid',
                 collection: new App.GoodsList,
@@ -179,8 +180,8 @@
                 pageSize: 0,
                 columns: [
                     {key: 'id', type: 'checkbox', thcss: 'width:25px'},
-                    {key: 'name', label: '网点'},
-                    {key: 'price', label: '网点价', type: 'text', thcss: 'width:70px'}
+                    {key: 'name', label: '网点'}/* ,
+                    {key: 'price', label: '网点价', type: 'text', thcss: 'width:70px'} */
                 ]
             });
 
@@ -238,7 +239,13 @@
                 <select name="category" data-local="mm/kv/category">
                     <option value="">所有</option>
                 </select>
-            </li>           
+            </li>       
+            <li>
+                <label>状态：</label>
+                <select name="status" data-local="status" data-value="t">
+                    <option value="">所有</option>
+                </select>
+            </li>    
             <li>
                 <button class="search"><i></i>查询</button>
             </li>
