@@ -54,7 +54,7 @@
                             } else if (jqxhr.status == 0 && jqxhr.statusText == 'canceled') {
                                 ex['exception'] = "请求失败，被系统取消";
                             } else if (jqxhr.status == 406) {
-                                $('#force').val(confirm(ex.exception));
+                               // $('#force').val(confirm(ex.exception));
                                 $(form).submit();
                             } else {
                                 $.sticky(ex.exception);
@@ -62,7 +62,7 @@
                             }
                         },
                         success: function (data) {
-                            localStorage.setItem("user", JSON.stringify(data));
+                            //localStorage.setItem("user", JSON.stringify(data));
                             location.reload();
                         }
                     });

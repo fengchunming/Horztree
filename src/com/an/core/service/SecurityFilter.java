@@ -63,10 +63,10 @@ public class SecurityFilter extends HttpServlet implements Filter {
                     throw new UnauthorizedException("登录超时！");
 
 
-                if (!SessionRepository.isAlive(session.getId())) {
+               /* if (!SessionRepository.isAlive(session.getId())) {
                     session.invalidate();
                     throw new UnauthorizedException("你已被强制登出！");
-                }
+                }*/
 
                 username = user.getUserName();
 

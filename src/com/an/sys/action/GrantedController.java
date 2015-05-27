@@ -74,7 +74,7 @@ public class GrantedController {
         }
 
         User user = userDao.selectByUsername(username);
-        if (SessionRepository.isOnline(user.getId(), session)) {
+       /* if (SessionRepository.isOnline(user.getId(), session)) {
             switch (force) {
                 case "true":
                     SessionRepository.forceQuit(user.getId());
@@ -84,7 +84,7 @@ public class GrantedController {
                 default:
                     throw new NotAcceptableException("发现账号已在其它地方登录，是否强制其退出？");
             }
-        }
+        }*/
 
         user.setOrg(orgDao.selectInit(user.getOrg().getId()));
         for (Module mod : userDao.selectActions(user.getUserId())) {
@@ -100,8 +100,8 @@ public class GrantedController {
 //        Cookie xsrf = new Cookie("_xsrf", UUID.randomUUID().toString());
 //        session.setAttribute("CSRF_SALT_CACHE", xsrf.getValue());
 //        response.addCookie(xsrf);
-        SessionRepository.add(user.getId(), session.getId());
-        logger.info("LoginSuccess: ID: " + username);
+ //       SessionRepository.add(user.getId(), session.getId());
+//        logger.info("LoginSuccess: ID: " + username);
         return user;
 
     }
@@ -133,7 +133,7 @@ public class GrantedController {
      */
     @RequestMapping(value = "/logout", method = RequestMethod.GET)
     public ModelAndView logout(HttpSession session) {
-        SessionRepository.remove(session.getId());
+        //SessionRepository.remove(session.getId());
         session.invalidate();
         return new ModelAndView("redirect:/?_=" + Util.RunTimeSequence());
     }
