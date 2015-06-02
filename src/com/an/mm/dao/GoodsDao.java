@@ -86,7 +86,7 @@ public class GoodsDao extends BaseDao<Goods, Integer> {
         param.put("groupId", groupId);
         param.put("goodsId", goodsId);
         List<Map> ggs = sqlSession.selectList(namespace + ".selectStocksBy2Gids", param);
-        return ggs.get(0);
+        return ggs==null||ggs.size()==0?null:ggs.get(0);
     }
     
     public int updateStocksBy2Gids(Integer groupId, Integer goodsId, Integer stockSum, Integer stockLocked) {

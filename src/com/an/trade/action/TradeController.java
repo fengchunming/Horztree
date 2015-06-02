@@ -12,6 +12,7 @@ import com.an.trade.entity.Trade;
 import com.an.utils.Util;
 import com.an.wm.action.WorkBillController;
 import com.an.wm.entity.Item;
+import com.an.wm.entity.MaterialUom;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -134,8 +135,13 @@ public class TradeController {
     @RequestMapping(value = "/bill/{id}", method = RequestMethod.DELETE)
     public void deleteTrade(@PathVariable(value = "id") int id) throws BadRequestException {
     	Trade trade = tradeDao.selectOne(id);
-        if (trade.getStatus().equals("resoled")) {
-            throw new BadRequestException("已完结订单不可变更!");
+        if ("345".indexOf(trade.getStatus())!=-1) {
+            throw new BadRequestException("已发货，已完结，已取消的订单不可取消!");
+        }
+        if (tradeDao.delete(id) <= 0) {
+            throw new BadRequestException("删除失败");
+        } else {
+            tradeDetailDao.deleteByBill(id);
         }
         
         Integer groupId = trade.getGroupId();
@@ -143,17 +149,13 @@ public class TradeController {
         for (Item detail : details) {
         // TODO: goods -》 item
 	        Map stock = goodsDao.selectStocksBy2Gids(groupId, detail.getGoodsId());
+	        if(stock!=null){
 	        Integer newStockSum = (stock.get("stockSum") == null ? 0 : (Integer)stock.get("stockSum"));
 	        Integer newStockLocked = (stock.get("stockLocked") == null ? 0 : (Integer)stock.get("stockLocked")) - detail.getPlanQuantity().intValue();
-	        goodsDao.updateStocksBy2Gids(groupId, detail.getGoodsId(), newStockSum, newStockLocked);
-
+	        goodsDao.updateStocksBy2Gids(groupId, detail.getGoodsId(), newStockSum, newStockLocked);}
         }
         
-        if (tradeDao.delete(id) <= 0) {
-            throw new BadRequestException("删除失败");
-        } else {
-            tradeDetailDao.deleteByBill(id);
-        }
+       
     }
 
     /**
@@ -244,9 +246,26 @@ public class TradeController {
     public ModelAndView printTrade(@PathVariable("id") int id) throws BadRequestException {
         ModelAndView mav = new ModelAndView("report/trade");
         Trade trade = tradeDao.selectOne(id);
+        
+        List<Item> details = tradeDetailDao.selectByBill(id);
+        int count = tradeDetailDao.countByBill(id);
+        //2015-06-01,六一活动，满6元送1包奶（仅限不夜城下单用户）
+        if (trade.getAmount().compareTo(new BigDecimal(6.00)) >= 0 && trade.getAddr() != null && "我爱不夜城".equals(trade.getAddr().getLinkman())) {
+        	Item detail = new Item();
+        	detail.setPn("");//pn商品编号
+        	detail.setName("牛奶一盒（赠品）");//商品名称
+        	detail.setSalePrice(new BigDecimal(0.00));//单价
+        	detail.setPlanQuantity(new BigDecimal(1.00));//数量
+        	MaterialUom uom = new MaterialUom();
+        	uom.setId(9);//盒
+        	detail.setUom(uom);//单位
+        	detail.setSaleTotal(new BigDecimal(0.00));//小计
+        	details.add(detail);
+        	count++;
+        }
         mav.addObject("bill", trade);
-        mav.addObject("list", tradeDetailDao.selectByBill(id));
-        mav.addObject("count", tradeDetailDao.countByBill(id));
+        mav.addObject("list", details);
+        mav.addObject("count", count);
         return mav;
     }
 

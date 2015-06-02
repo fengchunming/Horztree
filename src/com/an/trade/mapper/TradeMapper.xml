@@ -83,6 +83,10 @@
         select count(*) from TRADE_BILL
         <include refid="Example_Where_Clause"/>
     </select>
+    
+    <select id="countByGroupId" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+        select count(*) from TRADE_BILL where group_id = #{value,jdbcType=INTEGER}        
+    </select>
 
     <select id="selectByExample" resultMap="BaseResultMap" parameterType="java.util.HashMap">
         select

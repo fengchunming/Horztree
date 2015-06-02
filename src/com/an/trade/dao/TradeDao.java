@@ -21,6 +21,10 @@ public class TradeDao extends BaseDao<Trade, Integer> {
         System.out.println(trade.getType());
         return super.insert(trade);
     }
+    
+    public int countByGroupId(int id){
+    	return sqlSession.selectOne(namespace + ".countByGroupId", id);
+    }
 
     public String nextCode() {
         return Util.CurrentTime("yyMMdd")

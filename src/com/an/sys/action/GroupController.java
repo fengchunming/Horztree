@@ -4,7 +4,9 @@ import com.an.core.exception.BadRequestException;
 import com.an.core.exception.ErrorModelAndView;
 import com.an.sys.dao.GroupDao;
 import com.an.sys.entity.Group;
+import com.an.trade.dao.TradeDao;
 import com.an.utils.Util;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +18,7 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.validation.Valid;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -27,6 +30,8 @@ public class GroupController {
 
     @Autowired
     private GroupDao groupDao;
+    @Autowired
+    private TradeDao tradeDao;
 
     /**
      * 分类查询所有网点
@@ -124,8 +129,12 @@ public class GroupController {
      */
     @RequestMapping(value = "/group/{type}/{id}", method = RequestMethod.DELETE)
     public void deleteModule(@PathVariable(value="id")  int id) throws BadRequestException {
-        if (groupDao.delete(id) <= 0)
+    	if(tradeDao.countByGroupId(id)>0){
+    		throw new BadRequestException("此网点下有订单,不能删除！");
+    	}
+    	else if (groupDao.delete(id) <= 0){
             throw new BadRequestException("删除失败");
+        }
     }
 
     @RequestMapping(value = "/kv/warehouse", method = RequestMethod.GET)
