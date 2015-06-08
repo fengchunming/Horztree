@@ -35,8 +35,8 @@
                     {label: '收货人', key: 'addr.linkman', sort: 'ship_name', thcss: 'width:80px'},
                     {label: '金额', key: 'amount', sort: true, thcss: 'width:60px'},
                     {label: '地址', key: 'addr.addr'},
-                    {label: '手机', key: 'addr.mobile'},
-                    {label: '网点', key: 'groupId', local: 'sys/kv/group', thcss: 'width:100px'}
+                    {label: '手机', key: 'addr.mobile',thcss:'width:150px'},
+                    {label: '网点', key: 'groupId', local: 'sys/kv/group', thcss: 'width:200px'}
                 ]
             });
 
@@ -319,6 +319,13 @@
             });
 
             App.supportGrid = new App.SupportGrid;
+            
+            $("body").click(function (){
+            	var myAuto = document.getElementById('myaudio');
+            	if (!myAuto.paused) {
+            		myAuto.pause();
+            	}
+            });
         });
     </script>
 </head>

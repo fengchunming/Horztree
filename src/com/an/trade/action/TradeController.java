@@ -225,10 +225,11 @@ public class TradeController {
             for (Item detail : details) {
             // TODO: goods -》 item
 		        Map stock = goodsDao.selectStocksBy2Gids(groupId, detail.getGoodsId());
-		        Integer newStockSum = (stock.get("stockSum") == null ? 0 : (Integer)stock.get("stockSum")) - detail.getPlanQuantity().intValue();
-		        Integer newStockLocked = (stock.get("stockLocked") == null ? 0 : (Integer)stock.get("stockLocked")) - detail.getPlanQuantity().intValue();
-		        goodsDao.updateStocksBy2Gids(groupId, detail.getGoodsId(), newStockSum, newStockLocked);
-
+		        if(stock!=null){
+			        Integer newStockSum = (stock.get("stockSum") == null ? 0 : (Integer)stock.get("stockSum")) - detail.getPlanQuantity().intValue();
+			        Integer newStockLocked = (stock.get("stockLocked") == null ? 0 : (Integer)stock.get("stockLocked")) - detail.getPlanQuantity().intValue();
+			        goodsDao.updateStocksBy2Gids(groupId, detail.getGoodsId(), newStockSum, newStockLocked);
+		        }
             }
             
         }
@@ -250,7 +251,7 @@ public class TradeController {
         List<Item> details = tradeDetailDao.selectByBill(id);
         int count = tradeDetailDao.countByBill(id);
         //2015-06-01,六一活动，满6元送1包奶（仅限不夜城下单用户）
-        if (trade.getAmount().compareTo(new BigDecimal(6.00)) >= 0 && trade.getAddr() != null && "我爱不夜城".equals(trade.getAddr().getLinkman())) {
+       /* if (trade.getAmount().compareTo(new BigDecimal(6.00)) >= 0 && trade.getAddr() != null && "我爱不夜城".equals(trade.getAddr().getLinkman())) {
         	Item detail = new Item();
         	detail.setPn("");//pn商品编号
         	detail.setName("牛奶一盒（赠品）");//商品名称
@@ -262,7 +263,7 @@ public class TradeController {
         	detail.setSaleTotal(new BigDecimal(0.00));//小计
         	details.add(detail);
         	count++;
-        }
+        }*/
         mav.addObject("bill", trade);
         mav.addObject("list", details);
         mav.addObject("count", count);
