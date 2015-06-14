@@ -67,6 +67,7 @@
             <if test="shipCode != null and shipCode != ''">and ship_code = #{shipCode, jdbcType=VARCHAR}</if>
             <if test="dealStatus != null and dealStatus != ''">and deal_status = #{dealStatus, jdbcType=VARCHAR}</if>
             <if test="status != null and status != ''">and status = #{status, jdbcType=VARCHAR}</if>
+            <if test="status == null or status == ''">and status != 'd'</if>
             <if test="printStatus != null"><![CDATA[  and print_status & #{printStatus} = 0  ]]></if>
         </where>
     </sql>

@@ -11,11 +11,11 @@ function autoPro(){
         data: $("#form1").serialize(),
         success: function(data){
                if(data){//存在
-                  alert("共插入"+data.leftAmountReturn+"条记录");
+            	   $.sticky("共插入"+data.leftAmountReturn+"条记录");
                }
         },
         error:function(data){
-        	alert("插入失败");
+        	$.sticky("插入失败");
         }
    });
 }
@@ -25,11 +25,11 @@ $(function () {
      });
 	$("#exportData").html5Uploader({
 	    name: "file",
-	    url: "rest/trade/bashBillAuto",
+	    url: "rest/trade/batchBillAuto",
 	    onSuccess: function (e, file, response) {
 	      //  App.goodsGrid.form.addImage(JSON.parse(response))
 	      var result = JSON.parse(response);
-	      alert("共插入"+result.leftAmountReturn+" ，已存在 "+result.existAmount);
+	      $.sticky("共插入"+result.leftAmountReturn+" ，已存在 "+result.existAmount);
 	    }
    });
 });
@@ -43,13 +43,13 @@ $(function () {
         <ul>
             <li>
                 <label>订单日期：</label>
-                <input type="text" class="mindatepicker" name="billDate"> 
+                <input type="text" class="mindatepicker" name="billDate" required> 
                 <!-- -<input type="text" class="maxdatepicker" name="edate"> -->
             </li>
            
             <li>
                 <label>订单最大数量：</label>
-                <input type="number" name="maxAmount">
+                <input type="number" name="maxAmount" required>
             </li>
             <!-- <li>
                 <label>类型：</label>
@@ -59,7 +59,7 @@ $(function () {
             </li> -->
            
             <li>
-               <input type = "submit" onclick="autoPro()" value="生成订单"  class="ui-state-default ui-corner-all "></input>
+               <input type = "submit" onclick="autoPro()" value="生成订单"  class="ui-state-default ui-corner-all" ></input>
                <button id="uploadButton">批量生成订单</button>
                <input style="display:none" type="file" multiple  value="批量生成订单" id="exportData"  ></input>
                 <!-- <button type="reset" class="reset"><i></i>重置</button> -->
@@ -72,7 +72,7 @@ $(function () {
        <br>  <br> 
 	    <label>提示："订单日期"：表示要生成订单的日期</label><br>
 		<label>提示："订单最大数量"：表示要生成订单的最大数量</label><br>
-		<label>提示："批量生成订单":通过导入excel的方式批量生成多日期订单,模板如下所示，包括表头</label>
+		<label>提示："批量生成订单":通过导入excel的方式批量生成多日期订单,模板如下所示，包括表头，日期严格按照模板格式yyyy-MM-dd</label>
 	</div>
     <div class="dataGrid">
         <table style="width:50%;" class="app" style="width:50%">
@@ -80,6 +80,8 @@ $(function () {
           <tr><th>订单日期</th> <th>订单最大数量</th></tr>
           <tr><td>2014-06-01</td> <td>3</td></tr>
           <tr><td>2014-06-02</td> <td>5</td></tr>
+          <tr><td>2014-06-22</td> <td>500</td></tr>
+          <tr><td>2014-08-01</td> <td>20</td></tr>
         </table>
     </div>
 	    

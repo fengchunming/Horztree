@@ -215,13 +215,31 @@
                 modal: true,
                 show: {effect: "blind", duration: 800}
             });
-
+            
+           /*  $('#buttonUpload').click(function () {
+                $('#uploadFile').click();
+            }); */
+            $("#uploadFile").html5Uploader({
+                name: "file",
+                url: "rest/sys/test/list",
+                onSuccess: function (e, file, response) {
+                  //  App.goodsGrid.form.addImage(JSON.parse(response))
+                  alert("上传成功");
+                }
+            });
+	        $("#exportBtn").click(function(){ 
+	        	alert("exportBtn");
+	            var form1 = document.getElementById("exportForm")
+	            form1.action="rest/sys/test/list";
+	            form1.method="GET";
+	            form1.submit();
+	        });  
         });
     </script>
 </head>
 <body>
 <div id="article">
-    <form class="queryBar">
+    <form class="queryBar" id="exportForm" action="">
         <ul>
             <li>
                 <label>商品名称：</label>
@@ -259,7 +277,18 @@
             </li>
             <li class="toolBar"></li>
         </ul>
+        <div style="margin:5px;">
+             <!-- <button id="buttonUpload">上传文件</button>  -->
+             <input type="file" id="uploadFile" multiple > 
+             <input  id="exportBtn" type="button" value="导出文件"  />
+        </div>
     </form>
+    
+	<!-- <form id="test" action="rest/sys/test/list" method="get">
+	      <input type="text" value="zjg"  />
+	     <input type="submit" value="导出文件"  />
+	</form> -->
+   
     <div class="dataGrid">
         <table class="app"></table>
     </div>

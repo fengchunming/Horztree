@@ -60,18 +60,17 @@ public class TradeAutoController {
      *
      * @param request
      * @return
-     * @throws BadRequestException
      */
     @RequestMapping(value = "/billAuto", method = RequestMethod.POST)
-    public  Map<String,Object> autoBillPro(@RequestParam String billDate,@RequestParam int maxAmount) throws BadRequestException {
-        Map<String, Object> mParam = new HashMap<>();
+    public  Map<String,Object> autoBillPro(@RequestParam String billDate,@RequestParam int maxAmount) {
+    	Map<String, Object> mParam = new HashMap<>();
     	mParam.put("billDate", billDate);
     	mParam.put("maxAmount", maxAmount);
         return tradeAutoDao.autoBillPro(mParam);
     }
     
     @SuppressWarnings("unchecked")
-	@RequestMapping(value = "/bashBillAuto", method = RequestMethod.POST)
+	@RequestMapping(value = "/batchBillAuto", method = RequestMethod.POST)
     public  Map<String,Object> bashBillPro(HttpServletRequest request) throws Exception {
     	String realPath = request.getServletContext().getRealPath("");
     	//D:\IDE-JAVA\workspace\Horztree\web
