@@ -1,0 +1,115 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<script>
+	$(function () {
+		_LocalKV.saleStatus = {
+			"t": "上架销售",
+			"f": "下架停售"
+		};
+		
+		App.Goods = App.Model.extend({
+			idAttribute: 'remark'
+		});
+	
+		App.GoodsList = App.Collection.extend({
+			urlRoot: 'rest/mm/inventory',
+			model: App.Goods,
+			param: {own: true},
+			columns: [
+				{label: '编码', key: 'code', thcss:'width:120px'},
+				{label: '条形码', key: 'barcode', thcss:'width:120px'},
+				{label: '商品名称', key: 'name'},
+				{label: '库存量', key: 'stockSum', thcss: 'width:100px'},
+				{label: '锁定库存', key: 'stockLocked', thcss: 'width:100px'},
+				{label: '安全库存', key: 'safeLine', thcss: 'width:100px'},
+				{label: '网点售价', key: 'salePrice', thcss: 'width:100px'},
+				{label: '销售状态', key: 'status', local: 'saleStatus', thcss: 'width:100px'},
+				{label: '网点', key: 'regionId', local: 'base/kv/region', thcss: 'width:150px'}
+			]
+		});
+	
+		App.GoodsForm = App.FormView.extend({
+			toolbar : [ 'save', 'hide' ],
+			size : {width : 600}
+		});
+	
+		App.GoodsGrid = App.Grid.extend({
+			collection: new App.GoodsList,
+			form : new App.GoodsForm,
+			toolbar: [],
+			qel: '.queryBar'
+		});
+		new App.GoodsGrid();
+	
+	});
+</script>
+</head>
+<body>
+<div id="article">
+	<form class="queryBar">
+		<ul>
+			<li>
+				<label>商品编码：</label>
+				<input name="code">
+			</li>
+			<li>
+				<label>商品名称：</label>
+				<input name="name">
+			</li>
+			<li>
+				<label>仓库网点：</label>
+				<select name="regionId" data-local="base/kv/ownRegion">
+					<option value="">所有</option>
+				</select>
+			</li>
+			<li>
+				<button class="search"><i></i>查询</button>
+			</li>
+		</ul>
+	</form>
+	<div class="dataGrid">
+		<table class="app"></table>
+	</div>
+	<div class="page"></div>
+</div>
+
+<div class="navPanel">
+	<div class="toolBar"></div>
+	<div class="editorPanel">
+		<form>
+			<ol>
+				<li>
+					<label>商品编码：</label>
+					<input type="text" name="code" readonly/>
+				</li>
+				<li>
+					<label>商品名称：</label>
+					<input type="text" name="name" readonly/>
+				</li>
+				<li>
+					<label>库存量：</label>
+					<input type="number" name="stockSum" readonly/>
+				</li>
+				<li>
+					<label>锁定库存：</label>
+					<input type="number" name="stockLocked" readonly/>
+				</li>
+				<li>
+					<label>安全库存：</label>
+					<input type="number" name="safeLine"/>
+				</li>
+				<li>
+					<label>网点售价：</label>
+					<input type="number" name="salePrice"/>
+				</li>
+				<li>
+					<label>销售状态：</label>
+					<select name="status" data-local="saleStatus"></select>
+				</li>
+			</ol>
+		</form>
+	</div>
+</div>
+</body>
+</html>

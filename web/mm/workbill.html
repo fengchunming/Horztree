@@ -1,0 +1,290 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<script>
+	$(function () {
+		_LocalKV.workBillType = {
+			"IN" : "入库单",
+			"OT" : "出库单",
+			"TF" : "调拨单",
+			"DG" : "发货单"
+		};
+		
+		App.WorkBill = App.Model.extend({
+			urlRoot: 'rest/mm/workbill',
+			idAttribute: 'id',
+			edit: function () {
+				if (this.isNew()) {
+					App.workBillGrid.focus = null;
+					App.details.reset();
+				} else {
+					App.workBillGrid.focus = this;
+					App.details.load('rest/mm/workbill/details/' + this.id);
+				}
+			}
+		});
+
+		App.WorkBillList = App.Collection.extend({
+			model: App.WorkBill,
+			columns: [
+				{label: '工单编码', key: 'billCode', thcss: 'width:100px'},
+				{label: '工单名称', key: 'billName', thcss: 'width:200px'},
+				{label: '工单类型', key: 'billType', local: 'workBillType', thcss: 'width:100px'},
+				{label: '工单日期', key: 'createTime', thcss: 'width:100px'},
+				{label: '发货仓', key: 'fromRegion', local: 'base/kv/region'},
+				{label: '收货仓', key: 'toRegion', local: 'base/kv/region'},
+				{label: '编制人', key: 'createBy', local: 'sys/kv/user', thcss: 'width:100px'},
+				{label: '确认人', key: 'dealBy', local: 'sys/kv/user', thcss: 'width:100px'},
+				{label: '处理状态', key: 'dealStatus', local: 'billStatus', thcss: 'width:100px'}
+			]
+		});
+
+		App.WBFormView = App.FormView.extend({
+			toolbar: ['create', 'save', 'inport', 'check', 'print', 'trash', 'hide'],
+			size: {width: 900},
+			prepare: function (param) {
+				param.details = App.details.toJSON();
+				return param;
+			},
+			check: function () {
+				var model = this.model;
+				if(!model.id){
+					$.sticky('请先保存！');
+					return;
+				}
+				if (confirm('是否确认该单据无误，此操作会根据收货单生成库存，且操作不可退回！')) {
+					$.get('rest/mm/workbill/checkReceipt/' + model.id, function () {
+						App.details.fetch();
+						$.sticky('已生成库存数据！');
+					});
+				}
+			},
+			inport: function () {
+				$("#receiptImport").click();
+			},
+			print: function () {
+				var model = this.model;
+				if(!model.id){
+					$.sticky('请先保存！');
+					return;
+				}
+				$.printPage('rest/mm/workbill/print/receipt/' + this.model.id + '.html');
+			}
+		});
+
+		App.WorkBillGrid = App.Grid.extend({
+			collection: new App.WorkBillList,
+			form: new App.WBFormView,
+			qel: '.queryBar',
+			toolbar: ['create']
+		});
+
+		App.workBillGrid = new App.WorkBillGrid();
+
+		App.WBDetailRow = App.Row.extend({
+			listen: function () {
+				var view = this;
+				this.$el.find('input[name=goodsCode]').autocomplete({
+					source: function (request, response) {
+						$.ajax({
+							url: 'rest/mm/goods/list',
+							dataType: "json",
+							data: {_SH: request.term, _LM: 50},
+							success: function (data) {
+								response($.map(data.list, function (item) {
+									return {
+										label: item.code + " - " + item.name,
+										value: item
+									}
+								}));
+							}
+						});
+					},
+					focus: function (event, ui) {
+						$(this).val(ui.item.label);
+						return false;
+					},
+					select: function (event, ui) {
+						var goods = ui.item.value;
+						var wbDetail = {
+							goodsId: goods.id,
+							goodsCode: goods.code,
+							goodsBarcode: goods.barcode,
+							goodsName: goods.name,
+							uomId: goods.uomId,
+							costPrice: goods.costPrice,
+							quantity: 1
+						};
+						view.model.set(wbDetail);
+					},
+					change: function (event, ui) {
+						if (!ui.item) {
+							var id = view.model.id;
+							view.model.clear();
+							view.model.set({'id': id});
+						}
+					}
+				});
+			}
+		});
+
+		App.WBDetail = App.Model.extend({
+			idAttribute: 'id',
+			locked: function () {
+				//return this.get('dealStatus') === '1';//已确认
+				if (App.workBillGrid.focus) {
+					return App.workBillGrid.focus.get('dealStatus') === '1';//已确认
+				} else {
+					return false;
+				}
+			}
+		});
+
+		App.WBDetailList = App.Collection.extend({
+			model: App.WBDetail,
+			autoLoad: false,
+			pageSize: 0,
+			columns: [
+				{key: 'id', type: 'checkbox', thcss: 'width:25px'},
+				{label: '商品编码', key: 'goodsCode', type: 'text', thcss: 'width:120px'},
+				{label: '商品名称', key: 'goodsName'},
+				{label: '度量单位', key: 'uomId', local: 'base/kv/uom', type: 'select', thcss: 'width:70px'},
+				{label: '数量', key: 'quantity', type: 'number', thcss: 'width:60px'}
+			]
+		});
+
+		App.details = new App.WBDetailList;
+
+		App.WBDetailGrid = App.Grid.extend({
+			el: '#tab_2',
+			editable: true,
+			row: App.WBDetailRow,
+			toolbar: ['append', 'remove'],
+			collection: App.details
+		});
+
+		new App.WBDetailGrid;
+
+		$("#receiptImport").html5Uploader({
+			name: "receipt",
+			url: function () {
+				return "rest/mm/workbill/receiptImport/" + $('#billCode').val();
+			}
+		});
+	});
+</script>
+</head>
+<body>
+	<div id="article">
+		<form class="queryBar">
+			<ul>
+				<li>
+					<label>工单编码：</label>
+					<input type="text" name="billCode" />
+				</li>
+				<li>
+					<label>工单名称：</label>
+					<input type="text" name="billName" />
+				</li>
+				<li>
+					<label>工单类型：</label>
+					<select name="billType" data-local="workBillType">
+						<option value="">所有</option>
+					</select>
+				</li>
+				<li>
+					<label>工单日期：</label>
+					<input type="text" class="mindatepicker" name="sdate" /> - <input type="text" class="maxdatepicker" name="edate" />
+				</li>
+				<li>
+					<label>处理状态：</label>
+					<select name="dealStatus" data-local="billStatus">
+						<option value="">所有</option>
+					</select>
+				</li>
+			</ul>
+			<ul>
+				<li>
+					<label>发货仓：</label>
+					<select name="fromRegion" data-local="base/kv/region">
+						<option value="">所有</option>
+					</select>
+				</li>
+				<li>
+					<label>收货仓：</label>
+					<select name="toRegion" data-local="base/kv/region">
+						<option value="">所有</option>
+					</select>
+				</li>
+				<li>
+					<button class="search"><i></i>查询</button>
+				</li>
+				<li class="toolBar"></li>
+			</ul>
+		</form>
+		<div class="dataGrid">
+			<table class="app"></table>
+		</div>
+		<div class="page"></div>
+	</div>
+
+	<div class="navPanel">
+		<div class="toolBar"></div>
+		<div class="editorPanel">
+			<div id="tabs">
+				<ul>
+					<li><a href="#tab_1"><span>基本信息</span></a></li>
+					<li><a href="#tab_2"><span>货物明细</span></a></li>
+				</ul>
+				<div id="tab_1">
+					<form>
+						<ol>
+							<li>
+								<label>工单编码：</label>
+								<input type="text" name="billCode" readonly />
+							</li>
+							<li>
+								<label>工单名称：</label>
+								<input type="text" name="billName" />
+							</li>
+							<li>
+								<label>工单类型：</label>
+								<select name="billType" data-local="workBillType">
+									<option value="">所有</option>
+								</select>
+							</li>
+							<li>
+								<label>发货仓：</label>
+								<select name="fromRegion" data-local="base/kv/region">
+									<option value=""></option>
+								</select>
+							</li>
+							<li>
+								<label>收货仓：</label>
+								<select name="toRegion" data-local="base/kv/region">
+									<option value=""></option>
+								</select>
+							</li>
+							<li>
+								<label>备注:</label>
+								<textarea name="remark"	style="width: 200px; height: 50px;"></textarea>
+							</li>
+							<li>
+								<label>状态:</label>
+								<select name="status" data-local="status"></select>
+							</li>
+						</ol>
+					</form>
+				</div>
+				<div id="tab_2">
+					<table class="app"></table>
+					<div class="toolBar"></div>
+					<div style="display: none;">
+						<input type="file" name="stockFile" id="receiptImport">
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

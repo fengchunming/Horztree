@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="WorkBillMapper">
+	<resultMap id="BaseResultMap" type="com.an.mm.entity.WorkBill">
+		<id column="id" property="id" jdbcType="INTEGER" />
+		<result column="bill_code" property="billCode" jdbcType="VARCHAR" />
+		<result column="bill_name" property="billName" jdbcType="VARCHAR" />
+		<result column="bill_type" property="billType" jdbcType="VARCHAR" />
+		<result column="from_region" property="fromRegion" jdbcType="INTEGER" />
+		<result column="to_region" property="toRegion" jdbcType="INTEGER" />
+		<result column="create_by" property="createBy" jdbcType="INTEGER" />
+		<result column="create_time" property="createTime" jdbcType="TIMESTAMP" />
+		<result column="deal_by" property="dealBy" jdbcType="INTEGER" />
+		<result column="deal_time" property="dealTime" jdbcType="TIMESTAMP" />
+		<result column="deal_status" property="dealStatus" jdbcType="VARCHAR" />
+		<result column="remark" property="remark" jdbcType="VARCHAR" />
+		<result column="status" property="status" jdbcType="VARCHAR" />
+		<result column="enter_by" property="enterBy" jdbcType="INTEGER" />
+		<result column="enter_at" property="enterAt" jdbcType="TIMESTAMP" />
+	</resultMap>
+	<sql id="Example_Where_Clause">
+		<where>
+			status != 'd'
+			<if test="billCode != null and billCode !=''">and bill_code like concat('%', #{billCode}, '%')</if>
+			<if test="billName != null and billName !=''">and bill_name like concat('%', #{billName}, '%')</if>
+			<if test="billType != null and billType !=''">and bill_type = #{billType,jdbcType=VARCHAR}</if>
+			<if test="fromRegion != null and fromRegion > 0">and from_region = #{fromRegion,jdbcType=INTEGER}</if>
+			<if test="toRegion != null and toRegion > 0">and to_region = #{toRegion,jdbcType=INTEGER}</if>
+			<if test="status != null and status !=''">and status = #{status,jdbcType=VARCHAR}</if>
+			<if test="dealStatus != null and dealStatus !=''">and deal_status = #{dealStatus,jdbcType=VARCHAR}</if>
+		</where>
+	</sql>
+
+	<sql id="Base_Column_List">
+		id, bill_code, bill_name, bill_type, from_region, to_region, create_by, create_time,
+		deal_by, deal_time, deal_status, remark, status, enter_by, enter_at
+	</sql>
+
+	<select id="selectByExample" resultMap="BaseResultMap" parameterType="map">
+		select
+		<include refid="Base_Column_List" />
+		from WM_WORK_BILL
+		<include refid="Example_Where_Clause" />
+		<if test="_BY != null">order by ${_BY}</if>
+		<if test="_BY == null">order by bill_code desc</if>
+	</select>
+
+	<select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="int">
+		select
+		<include refid="Base_Column_List" />
+		from WM_WORK_BILL
+		where id = #{value,jdbcType=VARCHAR}
+	</select>
+
+	<delete id="deleteByPrimaryKey" parameterType="int">
+		update WM_WORK_BILL set status = 'd', enter_by = #userId, enter_at = now() where id = #{value,jdbcType=VARCHAR}
+	</delete>
+
+	<insert id="insert" parameterType="com.an.mm.entity.WorkBill">
+		insert into WM_WORK_BILL (bill_code, bill_name, bill_type, from_region, to_region,
+			create_by, create_time, deal_by, deal_time, deal_status, remark, status, enter_by, enter_at)
+		values (#{billCode,jdbcType=VARCHAR},
+		#{billName,jdbcType=VARCHAR},
+		#{billType,jdbcType=VARCHAR},
+		#{fromRegion,jdbcType=INTEGER},
+		#{toRegion,jdbcType=INTEGER},
+		#userId,
+		now(),
+		#{dealBy,jdbcType=INTEGER},
+		#{dealTime,jdbcType=TIMESTAMP},
+		#{dealStatus,jdbcType=VARCHAR},
+		#{remark,jdbcType=VARCHAR},
+		#{status,jdbcType=VARCHAR},
+		#userId,
+		now())
+		<selectKey resultType="int" keyProperty="id">
+			SELECT @@IDENTITY AS id
+		</selectKey>
+	</insert>
+
+	<select id="countByExample" parameterType="map" resultType="int">
+		select count(*) from WM_WORK_BILL
+		<include refid="Example_Where_Clause" />
+	</select>
+
+	<update id="updateByPrimaryKey" parameterType="com.an.mm.entity.WorkBill">
+		update WM_WORK_BILL set
+		bill_code = #{billCode,jdbcType=VARCHAR},
+		bill_name = #{billName,jdbcType=VARCHAR},
+		bill_type = #{billType,jdbcType=VARCHAR},
+		from_region = #{fromRegion,jdbcType=INTEGER},
+		to_region = #{toRegion,jdbcType=INTEGER},
+		create_by = #userId,
+		create_time = now(),
+		remark = #{remark,jdbcType=VARCHAR},
+		status = #{status,jdbcType=VARCHAR},
+		enter_by = #userId,
+		enter_at = now()
+		where id = #{id,jdbcType=INTEGER}
+	</update>
+
+	<update id="updateDealStatus" parameterType="com.an.mm.entity.WorkBill">
+		update WM_WORK_BILL set
+		deal_status = #{dealStatus,jdbcType=VARCHAR},
+		deal_by = #userId,
+		deal_time = now()
+		where id = #{id,jdbcType=INTEGER}
+	</update>
+
+</mapper>

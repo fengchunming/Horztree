@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="WorkBillDetailMapper">
+	<resultMap id="BaseResultMap" type="com.an.mm.entity.WorkBillDetail">
+		<id column="id" property="id" jdbcType="INTEGER" />
+		<result column="bill_id" property="billId" jdbcType="INTEGER" />
+		<result column="goods_id" property="goodsId" jdbcType="INTEGER" />
+		<result column="goods_code" property="goodsCode" jdbcType="VARCHAR" />
+		<result column="goods_barcode" property="goodsBarcode" jdbcType="VARCHAR" />
+		<result column="goods_name" property="goodsName" jdbcType="VARCHAR" />
+		<result column="uom_id" property="uomId" jdbcType="INTEGER" />
+		<result column="cost_price" property="costPrice" jdbcType="NUMERIC" />
+		<result column="quantity" property="quantity" jdbcType="NUMERIC" />
+		<result column="sub_total" property="subTotal" jdbcType="NUMERIC" />
+		<result column="status" property="status" jdbcType="VARCHAR" />
+		<result column="enter_by" property="enterBy" jdbcType="INTEGER" />
+		<result column="enter_at" property="enterAt" jdbcType="TIMESTAMP" />
+	</resultMap>
+
+	<sql id="Example_Where_Clause">
+		<where>
+			status != 'd'
+			<if test="billId != null and billId != ''">and bill_id = #{billId}</if>
+		</where>
+	</sql>
+
+	<sql id="Base_Column_List">
+		id, bill_id, goods_id, goods_code, goods_barcode, goods_name, uom_id, cost_price, quantity, sub_total, status, enter_by, enter_at
+	</sql>
+
+	<select id="selectByExample" resultMap="BaseResultMap" parameterType="map">
+		select
+		<include refid="Base_Column_List" />
+		from WM_WORK_DETAIL
+		<include refid="Example_Where_Clause" />
+		<if test="_BY == null">order by id</if>
+		<if test="_BY != null">order by ${_BY}</if>
+	</select>
+
+	<select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="int">
+		select
+		<include refid="Base_Column_List" />
+		from WM_WORK_DETAIL
+		where id = #{value,jdbcType=INTEGER}
+	</select>
+
+	<delete id="deleteByPrimaryKey" parameterType="int">
+		update WM_WORK_DETAIL
+		set status = 'd',
+		enter_by = #userId,
+		enter_at = now()
+		where id = #{value,jdbcType=INTEGER}
+	</delete>
+
+	<delete id="deleteByBill" parameterType="int">
+		update WM_WORK_DETAIL
+		set status = 'd',
+		enter_by = #userId,
+		enter_at = now()
+		where bill_id = #{value,jdbcType=INTEGER}
+	</delete>
+
+	<insert id="insert" parameterType="com.an.mm.entity.WorkBillDetail">
+		insert into WM_WORK_DETAIL (bill_id, goods_id, goods_code, goods_barcode, goods_name, uom_id,
+			cost_price, quantity, sub_total, status, enter_by, enter_at)
+		values (#{billId,jdbcType=INTEGER},
+		#{goodsId,jdbcType=INTEGER},
+		#{goodsCode,jdbcType=VARCHAR},
+		#{goodsBarcode,jdbcType=VARCHAR},
+		#{goodsName,jdbcType=VARCHAR},
+		#{uomId,jdbcType=INTEGER},
+		#{costPrice,jdbcType=NUMERIC},
+		#{quantity,jdbcType=NUMERIC},
+		#{subTotal,jdbcType=NUMERIC},
+		#{status,jdbcType=VARCHAR},
+		#userId,		
+		now())
+		<selectKey resultType="int" keyProperty="id">
+			SELECT @@IDENTITY AS id
+		</selectKey>
+	</insert>
+
+	<select id="countByExample" parameterType="map" resultType="int">
+		select count(*) from WM_WORK_DETAIL
+		<include refid="Example_Where_Clause" />
+	</select>
+
+	<select id="countByBill" parameterType="int" resultType="int">
+		select count(*) from WM_WORK_DETAIL where status != 'd' and bill_id = #{value,jdbcType=INTEGER}
+	</select>
+
+	<update id="updateByPrimaryKey" parameterType="com.an.mm.entity.WorkBillDetail">
+		update WM_WORK_DETAIL set
+		bill_id = #{billId,jdbcType=INTEGER},
+		goods_id = #{goodsId,jdbcType=INTEGER},
+		goods_code = #{goodsCode,jdbcType=VARCHAR},
+		goods_barcode = #{goodsBarcode,jdbcType=VARCHAR},
+		goods_name = #{goodsName,jdbcType=VARCHAR},
+		uom_id = #{uomId,jdbcType=INTEGER},
+		cost_price = #{costPrice,jdbcType=NUMERIC},
+		quantity = #{quantity,jdbcType=NUMERIC},
+		sub_total = #{subTotal,jdbcType=NUMERIC},
+		status = #{status,jdbcType=VARCHAR},
+		enter_by = #userId,		
+		enter_at = now()
+		where id = #{id,jdbcType=INTEGER}
+	</update>
+
+</mapper>
