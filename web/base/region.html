@@ -1,104 +1,144 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <script>
-        $(function () {
-            _LocalKV.regionStatus = {
-                "t": "启用",
-                "f": "停用",
-                "s": "休息"
-            };
-            App.Region = App.Model.extend({
-                urlRoot: 'rest/base/region',
-                idAttribute: 'id',
-                defaults: { sort: 50 },
-                edit: function () {
-                    $('#path').stepSelection('load', this.id);
-                }
-            });
+<script>
+	$(function () {
+		_LocalKV.regionType = {
+			"r": "区域区划",
+			"s": "网点仓库",
+			"m": "不夜城"
+		};
 
-            App.RegionList = App.Collection.extend({
-                type: 'tree',
-                model: App.Region,
-                pageSize: 0,
-                columns: [
-                    {label: '区域', key: 'name'},
-                    {label: '网点', key: 'group', local:'sys/kv/group'}
-                ]
-            });
+		_LocalKV.businessStatus = {
+			"n": "未开业",
+			"w": "营业中",
+			"s": "休息中"
+		};
 
-            App.RegionTable = App.Grid.extend({
-                qel: '.queryBar',
-                form: new App.FormView,
-                collection: new App.RegionList,
-                toolbar: ['create']
-            });
+		App.Region = App.Model.extend({
+			urlRoot: 'rest/base/region',
+			idAttribute: 'id',
+			defaults: {sort: 50, leaf: true},
+			edit: function () {
+				$('#path').stepSelection('load', this.id);
+				/*
+				if (this.id) {
+					alert('this.id='+this.id);
+					$('#path').stepSelection('load', this.id);
+					App.selectedModelId = this.id;
+				} else if (App.selectedModelId) {
+					alert('App.selectedModelId='+App.selectedModelId);
+					$('#path').stepSelection('load', App.selectedModelId);
+				} else {
+					$('#path').stepSelection('load', this.id);
+				}*/
+			}
+		});
 
-            new App.RegionTable();
+		App.RegionList = App.Collection.extend({
+			type: 'tree',
+			model: App.Region,
+			pageSize: 0,
+			columns: [
+				{label: '名称', key: 'name'},
+				{label: '全称', key: 'fullName'},
+				{label: '编码', key: 'code', thcss: 'width:300px;'},
+				{label: '类型', key: 'type', local: 'regionType', thcss: 'width:120px;'},
+				{label: '状态', key: 'status', local: 'status', thcss: 'width:60px;'}
+			]
+		});
 
-            $('#path').stepSelection({
-                urlRoot: 'rest/base/region/list',
-                callback: function (id) {
-                    $('#parent').val(id);
-                }
-            });
-        });
-    </script>
+		App.RegionForm = App.FormView.extend({
+			size: {width: 750}
+		});
+
+		App.RegionGrid = App.Grid.extend({
+			qel: '.queryBar',
+			form: new App.RegionForm,
+			collection: new App.RegionList,
+			toolbar: ['create']
+		});
+
+		new App.RegionGrid();
+
+		$('#path').stepSelection({
+			urlRoot: 'rest/base/region/list',
+			callback: function (id) {
+				$('#parent').val(id);
+			}
+		});
+	});
+</script>
 </head>
 <body>
-<div id="article">
-    <form class="queryBar">
-        <ul>
-            <li>
-                <label>地区名称：</label>
-                <input type="text" name="name"/>
-            </li>
-            <li>
-                <button class="search"><i></i>查询</button>
-            </li>
-            <li class="toolBar"></li>
-        </ul>
-    </form>
-    <div class="dataGrid">
-        <table class="app"></table>
-    </div>
-    <div class="page"></div>
-</div>
+	<div id="article">
+		<form class="queryBar">
+			<ul>
+				<li>
+					<label>编码：</label>
+					<input type="text" name="code" />
+				</li>
+				<li>
+					<label>名称：</label>
+					<input type="text" name="name" />
+				</li>
+				<li>
+					<label>全称：</label>
+					<input type="text" name="fullName" />
+				</li>
+				<li>
+					<button class="search"><i></i>查询</button>
+				</li>
+				<li class="toolBar"></li>
+			</ul>
+		</form>
+		<div class="dataGrid">
+			<table class="app"></table>
+		</div>
+		<div class="page"></div>
+	</div>
 
-<div class="navPanel">
-    <div class="toolBar"></div>
-    <div class="editorPanel">
-        <form>
-            <ol>
-                <li>
-                    <label>名称:</label>
-                    <input type="text" name="name" placeholder="名称" required/>
-                </li>
-
-                <li>
-                    <label>网点:</label>
-                    <select name="group" data-local="sys/kv/group"><option value="">不指定</option></select>
-                </li>
-                <li>
-                    <label>邮编:</label>
-                    <input type="text" name="zip"/>
-                </li>
-                <li style="height:30px;">
-                    <label>上级节点:</label>
-                    <input type="text" name="parent" id="parent" style="display:none"/>
-                    <input type="text" name="path" id="path" style="display:none"/>
-                </li>
-                <li>
-                    <label>排序:</label>
-                    <input type="number" name="sort" required max="99" min="0"/>
-                </li>
-                <li>
-                    <label>状态:</label>
-                    <select name="status" data-local="regionStatus"></select>
-                </li>
-            </ol>
-        </form>
-    </div>
-</div>
+	<div class="navPanel">
+		<div class="toolBar"></div>
+		<div class="editorPanel">
+			<form>
+				<ol>
+					<li>
+						<label>编码:</label>
+						<input type="text" name="code" placeholder="编码" readonly />
+					</li>
+					<li>
+						<label>名称:</label>
+						<input type="text" name="name" placeholder="名称" required />
+					</li>
+					<li>
+						<label>全称:</label>
+						<input type="text" name="fullName" placeholder="全称" required />
+					</li>
+					<li>
+						<label>类型:</label>
+						<select name="type" data-local="regionType"></select>
+					</li>
+					<li>
+						<label>上级节点:</label>
+						<input type="text" name="parent" id="parent" style="display: none" />
+						<input type="text" name="path" id="path" style="display: none" />
+					</li>
+					<li>
+						<label>排序:</label>
+						<input type="number" name="sort" required max="99" min="0" />
+					</li>
+					<li>
+						<label>营业状态:</label>
+						<select name="businessStatus" data-local="businessStatus"></select>
+					</li>
+					<li>
+						<label>状态:</label>
+						<select name="status" data-local="status"></select>
+					</li>
+				</ol>
+			</form>
+		</div>
+	</div>
 </body>
 </html>

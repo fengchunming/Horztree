@@ -1,9 +1,8 @@
 package com.an.mm.entity;
 
-import com.an.sys.entity.Organization;
-
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -12,257 +11,239 @@ import java.util.List;
  * @author Karas
  */
 public class Goods implements Serializable {
-    private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
+	private Integer id;
+	private String code;
+	private String barcode;
+	private String name; 
+	private String title;
+	private String tips;
+	private String type;
+	private BigDecimal weight;
+	private Integer shelfLife; 
+	private String storageType;
+	private Integer uomId;
+	private Integer brandId;
+	private String producer;
+	private BigDecimal costPrice;
+	private BigDecimal salePrice;
+	private BigDecimal marketPrice;
+	private Integer categoryId; 
+	private String categoryCode;
+	private Integer sort;
+	private String remark;
+	private Integer maxLimit;
+	private Integer soldVolume;
+	private BigDecimal cmtPoint;
+	private String image;
+	private List<Picture> images;
+	private String description;
+	private String status = "t";
+	private Integer enterBy;
+	private Date enterAt;
 
-    private Integer goodsId;
-    private String pn;// 商品编码
-    private List<Picture> images;
-    private String description;
-    private String barcode; // 商品条码
-    private String name; // 商品名称
-    private String goodsType; // 成品，半成品，原料
-    private String title;// 简称
-    private String tips;
+	private Integer regionId;
+	private Integer stockSum;
+	private Integer stockLocked;
+	private Integer safeLine;
 
-    private List<Integer> category; // 分类（小类）
-    private Integer shelfLife; // 保质期
-    private Integer brand; // 品牌
+	public Integer getId() {
+		return id;
+	}
+	public void setId(Integer id) {
+		this.id = id;
+	}
+	public String getCode() {
+		return code;
+	}
+	public void setCode(String code) {
+		this.code = code;
+	}
+	public String getBarcode() {
+		return barcode;
+	}
+	public void setBarcode(String barcode) {
+		this.barcode = barcode;
+	}
+	public String getName() {
+		return name;
+	}
+	public void setName(String name) {
+		this.name = name;
+	}
+	public String getTitle() {
+		return title;
+	}
+	public void setTitle(String title) {
+		this.title = title;
+	}
+	public String getTips() {
+		return tips;
+	}
+	public void setTips(String tips) {
+		this.tips = tips;
+	}
+	public String getType() {
+		return type;
+	}
+	public void setType(String type) {
+		this.type = type;
+	}
+	public BigDecimal getWeight() {
+		return weight;
+	}
+	public void setWeight(BigDecimal weight) {
+		this.weight = weight;
+	}
+	public Integer getShelfLife() {
+		return shelfLife;
+	}
+	public void setShelfLife(Integer shelfLife) {
+		this.shelfLife = shelfLife;
+	}
+	public String getStorageType() {
+		return storageType;
+	}
+	public void setStorageType(String storageType) {
+		this.storageType = storageType;
+	}
+	public Integer getUomId() {
+		return uomId;
+	}
+	public void setUomId(Integer uomId) {
+		this.uomId = uomId;
+	}
+	public Integer getBrandId() {
+		return brandId;
+	}
+	public void setBrandId(Integer brandId) {
+		this.brandId = brandId;
+	}
+	public String getProducer() {
+		return producer;
+	}
+	public void setProducer(String producer) {
+		this.producer = producer;
+	}
+	public BigDecimal getCostPrice() {
+		return costPrice;
+	}
+	public void setCostPrice(BigDecimal costPrice) {
+		this.costPrice = costPrice;
+	}
+	public BigDecimal getSalePrice() {
+		return salePrice;
+	}
+	public void setSalePrice(BigDecimal salePrice) {
+		this.salePrice = salePrice;
+	}
+	public BigDecimal getMarketPrice() {
+		return marketPrice;
+	}
+	public void setMarketPrice(BigDecimal marketPrice) {
+		this.marketPrice = marketPrice;
+	}
+	public Integer getCategoryId() {
+		return categoryId;
+	}
+	public void setCategoryId(Integer categoryId) {
+		this.categoryId = categoryId;
+	}
+	public String getCategoryCode() {
+		return categoryCode;
+	}
+	public void setCategoryCode(String categoryCode) {
+		this.categoryCode = categoryCode;
+	}
+	public Integer getSort() {
+		return sort;
+	}
+	public void setSort(Integer sort) {
+		this.sort = sort;
+	}
+	public String getRemark() {
+		return remark;
+	}
+	public void setRemark(String remark) {
+		this.remark = remark;
+	}
+	public Integer getMaxLimit() {
+		return maxLimit;
+	}
+	public void setMaxLimit(Integer maxLimit) {
+		this.maxLimit = maxLimit;
+	}
+	public Integer getSoldVolume() {
+		return soldVolume;
+	}
+	public void setSoldVolume(Integer soldVolume) {
+		this.soldVolume = soldVolume;
+	}
+	public BigDecimal getCmtPoint() {
+		return cmtPoint;
+	}
+	public void setCmtPoint(BigDecimal cmtPoint) {
+		this.cmtPoint = cmtPoint;
+	}
+	public String getImage() {
+		return image;
+	}
+	public void setImage(String image) {
+		this.image = image;
+	}
+	public List<Picture> getImages() {
+		return images;
+	}
+	public void setImages(List<Picture> images) {
+		this.images = images;
+	}
+	public String getDescription() {
+		return description;
+	}
+	public void setDescription(String description) {
+		this.description = description;
+	}
+	public String getStatus() {
+		return status;
+	}
+	public void setStatus(String status) {
+		this.status = status;
+	}
+	public Integer getEnterBy() {
+		return enterBy;
+	}
+	public void setEnterBy(Integer enterBy) {
+		this.enterBy = enterBy;
+	}
+	public Date getEnterAt() {
+		return enterAt;
+	}
+	public void setEnterAt(Date enterAt) {
+		this.enterAt = enterAt;
+	}
+	public Integer getRegionId() {
+		return regionId;
+	}
+	public void setRegionId(Integer regionId) {
+		this.regionId = regionId;
+	}
+	public Integer getStockSum() {
+		return stockSum;
+	}
+	public void setStockSum(Integer stockSum) {
+		this.stockSum = stockSum;
+	}
+	public Integer getStockLocked() {
+		return stockLocked;
+	}
+	public void setStockLocked(Integer stockLocked) {
+		this.stockLocked = stockLocked;
+	}
+	public Integer getSafeLine() {
+		return safeLine;
+	}
+	public void setSafeLine(Integer safeLine) {
+		this.safeLine = safeLine;
+	}
 
-    private Organization belongTo;
-
-    private String unit;// 基本单位
-
-    private BigDecimal standPrice; // 基准销价
-    private BigDecimal salePrice; // 售价
-    private BigDecimal marketPrice; // 市场价格
-
-    private List<Spec> specs;
-    private BigDecimal quantity;
-    private Integer groupId;
-    private Integer maxLimit;
-    private BigDecimal weight;
-    private Integer soldVolume;
-    private Integer sort;
-    private String remark; // 备注
-    private String status; // 状态
-    private String enterAt;
-
-
-
-    public String getPn() {
-        return pn;
-    }
-
-    public void setPn(String pn) {
-        this.pn = pn;
-    }
-
-    public List<Picture> getImages() {
-        return images;
-    }
-
-    public void setImages(List<Picture> images) {
-        this.images = images;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public String getBarcode() {
-        return barcode;
-    }
-
-    public void setBarcode(String barcode) {
-        this.barcode = barcode;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getGoodsType() {
-        return goodsType;
-    }
-
-    public void setGoodsType(String goodsType) {
-        this.goodsType = goodsType;
-    }
-
-    public String getTitle() {
-        return title;
-    }
-
-    public void setTitle(String title) {
-        this.title = title;
-    }
-
-    public List<Integer> getCategory() {
-        return category;
-    }
-
-    public void setCategory(List<Integer> category) {
-        this.category = category;
-    }
-
-    public Integer getShelfLife() {
-        return shelfLife;
-    }
-
-    public void setShelfLife(Integer shelfLife) {
-        this.shelfLife = shelfLife;
-    }
-
-    public Integer getBrand() {
-        return brand;
-    }
-
-    public void setBrand(Integer brand) {
-        this.brand = brand;
-    }
-
-    public Organization getBelongTo() {
-        return belongTo;
-    }
-
-    public void setBelongTo(Organization belongTo) {
-        this.belongTo = belongTo;
-    }
-
-    public String getUnit() {
-        return unit;
-    }
-
-    public void setUnit(String unit) {
-        this.unit = unit;
-    }
-
-    public BigDecimal getStandPrice() {
-        return standPrice;
-    }
-
-    public void setStandPrice(BigDecimal standPrice) {
-        this.standPrice = standPrice;
-    }
-
-    public BigDecimal getSalePrice() {
-        return salePrice;
-    }
-
-    public void setSalePrice(BigDecimal salePrice) {
-        this.salePrice = salePrice;
-    }
-
-    public BigDecimal getMarketPrice() {
-        return marketPrice;
-    }
-
-    public void setMarketPrice(BigDecimal marketPrice) {
-        this.marketPrice = marketPrice;
-    }
-
-    public BigDecimal getWeight() {
-        return weight;
-    }
-
-    public void setWeight(BigDecimal weight) {
-        this.weight = weight;
-    }
-
-    public String getRemark() {
-        return remark;
-    }
-
-    public void setRemark(String remark) {
-        this.remark = remark;
-    }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
-
-    public String getEnterAt() {
-        return enterAt;
-    }
-
-    public void setEnterAt(String enterAt) {
-        this.enterAt = enterAt;
-    }
-
-
-    public String getTips() {
-        return tips;
-    }
-
-    public void setTips(String tips) {
-        this.tips = tips;
-    }
-
-    public List<Spec> getSpecs() {
-        return specs;
-    }
-
-    public void setSpecs(List<Spec> specs) {
-        this.specs = specs;
-    }
-
-    public Integer getMaxLimit() {
-        return maxLimit;
-    }
-
-    public void setMaxLimit(Integer maxLimit) {
-        this.maxLimit = maxLimit;
-    }
-
-    public BigDecimal getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(BigDecimal quantity) {
-        this.quantity = quantity;
-    }
-
-    public Integer getGroupId() {
-        return groupId;
-    }
-
-    public void setGroupId(Integer groupId) {
-        this.groupId = groupId;
-    }
-
-    public Integer getGoodsId() {
-        return goodsId;
-    }
-
-    public void setGoodsId(Integer goodsId) {
-        this.goodsId = goodsId;
-    }
-
-    public Integer getSoldVolume() {
-        return soldVolume;
-    }
-
-    public void setSoldVolume(Integer soldVolume) {
-        this.soldVolume = soldVolume;
-    }
-
-    public Integer getSort() {
-        return sort;
-    }
-
-    public void setSort(Integer sort) {
-        this.sort = sort;
-    }
 }

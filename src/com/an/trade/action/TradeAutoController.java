@@ -2,37 +2,19 @@ package com.an.trade.action;
 
 import com.an.core.exception.BadRequestException;
 import com.an.core.exception.ErrorModelAndView;
-import com.an.core.exception.ServerErrorException;
-import com.an.mm.dao.GoodsCombDao;
-import com.an.mm.dao.GoodsDao;
-import com.an.mm.entity.Goods;
-import com.an.sys.entity.Setting;
 import com.an.trade.dao.TradeAutoDao;
-import com.an.trade.dao.TradeDao;
-import com.an.trade.dao.TradeDetailDao;
 import com.an.trade.entity.TradeConfig;
-import com.an.trade.entity.Trade;
 import com.an.utils.FileUtil;
-import com.an.utils.Util;
-import com.an.wm.action.WorkBillController;
-import com.an.wm.entity.Item;
 
-import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.ModelAndView;
 
 import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

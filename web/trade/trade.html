@@ -35,8 +35,8 @@
                     {label: '收货人', key: 'addr.linkman', sort: 'ship_name', thcss: 'width:80px'},
                     {label: '金额', key: 'amount', sort: true, thcss: 'width:60px'},
                     {label: '地址', key: 'addr.addr'},
-                    {label: '手机', key: 'addr.mobile',thcss:'width:150px'},
-                    {label: '网点', key: 'groupId', local: 'sys/kv/group', thcss: 'width:200px'}
+                    {label: '手机', key: 'addr.mobile', thcss: 'width:100px'},
+                    {label: '网点', key: 'regionId', local: 'base/kv/region', thcss: 'width:200px'}
                 ]
             });
 
@@ -292,10 +292,10 @@
                 autoLoad: false,
                 model: App.Support,
                 columns: [
-                    {key: 'id', type: 'checkbox', style: 'width:22px'},
+                    {key: 'id', type: 'checkbox', thcss: 'width:30px'},
                     {label: '服务记录', key: 'remark', editable: true},
-                    {label: '记录时间', key: 'enterAt', style: 'width:22px'},
-                    {label: '记录人', key: 'createBy', style: 'width:22px'}
+                    {label: '记录时间', key: 'enterAt'},
+                    {label: '记录人', key: 'createBy'}
                 ],
                 save: function () {
                     $.ajax({
@@ -343,12 +343,7 @@
                     <option value="">所有</option>
                 </select>
             </li>
-            <li>
-                <label>网点：</label>
-                <select name="group" data-local="sys/kv/owngroup">
-                    <option></option>
-                </select>
-            </li>
+
             <li>
                 <label>订单日期：</label>
                 <input type="text" class="mindatepicker" name="sdate"> -
@@ -368,14 +363,18 @@
                     <option></option>
                 </select>
             </li>
+        </ul>
+        <ul>
+            <li>
+                <label>网点区域：</label>
+                <select name="regionId" data-local="base/kv/ownRegion">
+                    <option></option>
+                </select>
+            </li>
             <li>
                 <label title="自动查询，有未发货订单，播放铃声"><input type="checkbox" name="autoSearchFlag" id="autoSearch" checked >铃声    </label>&nbsp;&nbsp;&nbsp;                   
                 <audio id="myaudio" src="images/music.mp3"  ></audio>
-            </li>
-            
-            <li>
                 <button class="search"><i></i>查询</button>
-                <button type="reset" class="reset"><i></i>重置</button>
             </li>
             <li class="toolBar"></li>
         </ul>
@@ -412,7 +411,7 @@
                         </li>
                         <li>
                             <label>网点</label>
-                            <select style="width:200px" name="groupId" data-local="sys/kv/group"></select>
+                            <select name="regionId" data-local="base/kv/region" style="width:200px;"></select>
                         </li>
                         <li>
                             <label>会员:</label>

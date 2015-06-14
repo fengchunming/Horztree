@@ -1,109 +1,109 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <script>
-        $(function () {
-            App.Category = App.Model.extend({
-                urlRoot: 'rest/mm/category',
-                idAttribute: 'id',
-                defaults: { sort: 50 ,leaf: true},
-                edit: function () {
-                    $('#path').stepSelection('load', this.id);
-                }
-            });
+<script>
+	$(function () {
+		App.Category = App.Model.extend({
+			urlRoot: 'rest/mm/category',
+			idAttribute: 'id',
+			defaults: {sort: 50, leaf: true},
+			edit: function () {
+				$('#path').stepSelection('load', this.id);
+			}
+		});
 
-            App.Categorys = App.Collection.extend({
-                model: App.Category,
-                pageSize: 0,
-                type: 'tree',
-                columns: [
-                    {label: '分类名称', key: 'name'},
-                    {label: '简称', key: 'shortName'},
-                    {label: '状态', key: 'status', local: 'status',thcss:'width:100px'}
-                ]
-            });
+		App.CategoryList = App.Collection.extend({
+			model: App.Category,
+			pageSize: 0,
+			type: 'tree',
+			columns: [
+				{label: '名称', key: 'name'},
+				{label: '编码', key: 'code'},
+				{label: '状态', key: 'status', local: 'status', thcss:'width:100px'}
+			]
+		});
 
-            App.CategoryGrid = App.Grid.extend({
-                collection: new App.Categorys,
-                form: new App.FormView,
-                toolbar: ['create'],
-                qel: '.queryBar'
-            });
+		App.CategoryGrid = App.Grid.extend({
+			collection: new App.CategoryList,
+			form: new App.FormView,
+			toolbar: ['create'],
+			qel: '.queryBar'
+		});
 
-            new App.CategoryGrid;
+		new App.CategoryGrid;
 
-            $('#path').stepSelection({
-                urlRoot: 'rest/mm/category/list',
-                callback: function (id) {
-                    $('#parent').val(id);
-                }
-            });
-        });
-    </script>
+		$('#path').stepSelection({
+			urlRoot: 'rest/mm/category/list',
+			callback: function (id) {
+				$('#parent').val(id);
+			}
+		});
+	});
+</script>
 </head>
 <body>
-<div id="article">
-    <form class="queryBar">
-        <ul>
-            <li>
-                <label>分类名称：</label>
-                <input type="text" name="name"/>
-            </li>
-            <li>
-                <label>分类编号：</label>
-                <input type="text" name="code"/>
-            </li>
-            <li>
-                <label>状态：</label>
-                <select name="status" data-local="status">
-                    <option value="">所有</option>
-                </select>
-            </li>
-            <li>
-                <button class="search"><i></i>查询</button>
-            </li>
-            <li class="toolBar"></li>
-        </ul>
-    </form>
-    <div class="dataGrid">
-        <table class="app"></table>
-    </div>
-    <div class="page"></div>
-</div>
+	<div id="article">
+		<form class="queryBar">
+			<ul>
+				<li>
+					<label>编码：</label>
+					<input type="text" name="code" />
+				</li>
+				<li>
+					<label>名称：</label>
+					<input type="text" name="name" />
+				</li>
+				<li>
+					<label>状态：</label>
+					<select name="status" data-local="status">
+						<option value=""></option>
+					</select>
+				</li>
+				<li>
+					<button class="search"><i></i>查询</button>
+				</li>
+				<li class="toolBar"></li>
+			</ul>
+		</form>
+		<div class="dataGrid">
+			<table class="app"></table>
+		</div>
+		<div class="page"></div>
+	</div>
 
-<div class="navPanel">
-    <div class="toolBar"></div>
-    <div class="editorPanel">
-        <form>
-            <ol>
-                <li>
-                    <label>分类名称:</label>
-                    <input type="text" name="name" placeholder="请输入模块名称" required/>
-                </li>
-                <li>
-                    <label>上级分类:</label>
-                    <input type="text" name="parent" id="parent" style="display:none"/>
-                    <input type="text" name="path" id="path" style="display:none"/>
-                </li>
-                <li>
-                    <label>简称:</label>
-                    <input type="text" name="shortName"/>
-                </li>
-                <li>
-                    <label>状态:</label>
-                    <select name="status" data-local="status"></select>
-                </li>
-                <li>
-                    <label>说明:</label>
-                    <input type="text" name="remark"/>
-                </li>
-                <li>
-                    <label>排序:</label>
-                    <input type="number" name="sort" min="0" max="99" required/>
-                </li>
-            </ol>
-        </form>
-    </div>
-</div>
+	<div class="navPanel">
+		<div class="toolBar"></div>
+		<div class="editorPanel">
+			<form>
+				<ol>
+					<li>
+						<label>分类编码:</label>
+						<input type="text" name="code" placeholder="分类编码" readonly />
+					</li>
+					<li>
+						<label>分类名称:</label>
+						<input type="text" name="name" placeholder="分类名称" required />
+					</li>
+					<li>
+						<label>上级分类:</label>
+						<input type="text" name="parent" id="parent" style="display: none" />
+						<input type="text" name="path" id="path" style="display: none" />
+					</li>
+					<li>
+						<label>状态:</label>
+						<select name="status" data-local="status"></select>
+					</li>
+					<li>
+						<label>备注:</label>
+						<input type="text" name="remark" />
+					</li>
+					<li>
+						<label>排序:</label>
+						<input type="number" name="sort" min="0" max="99" required />
+					</li>
+				</ol>
+			</form>
+		</div>
+	</div>
 </body>
 </html>

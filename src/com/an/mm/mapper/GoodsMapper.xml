@@ -1,266 +1,256 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="MM.GoodsMapper">
-    <cache eviction="LRU" type="com.an.core.mybatis.cache.RedisCache"/>
-    <resultMap id="BaseResultMap" type="com.an.mm.entity.Goods">
-        <id column="goods_id" property="goodsId" jdbcType="BIGINT"/>
-        <result column="goods_code" property="pn" jdbcType="VARCHAR"/>
-        <result column="description" property="description" jdbcType="VARCHAR"/>
-        <result column="goods_barcode" property="barcode" jdbcType="VARCHAR"/>
-        <result column="goods_name" property="name" jdbcType="VARCHAR"/>
-        <result column="goods_type" property="goodsType" jdbcType="CHAR"/>
-        <result column="title" property="title" jdbcType="VARCHAR"/>
-        <result column="tips" property="tips" jdbcType="VARCHAR"/>
-        <result column="images" property="images" typeHandler="com.an.core.mybatis.handlers.JsonTypeHandler"/>
-        <result column="category" property="category" typeHandler="com.an.core.mybatis.handlers.JsonTypeHandler"/>
-        <result column="shelf_life" property="shelfLife" jdbcType="INTEGER"/>
-        <result column="brand" property="brand" jdbcType="INTEGER"/>
-        <result column="unit" property="unit" jdbcType="VARCHAR"/>
-        <result column="sale_price" property="salePrice" jdbcType="NUMERIC"/>
-        <result column="sale_price" property="standPrice" jdbcType="NUMERIC"/>
-        <result column="market_price" property="marketPrice" jdbcType="NUMERIC"/>
-        <result column="status" property="status" jdbcType="VARCHAR"/>
-        <result column="weight" property="weight" jdbcType="NUMERIC"/>
-        <result column="max_limit" property="maxLimit" jdbcType="INTEGER"/>
-        <result column="sort" property="sort" jdbcType="INTEGER"/>
-        <result column="sold_volume" property="soldVolume" jdbcType="INTEGER"/>
-        <result column="org_code" property="belongTo.orgCode" jdbcType="VARCHAR"/>
-    </resultMap>
+	<cache eviction="LRU" type="com.an.core.mybatis.cache.RedisCache"/>
+	<resultMap id="BaseResultMap" type="com.an.mm.entity.Goods">
+		<id column="id" property="id" jdbcType="INTEGER" />
+		<result column="code" property="code" jdbcType="VARCHAR" />
+		<result column="barcode" property="barcode" jdbcType="VARCHAR" />
+		<result column="name" property="name" jdbcType="VARCHAR" />
+		<result column="title" property="title" jdbcType="VARCHAR" />
+		<result column="tips" property="tips" jdbcType="VARCHAR" />
+		<result column="type" property="type" jdbcType="CHAR" />
+		<result column="weight" property="weight" jdbcType="NUMERIC" />
+		<result column="shelf_life" property="shelfLife" jdbcType="INTEGER" />
+		<result column="storage_type" property="storageType" jdbcType="CHAR" />
+		<result column="uom_id" property="uomId" jdbcType="INTEGER" />
+		<result column="brand_id" property="brandId" jdbcType="INTEGER" />
+		<result column="producer" property="producer" jdbcType="VARCHAR" />
+		<result column="cost_price" property="costPrice" jdbcType="NUMERIC" />
+		<result column="sale_price" property="salePrice" jdbcType="NUMERIC" />
+		<result column="market_price" property="marketPrice" jdbcType="NUMERIC" />
+		<result column="category_id" property="categoryId" jdbcType="INTEGER" />
+		<result column="category_code" property="categoryCode" jdbcType="VARCHAR" />
+		<result column="sort" property="sort" jdbcType="INTEGER" />
+		<result column="remark" property="remark" jdbcType="VARCHAR" />
+		<result column="max_limit" property="maxLimit" jdbcType="INTEGER" />
+		<result column="sold_volume" property="soldVolume" jdbcType="INTEGER" />
+		<result column="cmt_point" property="cmtPoint" jdbcType="FLOAT" />
+		<result column="image" property="image" jdbcType="VARCHAR" />
+		<result column="images" property="images" typeHandler="com.an.core.mybatis.handlers.JsonTypeHandler" />
+		<result column="description" property="description" jdbcType="VARCHAR" />
+		<result column="status" property="status" jdbcType="VARCHAR" />
+		<result column="enter_by" property="enterBy" jdbcType="INTEGER" />
+		<result column="enter_at" property="enterAt" jdbcType="TIMESTAMP" />
 
-    <sql id="Example_Where_Clause">
-        <where>
-            <if test="status == null">
-                status != 'd' 
-            </if>
-            <if test="status != null and status !=''">
-                status = #{status}
-            </if>
-            <if test="_SH != null and _SH !=''">
-                and ( goods_code like concat('%',#{_SH},'%')
-                or goods_name like concat('%',#{_SH},'%') )
-            </if>
-            <if test="brand != null and brand !=''">
-                and brand = #{brand}
-            </if>
-            <if test="pn != null and pn !=''">
-                and goods_code like concat('%', #{pn}, '%')
-            </if>
-            <if test="barcode != null and barcode !=''">
-                and goods_barcode like concat('%', #{barcode}, '%')
-            </if>
-            <if test="name != null and name !=''">
-                and goods_name like concat('%', #{name}, '%')
-            </if>
-            <if test="category != null and category !=''">
-                and exists (select 1 from MM_CATEGORY_GOODS where MM_GOODS.goods_id = goods_id and category_id =
-                #{category})
-            </if>
-        </where>
-    </sql>
+		<result column="region_id" property="regionId" jdbcType="INTEGER" />
+		<result column="stock_sum" property="stockSum" jdbcType="INTEGER" />
+		<result column="stock_locked" property="stockLocked" jdbcType="INTEGER" />
+		<result column="safe_line" property="safeLine" jdbcType="INTEGER" />
+	</resultMap>
 
-    <sql id="Base_Column_List">
-        goods_id, goods_code, goods_barcode, goods_name, goods_type, title, sort, sold_volume,
-        category, shelf_life, brand, unit, stand_price, sale_price, market_price,
-        status, enter_at, weight, org_code, images, description, tips, max_limit
-    </sql>
-    <select id="selectByExample" resultMap="BaseResultMap" parameterType="map">
-        select
-        <include refid="Base_Column_List"/>
-        from mm_goods
-        <include refid="Example_Where_Clause"/>
-        <if test="_BY != null">order by ${_BY}</if>
-    </select>
+	<sql id="Example_Where_Clause">
+		<where>
+			<if test="status != null and status != ''">
+				status = #{status}
+			</if>
+			<if test="status == null">
+				status != 'd'
+			</if>
+			<if test="_SH != null and _SH !=''">
+				and (code like concat('%', #{_SH}, '%') or name like concat('%', #{_SH}, '%'))
+			</if>
+			<if test="code != null and code !=''">
+				and code like concat('%', #{code}, '%')
+			</if>
+			<if test="barcode != null and barcode !=''">
+				and barcode like concat('%', #{barcode}, '%')
+			</if>
+			<if test="name != null and name !=''">
+				and name like concat('%', #{name}, '%')
+			</if>
+			<if test="categoryId != null and categoryId > 0">
+				and category_id = #{categoryId}
+			</if>
+			<if test="categoryCode != null and categoryCode !=''">
+				and category_code like concat(#{categoryCode}, '%')
+			</if>
+			<if test="brandId != null and brandId > 0">
+				and brand_id = #{brandId}
+			</if>
+		</where>
+	</sql>
 
-    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Long">
-        select
-        <include refid="Base_Column_List"/>
-        from MM_GOODS
-        where goods_id = #{mid,jdbcType=BIGINT}
-    </select>
+	<sql id="Base_Column_List">
+		id, code, barcode, name, title, tips,
+		type, weight, shelf_life, storage_type, uom_id,
+		brand_id, producer, cost_price, sale_price, market_price,
+		category_id, category_code, sort, remark, max_limit, sold_volume,
+		cmt_point, image, status, enter_by, enter_at
+	</sql>
+	
+	<sql id="Base_Column_Detail">
+		id, code, barcode, name, title, tips,
+		type, weight, shelf_life, storage_type, uom_id,
+		brand_id, producer, cost_price, sale_price, market_price,
+		category_id, category_code, sort, remark, max_limit, sold_volume,
+		cmt_point, image, images, description, status, enter_by, enter_at
+	</sql>
 
-    <select id="selectByCode" resultMap="BaseResultMap" parameterType="java.lang.String">
-        select
-        <include refid="Base_Column_List"/>
-        from MM_GOODS
-        where goods_code = #{value}
-    </select>
+	<select id="selectByExample" resultMap="BaseResultMap" parameterType="map">
+		select
+		<include refid="Base_Column_List" />
+		from MM_GOODS
+		<include refid="Example_Where_Clause" />
+		<if test="_BY != null">order by ${_BY}</if>
+	</select>
 
-    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
-        update MM_GOODS
-        set status = 'd', enter_at = now()
-        where goods_id = #{mid,jdbcType=INTEGER}
-    </delete>
+	<select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="int">
+		select
+		<include refid="Base_Column_Detail" />
+		from MM_GOODS
+		where id = #{value,jdbcType=INTEGER}
+	</select>
 
-    <insert id="insert" parameterType="com.an.mm.entity.Goods">
-        insert into MM_GOODS (goods_code, goods_barcode, description, goods_name, tips,
-        goods_type, title, category, shelf_life, brand, unit, stand_price,
-        sale_price, market_price, status, enter_at, org_code, images, weight,
-        max_limit, sort, sold_volume)
-        values ( #{pn,jdbcType=VARCHAR}, #{barcode,jdbcType=VARCHAR}, #{description,jdbcType=VARCHAR},
-        #{name,jdbcType=VARCHAR}, #{tips,jdbcType=VARCHAR}, #{goodsType,jdbcType=CHAR}, #{title,jdbcType=VARCHAR},
-        #{category,typeHandler=com.an.core.mybatis.handlers.JsonTypeHandler},
-        #{shelfLife,jdbcType=INTEGER}, #{brand,jdbcType=INTEGER}, #{unit,jdbcType=VARCHAR},
-        #{standPrice,jdbcType=NUMERIC}, #{salePrice,jdbcType=NUMERIC},
-        #{marketPrice,jdbcType=NUMERIC}, #{status,jdbcType=VARCHAR}, now(),
-        #{belongTo.orgCode,jdbcType=VARCHAR}, #{images,typeHandler=com.an.core.mybatis.handlers.JsonTypeHandler},
-        #{weight,jdbcType=NUMERIC},#{maxLimit,jdbcType=INTEGER},#{sort,jdbcType=INTEGER},#{soldVolume,jdbcType=INTEGER})
-        <selectKey resultType="java.lang.Integer" keyProperty="goodsId">
-            SELECT @@IDENTITY AS id
-        </selectKey>
+	<delete id="deleteByPrimaryKey" parameterType="int">
+		update MM_GOODS
+		set status = 'd', enter_by = #userId, enter_at = now()
+		where id = #{value,jdbcType=INTEGER}
+	</delete>
 
-    </insert>
+	<insert id="insert" parameterType="com.an.mm.entity.Goods">
+		insert into MM_GOODS (code, barcode, name, title, tips,
+			type, weight, shelf_life, storage_type, uom_id,
+			brand_id, producer, cost_price, sale_price, market_price,
+			category_id, category_code, sort, remark, max_limit, sold_volume,
+			cmt_point, image, images, description, status, enter_by, enter_at)
+		values (#{code,jdbcType=VARCHAR},
+		#{barcode,jdbcType=VARCHAR},
+		#{name,jdbcType=VARCHAR},
+		#{title,jdbcType=VARCHAR},
+		#{tips,jdbcType=VARCHAR},
+		#{type,jdbcType=CHAR},
+		#{weight,jdbcType=NUMERIC},
+		#{shelfLife,jdbcType=INTEGER},
+		#{storageType,jdbcType=CHAR},
+		#{uomId,jdbcType=INTEGER},
+		#{brandId,jdbcType=INTEGER},
+		#{producer,jdbcType=VARCHAR},
+		#{costPrice,jdbcType=NUMERIC},
+		#{salePrice,jdbcType=NUMERIC},
+		#{marketPrice,jdbcType=NUMERIC},
+		#{categoryId,jdbcType=INTEGER},
+		#{categoryCode,jdbcType=VARCHAR},
+		#{sort,jdbcType=INTEGER},
+		#{remark,jdbcType=VARCHAR},
+		#{maxLimit,jdbcType=INTEGER},
+		#{soldVolume,jdbcType=INTEGER},
+		#{cmtPoint,jdbcType=NUMERIC},
+		#{image,jdbcType=VARCHAR},
+		#{images,typeHandler=com.an.core.mybatis.handlers.JsonTypeHandler},
+		#{description,jdbcType=VARCHAR},
+		#{status,jdbcType=VARCHAR},
+		#userId,
+		now())
+		<selectKey resultType="int" keyProperty="id">
+			SELECT @@IDENTITY AS id
+		</selectKey>
+	</insert>
 
-    <select id="countByExample" parameterType="map" resultType="java.lang.Integer">
-        select count(*) from MM_GOODS
-        <include refid="Example_Where_Clause"/>
-    </select>
+	<select id="countByExample" parameterType="map" resultType="int">
+		select count(1) from MM_GOODS
+		<include refid="Example_Where_Clause" />
+	</select>
 
-    <update id="updateByPrimaryKey" parameterType="com.an.mm.entity.Goods">
-        update MM_GOODS
-        set goods_barcode = #{barcode,jdbcType=VARCHAR},
-        goods_code = #{pn,jdbcType=VARCHAR},
-        description = #{description,jdbcType=VARCHAR},
-        goods_name = #{name,jdbcType=VARCHAR},
-        goods_type = #{goodsType,jdbcType=CHAR},
-        title = #{title,jdbcType=VARCHAR},
-        tips = #{tips,jdbcType=VARCHAR},
-        category = #{category,typeHandler=com.an.core.mybatis.handlers.JsonTypeHandler},
-        shelf_life = #{shelfLife,jdbcType=INTEGER},
-        brand = #{brand,jdbcType=INTEGER},
-        unit = #{unit,jdbcType=INTEGER},
-        stand_price = #{standPrice,jdbcType=NUMERIC},
-        sale_price = #{salePrice,jdbcType=NUMERIC},
-        market_price = #{marketPrice,jdbcType=NUMERIC},
-        org_code = #{belongTo.orgCode,jdbcType=VARCHAR},
-        status = #{status,jdbcType=VARCHAR},
-        weight = #{weight,jdbcType=NUMERIC},
-        sort = #{sort,jdbcType=INTEGER},
-        sold_volume = #{soldVolume,jdbcType=INTEGER},
-        max_limit = #{maxLimit,jdbcType=INTEGER},
-        images = #{images,typeHandler=com.an.core.mybatis.handlers.JsonTypeHandler},
-        enter_at = now()
-        where goods_id = #{goodsId,jdbcType=INTEGER}
-    </update>
+	<update id="updateByPrimaryKey" parameterType="com.an.mm.entity.Goods">
+		update MM_GOODS
+		set code = #{code,jdbcType=VARCHAR},
+		barcode = #{barcode,jdbcType=VARCHAR},
+		name = #{name,jdbcType=VARCHAR},
+		title = #{title,jdbcType=VARCHAR},
+		tips = #{tips,jdbcType=VARCHAR},
+		type = #{type,jdbcType=CHAR},
+		weight = #{weight,jdbcType=NUMERIC},
+		shelf_life = #{shelfLife,jdbcType=INTEGER},
+		storage_type = #{storageType,jdbcType=CHAR},
+		uom_id = #{uomId,jdbcType=INTEGER},
+		brand_id = #{brandId,jdbcType=INTEGER},
+		producer = #{producer,jdbcType=VARCHAR},
+		cost_price = #{costPrice,jdbcType=NUMERIC},
+		sale_price = #{salePrice,jdbcType=NUMERIC},
+		market_price = #{marketPrice,jdbcType=NUMERIC},
+		category_id = #{categoryId,jdbcType=INTEGER},
+		category_code = #{categoryCode,jdbcType=VARCHAR},
+		sort = #{sort,jdbcType=INTEGER},
+		remark = #{remark,jdbcType=VARCHAR},
+		max_limit = #{maxLimit,jdbcType=INTEGER},
+		sold_volume = #{soldVolume,jdbcType=INTEGER},
+		cmt_point = #{cmtPoint,jdbcType=NUMERIC},
+		image = #{image,jdbcType=VARCHAR},
+		images = #{images,typeHandler=com.an.core.mybatis.handlers.JsonTypeHandler},
+		description = #{description,jdbcType=VARCHAR},
+		status = #{status,jdbcType=VARCHAR},
+		enter_by = #userId,
+		enter_at = now()
+		where id = #{id,jdbcType=INTEGER}
+	</update>
 
+	<select id="selectInventory" resultMap="BaseResultMap" parameterType="map">
+		select g.id, g.code, g.barcode, g.name, g.type, g.cost_price,
+		IFNULL(gr.sale_price, g.sale_price) sale_price,
+		IFNULL(gr.sold_volume, g.sold_volume) sold_volume,
+		IFNULL(gr.cmt_point, g.cmt_point) cmt_point,
+		IFNULL(gr.max_limit, g.max_limit) max_limit,
+		gr.region_id, gr.stock_sum, gr.stock_locked,
+		gr.safe_line, gr.status, concat(g.id, '-', gr.region_id) as remark
+		from MM_GOODS g, MM_GOODS_REGION gr
+		where g.id = gr.goods_id and g.status != 'd'
+		<if test="regionId != null and regionId > 0">
+			and gr.region_id = #{regionId,jdbcType=INTEGER}
+		</if>
+		<if test="goodsId != null and goodsId > 0">
+			and gr.goods_id = #{goodsId,jdbcType=INTEGER}
+		</if>
+		<if test="code != null and code !=''">
+			and g.code like concat('%', #{code}, '%')
+		</if>
+		<if test="barcode != null and barcode !=''">
+			and g.barcode like concat('%', #{barcode}, '%')
+		</if>
+		<if test="name != null and name !=''">
+			and g.name like concat('%', #{name}, '%')
+		</if>
+	</select>
 
-    <select id="selectGoodsKV" resultType="java.util.HashMap">
-        select goods_id as k, goods_name as v from MM_GOODS
-        where status != 'd'
-        order by goods_name
-    </select>
+	<select id="countInventory" parameterType="map" resultType="int">
+		select count(1) from MM_GOODS g, MM_GOODS_REGION gr
+		where g.id = gr.goods_id and g.status != 'd'
+		<if test="regionId != null and regionId > 0">
+			and gr.region_id = #{regionId,jdbcType=INTEGER}
+		</if>
+		<if test="goodsId != null and goodsId > 0">
+			and gr.goods_id = #{goodsId,jdbcType=INTEGER}
+		</if>
+		<if test="code != null and code !=''">
+			and g.code like concat('%', #{code}, '%')
+		</if>
+		<if test="barcode != null and barcode !=''">
+			and g.barcode like concat('%', #{barcode}, '%')
+		</if>
+		<if test="name != null and name !=''">
+			and g.name like concat('%', #{name}, '%')
+		</if>
+	</select>
 
-
-    <delete id="removeCategory" parameterType="com.an.mm.entity.Goods">
-        delete from MM_CATEGORY_GOODS
-        where goods_id = #{goodsId,jdbcType=INTEGER}
-    </delete>
-    <insert id="insertCategory" parameterType="com.an.mm.entity.Goods">
-        insert into MM_CATEGORY_GOODS (category_id, goods_id, enter_at, enter_by )
-        values
-        <foreach collection="category" separator="," item="cid">
-            ( #{cid,jdbcType=INTEGER}, #{goodsId,jdbcType=INTEGER}, now(), #userId)
-        </foreach>
-    </insert>
-
-
-
-    <select id="selectGoodsByGroup" resultType="map">
-        select goods_id gid, sale_price price from MM_GOODS_GROUPS where group_id = #{value}
-    </select>
-
-    <select id="selectGroupByGoods" resultType="map">
-        select group_id gid, sale_price price from MM_GOODS_GROUPS where goods_id = #{value}
-    </select>
-
-    <delete id="deleteGoodsGroup" parameterType="map">
-        delete from MM_GOODS_GROUPS
-        <where>
-            <if test="type == 'goods'">
-                <foreach collection="goods" open="goods_id not in (" close=")" separator="," item="i">
-                    #{i.gid}
-                </foreach>
-                and group_id = #{group}
-            </if>
-            <if test="type == 'group'">
-                <foreach collection="groups" open="group_id not in (" close=")" separator="," item="i">
-                    #{i.gid}
-                </foreach>
-                and goods_id = #{goods}
-            </if>
-        </where>
-    </delete>
-    
-    <insert id="insertGoodsGroup" parameterType="map">
-        replace into MM_GOODS_GROUPS (group_id, goods_id, sale_price, enter_at, enter_by)
-        values
-        <if test="type == 'goods'">
-            <foreach collection="goods" separator="," item="g">
-                ( #{group,jdbcType=INTEGER}, #{g.gid,jdbcType=INTEGER},
-                <if test="g.price != null and g.price != ''">
-                #{g.price,jdbcType=NUMERIC},
-                </if>
-                <if test="g.price == null or g.price == ''">
-                    null,
-                </if>
-                now(), #userId)
-            </foreach>
-        </if>
-        <if test="type == 'group'">
-            <foreach collection="groups" separator="," item="g">
-                ( #{g.gid,jdbcType=INTEGER}, #{goods,jdbcType=INTEGER},
-                <if test="g.price != null and g.price != ''">
-                    #{g.price,jdbcType=NUMERIC},
-                </if>
-                <if test="g.price == null or g.price == ''">
-                    null,
-                </if>
-                now(), #userId)
-            </foreach>
-        </if>
-    </insert>
-    
-    <insert id="insertAllGroup" parameterType="java.lang.Integer">
-        insert ignore into MM_GOODS_GROUPS (group_id, goods_id, enter_at, enter_by)
-        select id, #{value,jdbcType=INTEGER}, now(), #userId from SYS_GROUP
-    </insert>
-    <!-- 不明白userId从哪里来的？ -->
-    <insert id="insertAllGoods" parameterType="java.lang.Integer">
-        insert ignore into MM_GOODS_GROUPS (group_id, goods_id, enter_at, enter_by)
-        select #{value,jdbcType=INTEGER}, goods_id, now(), #userId from MM_GOODS
-    </insert>
-
-
-    
-    <select id="selectStocksBy2Gids" resultType="map" parameterType="map">
-        select goods_id goodsId, group_id groupId, stock_sum stockSum, stock_locked stockLocked, sale_price salePrice from MM_GOODS_GROUPS
-        where goods_id = #{goodsId} and group_id = #{groupId}
-    </select>
-    
-    <update id="updateStocksBy2Gids" parameterType="map">
-        update MM_GOODS_GROUPS set stock_sum = #{stockSum}, stock_locked = #{stockLocked}
-        where goods_id = #{goodsId} and group_id = #{groupId}
-    </update>
-    
-
-
-
-    
-    <select id="selectStock" resultType="java.util.HashMap" parameterType="java.util.HashMap">
-        select pn, item_id, sum(quantity * pack_quantity) quantity, warehouse
-        from WM_INVENTORY where warehouse = #{warehouse} and pn = #{pn}
-        GROUP BY pn, item_id, warehouse
-    </select>
-
-    <update id="updateStock" parameterType="com.an.mm.entity.Goods">
-        update MM_GOODS_GROUPS set stock_sum = #{stockSum}
-        <if test="stockLocked != null"> , stock_locked = #{stockLocked}</if>
-        where goods_id = #{goodsId} and group_id = #{groupId}
-    </update>
-    
-    <update id="reduceStock" parameterType="java.util.HashMap">
-        update MM_GOODS_GROUPS set stock_sum = stock_sum#{stockSum}
-        <if test="stockLocked != null"> , stock_locked = #{stockLocked}</if>
-        where goods_id = #{goodsId} and group_id = #{groupId}
-    </update>
+	<insert id="insertOrUpdateInventory" parameterType="com.an.mm.entity.Goods">
+		insert into MM_GOODS_REGION (goods_id, region_id, stock_sum, stock_locked, safe_line, 
+		sale_price, max_limit, sold_volume, cmt_point, status, enter_by, enter_at) 
+		values(#{id,jdbcType=INTEGER}, #{regionId,jdbcType=INTEGER},
+		#{stockSum,jdbcType=INTEGER}, #{stockLocked,jdbcType=INTEGER},
+		#{safeLine,jdbcType=INTEGER}, #{salePrice,jdbcType=NUMERIC},
+		#{maxLimit,jdbcType=INTEGER}, #{soldVolume,jdbcType=INTEGER},
+		#{cmtPoint,jdbcType=NUMERIC}, #{status,jdbcType=CHAR}, #userId, now())
+		on duplicate key update 
+		stock_sum = values(stock_sum), 
+		stock_locked = values(stock_locked), 
+		safe_line = values(safe_line), 
+		sale_price = values(sale_price), 
+		max_limit = values(max_limit), 
+		sold_volume = values(sold_volume), 
+		cmt_point = values(cmt_point), 
+		status = values(status),
+		enter_by = values(enter_by),
+		enter_at = values(enter_at)		
+	</insert>
 
 </mapper>

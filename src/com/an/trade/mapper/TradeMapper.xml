@@ -1,272 +1,315 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="TradeMapper">
-    <resultMap id="BaseResultMap" type="com.an.trade.entity.Trade">
-        <id column="id" property="id" jdbcType="INTEGER"/>
-        <result column="bill_code" property="billCode" jdbcType="VARCHAR"/>
-        <result column="bill_type" property="billType" jdbcType="VARCHAR"/>
-        <result column="origin_bill_code" property="outCode" jdbcType="VARCHAR"/>
-        <result column="member_id" property="member.id" jdbcType="VARCHAR"/>
-        <result column="group_id" property="groupId" jdbcType="INTEGER"/>
-        <result column="bill_date" property="billDate" jdbcType="DATE"/>
+	<resultMap id="BaseResultMap" type="com.an.trade.entity.Trade">
+		<id column="id" property="id" jdbcType="INTEGER" />
+		<result column="bill_code" property="billCode" jdbcType="VARCHAR" />
+		<result column="bill_type" property="billType" jdbcType="VARCHAR" />
+		<result column="origin_bill_code" property="originBillCode" jdbcType="VARCHAR" />
+		<result column="member_id" property="memberId" jdbcType="INTEGER" />
+		<result column="member_name" property="memberName" jdbcType="VARCHAR" />
+		<result column="target" property="target" jdbcType="VARCHAR" />
+		<result column="bill_date" property="billDate" jdbcType="DATE" />
+		<result column="shipment" property="shipment" jdbcType="VARCHAR" />
+		<result column="ship_name" property="shipName" jdbcType="VARCHAR" />
+		<result column="ship_region" property="shipRegion" jdbcType="VARCHAR" />
+		<result column="ship_tel" property="shipTel" jdbcType="VARCHAR" />
+		<result column="ship_mobile" property="shipMobile" jdbcType="VARCHAR" />
+		<result column="ship_email" property="shipEmail" jdbcType="VARCHAR" />
+		<result column="ship_addr" property="shipAddr" jdbcType="VARCHAR" />
+		<result column="ship_cost" property="shipCost" jdbcType="NUMERIC" />
+		<result column="ship_total" property="shipTotal" jdbcType="NUMERIC" />
+		<result column="ship_code" property="shipCode" jdbcType="VARCHAR" />
+		<result column="amount" property="amount" jdbcType="NUMERIC" />
+		<result column="quantity" property="quantity" jdbcType="NUMERIC" />
+		<result column="weight" property="weight" jdbcType="NUMERIC" />
+		<result column="item_total" property="itemTotal" jdbcType="NUMERIC" />
+		<result column="discount_obj" property="discountObj" jdbcType="VARCHAR" />
+		<result column="discount_total" property="discountTotal" jdbcType="NUMERIC" />
+		<result column="status" property="status" jdbcType="VARCHAR" />
+		<result column="deal_status" property="dealStatus" jdbcType="VARCHAR" />
+		<result column="deal_stamp" property="dealStamp" jdbcType="TIMESTAMP" />
+		<result column="group_id" property="groupId" jdbcType="INTEGER" />
+		<result column="warehouse" property="warehouse" jdbcType="VARCHAR" />
+		<result column="payment" property="payment" jdbcType="VARCHAR" />
+		<result column="paid_total" property="paidTotal" jdbcType="NUMERIC" />
+		<result column="paid_code" property="paidCode" jdbcType="VARCHAR" />
+		<result column="paid_stamp" property="paidStamp" jdbcType="TIMESTAMP" />
+		<result column="pay_status" property="payStatus" jdbcType="INTEGER" />
+		<result column="remark" property="remark" jdbcType="VARCHAR" />
+		<result column="comment" property="comment" jdbcType="VARCHAR" />
+		<result column="sale_by" property="saleBy" jdbcType="INTEGER" />
+		<result column="plan_date" property="planDate" jdbcType="TIMESTAMP" />
+		<result column="enter_at" property="enterAt" jdbcType="TIMESTAMP" />
+		<result column="used_coupon" property="usedCoupon" jdbcType="VARCHAR" />
+		<result column="region_id" property="regionId" jdbcType="INTEGER" />
+		<result column="region_code" property="regionCode" jdbcType="VARCHAR" />
+	</resultMap>
+	<sql id="Example_Where_Clause">
+		<where>
+			<if test="region_code = null || billCode == ''">
+				region_code like concat('#regionCode', '%')
+			</if>
+			<if test="region_code != null and billCode != ''">
+				region_code like concat(#{regionCode}, '%')
+			</if>
+			<if test="billCode != null and billCode != ''">
+				and bill_code like concat('%', #{billCode,jdbcType=VARCHAR}, '%')
+			</if>
+			<if test="billType != null and billType != ''">
+				and bill_type = #{billType,jdbcType=VARCHAR}
+			</if>
+			<if test="shipName != null and shipName != ''">and (
+				ship_name like concat('%', #{shipName,jdbcType=VARCHAR}, '%')
+			</if>
+			<if test="sdate != null and sdate != ''">
+				and bill_date >= #{sdate,jdbcType=DATE}
+			</if>
+			<if test="edate != null and edate != ''">
+				and bill_date &lt;= #{edate,jdbcType=DATE}
+			</if>
+			<if test="groupId != null and groupId != ''">
+				and group_id = #{groupId, jdbcType=VARCHAR}
+			</if>
+			<if test="status != null and status != ''">
+				and status = #{status, jdbcType=VARCHAR}
+			</if>
+			<if test="status == null or status == ''">
+				and status != 'd'
+			</if>
 
-        <result column="ship_name" property="addr.linkman" jdbcType="VARCHAR"/>
-        <result column="ship_region" property="addr.region" jdbcType="VARCHAR"/>
-        <result column="ship_tel" property="addr.tel" jdbcType="VARCHAR"/>
-        <result column="ship_mobile" property="addr.mobile" jdbcType="VARCHAR"/>
-        <result column="ship_email" property="addr.email" jdbcType="VARCHAR"/>
-        <result column="ship_addr" property="addr.addr" jdbcType="VARCHAR"/>
+			<!-- <if test="remark != null and remark != ''">and remark like concat('%', 
+				#{remark}, '%')</if> <if test="billCodes != null">and bill_code in <foreach 
+				collection="billCodes" index="index" item="item" open="(" separator="," close=")"> 
+				#{item} </foreach> </if> -->
+		</where>
+	</sql>
 
-        <result column="paid_code" property="paidCode" jdbcType="VARCHAR"/>
-        <result column="print_status" property="printStatus" jdbcType="NUMERIC"/>
-        <result column="amount" property="amount" jdbcType="NUMERIC"/>
-        <result column="quantity" property="quantity" jdbcType="NUMERIC"/>
-        <result column="weight" property="weight" jdbcType="NUMERIC"/>
-        <result column="ship_cost" property="shipCost" jdbcType="NUMERIC"/>
-        <result column="shipment" property="shipment" jdbcType="VARCHAR"/>
-        <result column="ship_code" property="shipCode" jdbcType="VARCHAR"/>
-        <result column="ship_total" property="shipTotal" jdbcType="NUMERIC"/>
-        <result column="paid_total" property="paidTotal" jdbcType="NUMERIC"/>
-        <result column="item_total" property="itemTotal" jdbcType="NUMERIC"/>
-        <result column="discount_total" property="discountTotal" jdbcType="NUMERIC"/>
-        <result column="payment" property="payment" jdbcType="VARCHAR"/>
-        <result column="pay_status" property="payStatus" jdbcType="VARCHAR"/>
-        <result column="status" property="status" jdbcType="VARCHAR"/>
-        <result column="remark" property="remark" jdbcType="VARCHAR"/>
-        <result column="enter_at" property="enterAt" jdbcType="TIMESTAMP"/>
-        <result column="deal_by" property="dealBy.staffCode" jdbcType="VARCHAR"/>
-        <result column="deal_status" property="dealStatus" jdbcType="VARCHAR"/>
-        <result column="deal_stamp" property="dealStamp" jdbcType="TIMESTAMP"/>
-        <result column="paid_stamp" property="paidStamp" jdbcType="TIMESTAMP"/>
-    </resultMap>
-    <sql id="Example_Where_Clause">
-        <where>
-            <if test="own">
-                group_id in (#groups)
-            </if>
-            <if test="billCode != null and billCode != ''">
-                and bill_code like concat('%',#{billCode,jdbcType=VARCHAR},'%')
-            </if>
-            <if test="receiver != null and receiver != ''">and (
-                ship_name like concat('%',#{receiver,jdbcType=VARCHAR},'%')
-                or ship_addr like concat('%',#{receiver,jdbcType=VARCHAR},'%')
-                or ship_region like concat('%',#{receiver,jdbcType=VARCHAR},'%')
-                or ship_mobile like concat('%',#{receiver,jdbcType=VARCHAR},'%')
-                )
-            </if>
-            <if test="remark != null and remark != ''">and remark like concat('%',#{remark},'%')</if>
-            <if test="billCodes != null">and bill_code in
-                <foreach collection="billCodes" index="index" item="item" open="(" separator="," close=")">
-                    #{item}
-                </foreach>
-            </if>
-            <if test="type != null and type != ''">and bill_type = #{type,jdbcType=VARCHAR}</if>
-            <if test="sdate != null and sdate != ''">and bill_date >= #{sdate,jdbcType=DATE}</if>
-            <if test="edate != null and edate != ''">and bill_date &lt;= #{edate,jdbcType=DATE}</if>
-            <if test="group != null and group != ''">and group_id = #{group, jdbcType=VARCHAR}</if>
-            <if test="shipCode != null and shipCode != ''">and ship_code = #{shipCode, jdbcType=VARCHAR}</if>
-            <if test="dealStatus != null and dealStatus != ''">and deal_status = #{dealStatus, jdbcType=VARCHAR}</if>
-            <if test="status != null and status != ''">and status = #{status, jdbcType=VARCHAR}</if>
-            <if test="status == null or status == ''">and status != 'd'</if>
-            <if test="printStatus != null"><![CDATA[  and print_status & #{printStatus} = 0  ]]></if>
-        </where>
-    </sql>
+	<sql id="Base_Column_List">
+		id, bill_code, bill_type, origin_bill_code, member_id,
+		member_name, target, bill_date, shipment,
+		ship_name, ship_region,
+		ship_tel, ship_mobile,
+		ship_email, ship_addr, ship_cost, ship_total,
+		ship_code, amount, quantity, weight,
+		item_total, discount_obj,
+		discount_total, status,
+		deal_status, deal_stamp, group_id, warehouse,
+		payment, paid_total, paid_code, paid_stamp,
+		pay_status, remark,
+		comment, sale_by,
+		plan_date, enter_at, used_coupon, region_id, region_code
+	</sql>
 
-    <sql id="Base_Column_List">
-        id,bill_code,bill_type,origin_bill_code,member_id,member_name,
-        target,bill_date,shipment,ship_name,ship_region,ship_tel,ship_mobile,ship_email,
-        ship_addr,ship_cost,ship_total,ship_code,amount,quantity,weight,item_total,
-        discount_obj,discount_total,status,deal_status,deal_stamp,group_id,
-        payment,paid_total,paid_code,paid_stamp,pay_status,remark,comment,sale_by,enter_at
-    </sql>
+	<select id="countByExample" parameterType="map" resultType="int">
+		select count(*) from TRADE_BILL
+		<include refid="Example_Where_Clause" />
+	</select>
 
-    <select id="countByExample" parameterType="java.util.HashMap" resultType="java.lang.Integer">
-        select count(*) from TRADE_BILL
-        <include refid="Example_Where_Clause"/>
-    </select>
-    
-    <select id="countByGroupId" parameterType="java.lang.Integer" resultType="java.lang.Integer">
-        select count(*) from TRADE_BILL where group_id = #{value,jdbcType=INTEGER}        
-    </select>
+	<select id="countByGroupId" parameterType="java.lang.Integer" resultType="java.lang.Integer">
+		select count(*) from TRADE_BILL where group_id = #{value,jdbcType=INTEGER}        
+	</select>
 
-    <select id="selectByExample" resultMap="BaseResultMap" parameterType="java.util.HashMap">
-        select
-        <include refid="Base_Column_List"/>
-        from TRADE_BILL
-        <include refid="Example_Where_Clause"/>
-        <if test="_BY != null">order by ${_BY}</if>
-    </select>
+	<select id="selectByExample" resultMap="BaseResultMap" parameterType="map">
+		select
+		<include refid="Base_Column_List" />
+		from TRADE_BILL
+		<include refid="Example_Where_Clause" />
+		<if test="_BY != null">order by ${_BY}</if>
+	</select>
 
-    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer">
-        select
-        <include refid="Base_Column_List"/>
-        from TRADE_BILL
-        where id = #{value,jdbcType=INTEGER}
-    </select>
+	<select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="int">
+		select
+		<include refid="Base_Column_List" />
+		from TRADE_BILL
+		where id = #{value,jdbcType=INTEGER}
+	</select>
 
-    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
-        update TRADE_BILL set status = '5'
-        where id = #{value,jdbcType=INTEGER}
-    </delete>
+	<delete id="deleteByPrimaryKey" parameterType="int">
+		update TRADE_BILL set status = '5'
+		where id = #{value,jdbcType=INTEGER}
+	</delete>
 
-    <insert id="insert" parameterType="com.an.trade.entity.Trade">
-        insert into TRADE_BILL (
-        bill_code,bill_type,origin_bill_code, member_id,member_name,
-        bill_date,shipment,ship_name, ship_region,ship_tel,
-        ship_mobile,ship_email,ship_addr, ship_cost,ship_total,
-        ship_code,amount,quantity, weight,item_total,
-        discount_total,status, deal_status,deal_stamp,
-        group_id, payment, paid_total,paid_code,
-        paid_stamp,pay_status,remark, comment,sale_by, enter_at)
-        values
-        (#{billCode,jdbcType=VARCHAR}, #{billType,jdbcType=VARCHAR}, #{outCode,jdbcType=VARCHAR},
-        #{member.id,jdbcType=INTEGER}, #{member.userName,jdbcType=VARCHAR},
+	<insert id="insert" parameterType="com.an.trade.entity.Trade">
+		insert into TRADE_BILL (
+		bill_code, bill_type, origin_bill_code, member_id,
+		member_name, target, bill_date, shipment,
+		ship_name, ship_region,
+		ship_tel, ship_mobile,
+		ship_email, ship_addr, ship_cost, ship_total,
+		ship_code, amount, quantity, weight,
+		item_total, discount_obj,
+		discount_total, status,
+		deal_status, deal_stamp, group_id, warehouse,
+		payment, paid_total, paid_code, paid_stamp,
+		pay_status, remark,
+		comment, sale_by,
+		plan_date, enter_at, used_coupon)
+		values
+		(#{billCode,jdbcType=VARCHAR}, #{billType,jdbcType=VARCHAR}, #{originBillCode,jdbcType=VARCHAR},
+		#{memberId,jdbcType=INTEGER},
+		#{memberName,jdbcType=VARCHAR},
+		#{target,jdbcType=VARCHAR},
+		#{billDate,jdbcType=DATE},
+		#{shipment,jdbcType=VARCHAR},
+		#{shipName,jdbcType=VARCHAR},
+		#{shipRegion,jdbcType=VARCHAR},
+		#{shipTel,jdbcType=VARCHAR},
+		#{shipMobile,jdbcType=VARCHAR},
+		#{shipEmail,jdbcType=VARCHAR},
+		#{shipAddr,jdbcType=VARCHAR},
+		#{shipCost,jdbcType=NUMERIC},#{shipTotal,jdbcType=NUMERIC},
+		#{shipCode,jdbcType=VARCHAR}, #{amount,jdbcType=NUMERIC},
+		#{quantity,jdbcType=NUMERIC}, #{weight,jdbcType=NUMERIC},
+		#{itemTotal,jdbcType=NUMERIC}, #{discountObj,jdbcType=VARCHAR},
+		#{discountTotal,jdbcType=NUMERIC}, #{status,jdbcType=CHAR},
+		#{dealStatus,jdbcType=NUMERIC}, now(), #{groupId,jdbcType=INTEGER},
+		#{warehouse,jdbcType=VARCHAR},
+		#{payment,jdbcType=VARCHAR},
+		#{paidTotal,jdbcType=NUMERIC}, #{paidCode,jdbcType=VARCHAR},
+		#{paidStamp,jdbcType=TIMESTAMP},
+		#{payStatus,jdbcType=INTEGER}, #{remark,jdbcType=VARCHAR}, #{comment,jdbcType=VARCHAR}, #userId,
+		#{planDate,jdbcType=DATE}, now(), #{usedCoupon,jdbcType=VARCHAR},
+		#{regionId,jdbcType=INTEGER}, #{regionCode,jdbcType=VARCHAR})
+	</insert>
 
-        #{billDate,jdbcType=DATE}, #{shipment,jdbcType=VARCHAR}, #{addr.linkman,jdbcType=VARCHAR},
-        #{addr.region,jdbcType=VARCHAR}, #{addr.tel,jdbcType=VARCHAR},
+	<update id="updateByPrimaryKey" parameterType="com.an.trade.entity.Trade">
+		update TRADE_BILL set
+		bill_code = #{billCode,jdbcType=VARCHAR},
+		bill_type = #{billType,jdbcType=VARCHAR},
+		origin_bill_code = #{originBillCode,jdbcType=VARCHAR},
+		member_id = #{memberId,jdbcType=INTEGER},
+		member_name = #{memberName,jdbcType=VARCHAR},
+		target = #{target,jdbcType=VARCHAR},
+		bill_date = #{billDate,jdbcType=DATE},
+		shipment = #{shipment,jdbcType=VARCHAR},
+		ship_name = #{shipName,jdbcType=VARCHAR},
+		ship_region = #{shipRegion,jdbcType=VARCHAR},
+		ship_tel = #{shipTel,jdbcType=VARCHAR},
+		ship_mobile = #{shipMobile,jdbcType=VARCHAR},
+		ship_email = #{shipEmail,jdbcType=VARCHAR},
+		ship_addr = #{shipAddr,jdbcType=VARCHAR},
+		ship_cost = #{shipCost,jdbcType=NUMERIC},
+		ship_total = #{shipTotal,jdbcType=NUMERIC},
+		ship_code = #{shipCode,jdbcType=VARCHAR},
+		amount = #{amount,jdbcType=NUMERIC},
+		quantity = #{quantity,jdbcType=NUMERIC},
+		weight = #{weight,jdbcType=NUMERIC},
+		item_total = #{itemTotal,jdbcType=NUMERIC},
+		discount_obj = #{discountObj,jdbcType=VARCHAR},
+		discount_total = #{discountTotal,jdbcType=NUMERIC},
+		status = #{status,jdbcType=CHAR},
+		deal_status = #{dealStatus,jdbcType=NUMERIC},
+		deal_stamp = #{dealStamp,jdbcType=TIMESTAMP},
+		group_id = #{groupId,jdbcType=INTEGER},
+		warehouse = #{warehouse,jdbcType=VARCHAR},
+		payment = #{payment,jdbcType=VARCHAR},
+		paid_total = #{paidTotal,jdbcType=NUMERIC},
+		paid_code = #{paidCode,jdbcType=VARCHAR},
+		paid_stamp = #{paidStamp,jdbcType=TIMESTAMP},
+		pay_status = #{payStatus,jdbcType=INTEGER},
+		remark = #{remark,jdbcType=VARCHAR},
+		comment = #{comment,jdbcType=VARCHAR},
+		sale_by = #userId,
+		plan_date = #{planDate,jdbcType=DATE},
+		enter_at = now(),
+		used_coupon = #{usedCoupon,jdbcType=VARCHAR},
+		region_id = #{regionId,jdbcType=INTEGER},
+		region_code = #{regionCode,jdbcType=VARCHAR}
+		where id = #{id,jdbcType=INTEGER}
+	</update>
 
-        #{addr.mobile,jdbcType=VARCHAR}, #{addr.email,jdbcType=VARCHAR}, #{addr.addr,jdbcType=VARCHAR},
-        #{shipCost,jdbcType=NUMERIC},#{shipTotal,jdbcType=NUMERIC},
+	<update id="updateState" parameterType="com.an.trade.entity.Trade">
+		update TRADE_BILL
+		set
+		<if test="dealStatus != null">
+			deal_status = #{dealStatus,jdbcType=VARCHAR},
+		</if>
+		<if test="dealStamp != null">
+			deal_stamp = #{dealStamp,jdbcType=TIMESTAMP},
+		</if>
+		<if test="shipCode != null">
+			ship_code = #{shipCode,jdbcType=VARCHAR},
+		</if>
+		status = #{status,jdbcType=VARCHAR}
+		where id = #{id,jdbcType=INTEGER}
+	</update>
 
-        #{shipCode,jdbcType=VARCHAR}, #{amount,jdbcType=NUMERIC},#{quantity,jdbcType=NUMERIC},
-        #{weight,jdbcType=NUMERIC}, #{itemTotal,jdbcType=NUMERIC},
-
-        #{discountTotal,jdbcType=NUMERIC}, #{status,jdbcType=CHAR},
-        #{dealStatus,jdbcType=NUMERIC}, now(),
-
-        #{groupId,jdbcType=INTEGER},  #{payment,jdbcType=VARCHAR},
-        #{paidTotal,jdbcType=NUMERIC}, #{paidCode,jdbcType=VARCHAR},
-
-        #{paidStamp,jdbcType=TIMESTAMP},#{payStatus,jdbcType=CHAR},#{remark,jdbcType=VARCHAR},
-        #{comment,jdbcType=VARCHAR}, #userId, now()  )
-    </insert>
-
-
-    <update id="updateByPrimaryKey" parameterType="com.an.trade.entity.Trade">
-        update TRADE_BILL set
-        <!--bill_code = #{billCode,jdbcType=VARCHAR},-->
-        <!--#{billType,jdbcType=VARCHAR},-->
-        origin_bill_code = #{outCode,jdbcType=VARCHAR},
-        member_id = #{member.id,jdbcType=INTEGER},
-        <!--#{member.userName,jdbcType=VARCHAR},-->
-        bill_date = #{billDate,jdbcType=DATE},
-        shipment = #{shipment,jdbcType=VARCHAR},
-        ship_name = #{addr.linkman,jdbcType=VARCHAR},
-        ship_region = #{addr.region,jdbcType=VARCHAR},
-        ship_tel = #{addr.tel,jdbcType=VARCHAR},
-        ship_mobile = #{addr.mobile,jdbcType=VARCHAR},
-        ship_email = #{addr.email,jdbcType=VARCHAR},
-        ship_addr = #{addr.addr,jdbcType=VARCHAR},
-        ship_cost = #{shipCost,jdbcType=NUMERIC},
-        ship_total = #{shipTotal,jdbcType=NUMERIC},
-        ship_code = #{shipCode,jdbcType=VARCHAR},
-        amount = #{amount,jdbcType=NUMERIC},
-        quantity = #{quantity,jdbcType=NUMERIC},
-        weight = #{weight,jdbcType=NUMERIC},
-        item_total = #{itemTotal,jdbcType=NUMERIC},
-        discount_total =  #{discountTotal,jdbcType=NUMERIC},
-        status = #{status,jdbcType=CHAR},
-        deal_status = #{dealStatus,jdbcType=NUMERIC},
-        deal_stamp = #{dealStamp,jdbcType=TIMESTAMP},
-        group_id = #{groupId,jdbcType=INTEGER},
-        payment = #{payment,jdbcType=VARCHAR},
-        paid_total = #{paidTotal,jdbcType=NUMERIC},
-        paid_code = #{paidCode,jdbcType=VARCHAR},
-        paid_stamp = #{paidStamp,jdbcType=TIMESTAMP},
-        pay_status = #{payStatus,jdbcType=CHAR},
-        remark = #{remark,jdbcType=VARCHAR},
-        comment = #{comment,jdbcType=VARCHAR},
-        enter_at = now()
-        where id = #{id,jdbcType=INTEGER}
-    </update>
-
-    <update id="updateState" parameterType="com.an.trade.entity.Trade">
-        update TRADE_BILL
-        set
-        <if test="dealStatus != null">
-            deal_status = #{dealStatus,jdbcType=VARCHAR},
-        </if>
-        <if test="dealStamp != null">
-            deal_stamp = #{dealStamp,jdbcType=TIMESTAMP},
-        </if>
-        <if test="shipCode != null">
-            ship_code = #{shipCode,jdbcType=VARCHAR},
-        </if>
-        status = #{status,jdbcType=VARCHAR}
-        where id = #{id,jdbcType=INTEGER}
-    </update>
-
-    <select id="selectReport" resultType="java.util.HashMap" parameterType="java.util.HashMap">
-        select
-        <if test="org_group == 'org'">c.group_id as org,</if>
-        <if test="goods_group == 'category'">g.category,</if>
-        <if test="goods_group == 'goods'">d.goods_id as goods,</if>
-        <if test="goods_group == 'supplier'">g.supplier,</if>
-        <if test="time_group == 'year'">extract(year from c.bill_date) as year,</if>
-        <if test="time_group == 'quarter'">extract(quarter from c.bill_date) as quarter,</if>
-        <if test="time_group == 'month'">extract(month from c.bill_date) as month,</if>
-        <if test="time_group == 'week'">extract(week from c.bill_date) as week,</if>
-        <if test="time_group == 'dow'">
-            to_char(c.bill_date,'DY') as dow,
-            extract(dow from c.bill_date) as ndow,
-        </if>
-        <if test="time_group == 'day'">c.bill_date as day,</if>
-        <if test="time_group == 'hour'">extract(hour from c.sale_stamp) as hour,</if>
-        <if test="quantity != null">sum(d.plan_quantity) as quantity,</if>
-        <if test="weight != null">sum(d.weight) as weight,</if>
-        <if test="amount != null">sum(c.amount * d.sub_total / c.total) as amount,</if>
-        <if test="total != null">sum(d.sub_total) as total,</if>
-        <if test="payable != null">sum(case when replace(d.seq_no,c.bill_code,'') = '1' then c.amount else 0 end)
-            payable,
-        </if>
-        <if test="visit_count != null">count(distinct c.bill_code) as visit_count,</if>
-        1 as rownum
-        from TRADE_BILL_DETAIL d, MM_GOODS g,
-        (select m.group_id,m.bill_code,m.bill_date,m.deal_stamp,m.amount,sum(n.sub_total) total
-        from TRADE_BILL m, TRADE_BILL_DETAIL n
-        where m.bill_code = n.bill_code
-        <if test="org_filter != ''">and m.group_id = #{org_filter}</if>
-        <if test="sdate_filter != ''"> and m.bill_date &gt;= #{sdate_filter,jdbcType=DATE} </if>
-        <if test="edate_filter != ''"> and m.bill_date &lt;= #{edate_filter,jdbcType=DATE}</if>
-        group by m.group_id,m.bill_date,m.amount,m.bill_code,m.deal_stamp
-        ) c
-        <where>
-            d.goods_id = g.goods_id and d.bill_code = c.bill_code
-            <if test="org_filter != ''">and c.group_id = #{org_filter}</if>
-            <if test="sdate_filter != ''"><![CDATA[  and c.bill_date >= #{sdate_filter,jdbcType=DATE}]]></if>
-            <if test="edate_filter != ''"><![CDATA[  and c.bill_date <= #{edate_filter,jdbcType=DATE}]]></if>
-            <if test="goods_filter != ''">and d.goods_id = #{goods_filter}</if>
-            <if test="category_filter != ''">and g.category = #{category_filter}</if>
-        </where>
-        <trim prefix="group by" suffixOverrides=",">
-            <if test="org_group == 'org'">org,</if>
-            <if test="goods_group == 'category'">g.category,</if>
-            <if test="goods_group == 'goods'">goods,</if>
-            <if test="goods_group == 'supplier'">supplier,</if>
-            <if test="time_group == 'year'">year,</if>
-            <if test="time_group == 'quarter'">quarter,</if>
-            <if test="time_group == 'month'">month,</if>
-            <if test="time_group == 'week'">week,</if>
-            <if test="time_group == 'dow'">dow,ndow,</if>
-            <if test="time_group == 'day'">day,</if>
-            <if test="time_group == 'hour'">hour</if>
-        </trim>
-        <if test="_BY != null">order by ${_BY}</if>
-        <if test="_BY == null">
-            <trim prefix="order by" suffixOverrides=",">
-                <if test="goods_group == 'smallCate'">category,</if>
-                <if test="goods_group == 'goods'">goods,</if>
-                <if test="goods_group == 'supplier'">supplier,</if>
-                <if test="time_group == 'year'">year,</if>
-                <if test="time_group == 'quarter'">quarter,</if>
-                <if test="time_group == 'month'">month,</if>
-                <if test="time_group == 'week'">week,</if>
-                <if test="time_group == 'dow'">ndow,</if>
-                <if test="time_group == 'day'">day,</if>
-                <if test="time_group == 'hour'">hour,</if>
-                <if test="org_group == 'org'">org</if>
-            </trim>
-        </if>
-    </select>
+	<select id="selectReport" resultType="java.util.HashMap"
+		parameterType="java.util.HashMap">
+		select
+		<if test="org_group == 'org'">c.group_id as org,</if>
+		<if test="goods_group == 'category'">g.category,</if>
+		<if test="goods_group == 'goods'">d.goods_id as goods,</if>
+		<if test="goods_group == 'supplier'">g.supplier,</if>
+		<if test="time_group == 'year'">extract(year from c.bill_date) as year,</if>
+		<if test="time_group == 'quarter'">extract(quarter from c.bill_date) as quarter,</if>
+		<if test="time_group == 'month'">extract(month from c.bill_date) as month,</if>
+		<if test="time_group == 'week'">extract(week from c.bill_date) as week,</if>
+		<if test="time_group == 'dow'">
+			to_char(c.bill_date,'DY') as dow,
+			extract(dow from c.bill_date) as ndow,
+		</if>
+		<if test="time_group == 'day'">c.bill_date as day,</if>
+		<if test="time_group == 'hour'">extract(hour from c.sale_stamp) as hour,</if>
+		<if test="quantity != null">sum(d.plan_quantity) as quantity,</if>
+		<if test="weight != null">sum(d.weight) as weight,</if>
+		<if test="amount != null">sum(c.amount * d.sub_total / c.total) as amount,</if>
+		<if test="total != null">sum(d.sub_total) as total,</if>
+		<if test="payable != null">sum(case when replace(d.seq_no,c.bill_code,'') = '1' then
+			c.amount else 0 end)
+			payable,
+		</if>
+		<if test="visit_count != null">count(distinct c.bill_code) as visit_count,</if>
+		1 as rownum
+		from TRADE_BILL_DETAIL d, MM_GOODS g,
+		(select
+		m.group_id,m.bill_code,m.bill_date,m.deal_stamp,m.amount,sum(n.sub_total)
+		total
+		from TRADE_BILL m, TRADE_BILL_DETAIL n
+		where m.bill_code = n.bill_code
+		<if test="org_filter != ''">and m.group_id = #{org_filter}</if>
+		<if test="sdate_filter != ''"> and m.bill_date &gt;= #{sdate_filter,jdbcType=DATE} </if>
+		<if test="edate_filter != ''"> and m.bill_date &lt;= #{edate_filter,jdbcType=DATE}</if>
+		group by m.group_id,m.bill_date,m.amount,m.bill_code,m.deal_stamp
+		) c
+		<where>
+			d.goods_id = g.goods_id and d.bill_code = c.bill_code
+			<if test="org_filter != ''">and c.group_id = #{org_filter}</if>
+			<if test="sdate_filter != ''"><![CDATA[  and c.bill_date >= #{sdate_filter,jdbcType=DATE}]]></if>
+			<if test="edate_filter != ''"><![CDATA[  and c.bill_date <= #{edate_filter,jdbcType=DATE}]]></if>
+			<if test="goods_filter != ''">and d.goods_id = #{goods_filter}</if>
+			<if test="category_filter != ''">and g.category = #{category_filter}</if>
+		</where>
+		<trim prefix="group by" suffixOverrides=",">
+			<if test="org_group == 'org'">org,</if>
+			<if test="goods_group == 'category'">g.category,</if>
+			<if test="goods_group == 'goods'">goods,</if>
+			<if test="goods_group == 'supplier'">supplier,</if>
+			<if test="time_group == 'year'">year,</if>
+			<if test="time_group == 'quarter'">quarter,</if>
+			<if test="time_group == 'month'">month,</if>
+			<if test="time_group == 'week'">week,</if>
+			<if test="time_group == 'dow'">dow,ndow,</if>
+			<if test="time_group == 'day'">day,</if>
+			<if test="time_group == 'hour'">hour</if>
+		</trim>
+		<if test="_BY != null">order by ${_BY}</if>
+		<if test="_BY == null">
+			<trim prefix="order by" suffixOverrides=",">
+				<if test="goods_group == 'smallCate'">category,</if>
+				<if test="goods_group == 'goods'">goods,</if>
+				<if test="goods_group == 'supplier'">supplier,</if>
+				<if test="time_group == 'year'">year,</if>
+				<if test="time_group == 'quarter'">quarter,</if>
+				<if test="time_group == 'month'">month,</if>
+				<if test="time_group == 'week'">week,</if>
+				<if test="time_group == 'dow'">ndow,</if>
+				<if test="time_group == 'day'">day,</if>
+				<if test="time_group == 'hour'">hour,</if>
+				<if test="org_group == 'org'">org</if>
+			</trim>
+		</if>
+	</select>
 
 </mapper>

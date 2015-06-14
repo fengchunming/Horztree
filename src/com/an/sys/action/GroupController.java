@@ -150,11 +150,9 @@ public class GroupController {
     }
 
     @RequestMapping(value = "/kv/owngroup", method = RequestMethod.GET)
-    public Collection<Map<Integer, String>> loadOwnKV()
-            throws BadRequestException {
+    public Collection<Map<Integer, String>> loadOwnKV() throws BadRequestException {
         return groupDao.selectKV(null, true);
     }
-
 
     /**
      * 异常处理

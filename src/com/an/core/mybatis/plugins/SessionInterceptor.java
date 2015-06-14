@@ -33,7 +33,7 @@ public class SessionInterceptor implements Interceptor {
     private String generateSql(String sql, User user) {
         sql = sql.replaceAll("#userId", String.valueOf(user.getUserId()));
         sql = sql.replaceAll("#staffCode", String.valueOf(user.getStaffCode()));
-
+        sql = sql.replaceAll("#regionCode", String.valueOf(user.getRegion().getCode()));
 
         StringBuilder groups = new StringBuilder();
         for (Object id : user.getGroups()) {
@@ -52,7 +52,7 @@ public class SessionInterceptor implements Interceptor {
 //        }
 
         StringBuilder roles = new StringBuilder();
-        for (Object id : user.getRoleId()) {
+        for (Integer id : user.getRoles()) {
             if (roles.length() > 0) roles.append(',');
             roles.append(id);
         }

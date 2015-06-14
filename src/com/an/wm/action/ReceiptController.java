@@ -2,13 +2,12 @@ package com.an.wm.action;
 
 import com.an.core.exception.BadRequestException;
 import com.an.core.exception.ErrorModelAndView;
+import com.an.mm.dao.WorkBillDao;
+import com.an.mm.dao.WorkBillDetailDao;
 import com.an.trade.dao.TradeDao;
 import com.an.trade.entity.Trade;
-import com.an.wm.dao.WorkBillDao;
-import com.an.wm.dao.WorkBillDetailDao;
 import com.an.wm.entity.Item;
-import com.an.wm.entity.WorkBill;
-import com.an.wm.service.InventoryService;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -41,22 +40,17 @@ public class ReceiptController {
     @Autowired
     private WorkBillDetailDao detailDao;
 
-    @Autowired
-    private InventoryService stockService;
-
-
     /**
      * 采购收货
      *
      * @throws BadRequestException
      */
-    @RequestMapping(value = "/purchaseReceipt/{billCode}", method = RequestMethod.POST)
-    public void saveReceipts(@RequestBody Item items[],
-                             @PathVariable("billCode") String billCode)
-            throws BadRequestException {
+    /*
+    @RequestMapping(value = "/purchaseReceipt/{id}", method = RequestMethod.POST)
+    public void saveReceipts(@RequestBody Item items[], @PathVariable("id") int id) throws BadRequestException {
         WorkBill bill;
-        Trade origin = tradeDao.selectByCode(billCode);
-        List<WorkBill> bills = billDao.selectByOrigin(billCode, "input");
+        Trade origin = tradeDao.selectOne(id);
+        List<WorkBill> bills = billDao.selectByOrigin(id, "input");
         if (bills.size() == 0) {
             bill = billDao.selectOrInit(null, "SH");
             bill.setStatus("input");
@@ -86,13 +80,13 @@ public class ReceiptController {
             tradeDao.updateState(origin);
         }
     }
-
+*/
     /**
      * 采购收货
      *
      * @param billCode
      * @throws BadRequestException
-     */
+     *//*
     @RequestMapping(value = "/checkReceiptByOrigin/{billCode}", method = RequestMethod.POST)
     public void checkReceiptByPurchase(@PathVariable("billCode") String billCode)
             throws BadRequestException {
@@ -112,26 +106,7 @@ public class ReceiptController {
             billDao.updateStatus(bill);
         }
     }
-
-    /**
-     * 采购收货打印
-     *
-     * @param id
-     * @return
-     * @throws BadRequestException
-     */
-    @RequestMapping(value = "/purchaseReceiptBillReport/{id}", method = RequestMethod.GET)
-    public ModelAndView report(@PathVariable("id") int id)
-            throws BadRequestException {
-        ModelAndView mav = new ModelAndView("report/purchaseReceipt");
-        Trade bill = tradeDao.selectOne(id);
-        mav.addObject("bill", bill);
-        Collection<Item> details = detailDao.selectByOriginCode(bill
-                .getBillCode());
-        mav.addObject("list", details);
-        mav.addObject("count", details.size());
-        return mav;
-    }
+*/
 
     /**
      * 完成收货
@@ -139,10 +114,9 @@ public class ReceiptController {
      * @param billCode
      * @throws BadRequestException
      */
-    @RequestMapping(value = "/resolveReceipt/{billCode}", method = RequestMethod.GET)
-    public void resolveReceipt(@PathVariable("billCode") String billCode)
-            throws BadRequestException {
-        Trade origin = tradeDao.selectByCode(billCode);
+    @RequestMapping(value = "/resolveReceipt/{id}", method = RequestMethod.GET)
+    public void resolveReceipt(@PathVariable("id") int id) throws BadRequestException {
+        Trade origin = tradeDao.selectOne(id);
         origin.setDealStatus("resolved");
         tradeDao.updateState(origin);
     }

@@ -1,183 +1,192 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="UserMapper">
-    <cache eviction="LRU" type="com.an.core.mybatis.cache.RedisCache" />
-    <resultMap id="BaseResultMap" type="com.an.sys.entity.User">
-        <id property="userId" column="user_id"/>
-        <result property="staffCode" column="staff_code"/>
-        <result property="userName" column="user_name"/>
-        <result property="realName" column="real_name"/>
-        <result property="password" column="password"/>
-        <result property="email" column="email"/>
-        <result property="status" column="status"/>
-        <result property="remark" column="remark"/>
-        <result property="firstTime" column="first_time"/>
-        <result property="token" column="token"/>
-        <result property="org.id" column="org_id"/>
-        <result property="group.id" column="dep_id"/>
-        <result property="createAt" column="create_at"/>
-        <result property="createBy" column="create_by"/>
-        <result column="group_ids" property="groups" typeHandler="com.an.core.mybatis.handlers.JsonTypeHandler"/>
-    </resultMap>
+	<cache eviction="LRU" type="com.an.core.mybatis.cache.RedisCache" />
+	<resultMap id="BaseResultMap" type="com.an.sys.entity.User">
+		<id property="userId" column="user_id" />
+		<result property="userName" column="user_name" />
+		<result property="password" column="password" />
+		<result property="staffCode" column="staff_code" />
+		<result property="realName" column="real_name" />
+		<result property="email" column="email" />
+		<result property="mobile" column="mobile" />
+		<result property="remark" column="remark" />
+		<result property="org.id" column="org_id" />
+		<result column="group_ids" property="groups" typeHandler="com.an.core.mybatis.handlers.JsonTypeHandler" />
+		<result property="token" column="token" />
+		<result property="status" column="status" />
+		<result property="createBy" column="create_by" />
+		<result property="createAt" column="create_at" />
+		<result property="firstTime" column="first_time" />
+		<result property="regionId" column="region_id" />
+		<result column="role_ids" property="roles" typeHandler="com.an.core.mybatis.handlers.JsonTypeHandler" />
+	</resultMap>
 
-    <sql id="Example_Where_Clause">
-        <where>
-            status != 'd'
-            <if test="userName != null and userName != ''">
-                and user_name like concat('%',#{userName},'%')
-            </if>
-            <if test="group != null and group != ''">
-                and group_ids like concat('%',#{group},'%')
-            </if>
-            <if test="realName != null and realName != ''">
-                and real_name like concat('%',#{realName},'%')
-            </if>
-            <if test="staffCode != null and staffCode != ''">
-                and staff_code like concat('%',#{staffCode},'%')
-            </if>
-            <if test="status != null and status != ''">
-                and status = #{status}
-            </if>
-            <if test="term != null and term !=''">
-                and ( staff_code like concat('%',#{term},'%')
-                or upper(real_name) concat('%',#{term},'%') )
-            </if>
-        </where>
-    </sql>
-    <sql id="Base_Column_List">
-        user_id,user_name,staff_code,first_time,real_name,email,mobile,remark,org_id,group_ids,token,status,create_by,create_at
-    </sql>
+	<sql id="Example_Where_Clause">
+		<where>
+			status != 'd'
+			<if test="userName != null and userName != ''">
+				and user_name like concat('%', #{userName}, '%')
+			</if>
+			<if test="realName != null and realName != ''">
+				and real_name like concat('%', #{realName}, '%')
+			</if>
+			<if test="staffCode != null and staffCode != ''">
+				and staff_code like concat('%', #{staffCode}, '%')
+			</if>
+			<if test="status != null and status != ''">
+				and status = #{status}
+			</if>
+			<if test="term != null and term !=''">
+				and (staff_code like concat('%', #{term}, '%') or real_name concat('%', #{term}, '%'))
+			</if>
+			<if test="group != null and group != ''">
+				and group_ids like concat('%', #{group}, '%')
+			</if>
+		</where>
+	</sql>
 
-    <!-- 根据用户名查询单个用户 -->
-    <select id="selectUserByUsername" parameterType="java.lang.String" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from SYS_USER where user_name = #{userName}
-    </select>
+	<sql id="Base_Column_List">
+		user_id, user_name, staff_code, real_name, email, mobile, remark, org_id, group_ids, token, status, create_by, create_at, first_time, region_id, getRolesByUserId(user_id) as role_ids
+	</sql>
 
-    <!-- 根据用户名查询用户密码 -->
-    <select id="selectPassword" resultType="java.lang.String" parameterType="java.lang.String">
-        select password from SYS_USER where user_name = #{userName} and status = 't'
-    </select>
+	<!-- 根据用户名查询单个用户 -->
+	<select id="selectUserByUsername" parameterType="string" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from SYS_USER where user_name = #{value}
+	</select>
 
-    <!-- 查询用户菜单 -->
-    <select id="selectMenus" parameterType="int" resultMap="ModuleMapper.moduleMap">
-        select distinct a.id,a.name,a.url,a.tips,a.param,a.icon,
-        a.step,a.is_leaf,a.parent,a.depth, a.is_shortcut
-        from SYS_MODULE a, SYS_AUTHORITY b, SYS_PERMISSION c
-        where a.id = c.module_id
-        and c.role_id = b.role_id
-        and b.user_id = #userId
-        and a.status = 't' and a.is_menu ='t'
-        and b.status = 't' and c.status = 't'
-        order by a.depth
-    </select>
+	<!-- 根据用户名查询用户密码 -->
+	<select id="selectPassword" resultType="string" parameterType="string">
+		select password from SYS_USER where user_name = #{userName} and status = 't'
+	</select>
 
-    <!-- 查询用户菜单 -->
-    <select id="selectActions" parameterType="java.lang.Integer" resultMap="ModuleMapper.moduleMap">
-        select distinct a.url, a.param, a.button_id, a.method
-        from SYS_MODULE a, SYS_AUTHORITY b,SYS_PERMISSION c
-        where a.id = c.module_id
-        and c.role_id = b.role_id
-        and b.user_id = #{value} and a.status = 't'
-        and b.status = 't' and c.status = 't'
-    </select>
+	<!-- 查询用户菜单 -->
+	<select id="selectMenus" parameterType="int" resultMap="ModuleMapper.moduleMap">
+		select distinct a.id,a.name,a.url,a.tips,a.param,a.icon,
+		a.step,a.is_leaf,a.parent,a.depth, a.is_shortcut
+		from SYS_MODULE a, SYS_AUTHORITY b, SYS_PERMISSION c
+		where a.id = c.module_id
+		and c.role_id = b.role_id
+		and b.user_id = #userId
+		and a.status = 't' and a.is_menu ='t'
+		and b.status = 't' and c.status = 't'
+		order by a.depth
+	</select>
 
+	<!-- 查询用户菜单 -->
+	<select id="selectActions" parameterType="int" resultMap="ModuleMapper.moduleMap">
+		select distinct a.url, a.param, a.button_id, a.method
+		from SYS_MODULE a, SYS_AUTHORITY b,SYS_PERMISSION c
+		where a.id = c.module_id
+		and c.role_id = b.role_id
+		and b.user_id = #{value} and a.status = 't'
+		and b.status = 't' and c.status = 't'
+	</select>
 
-    <select id="selectRoles" parameterType="int" resultType="java.lang.Integer">
-        select distinct role_id
-        from SYS_AUTHORITY
-        where user_id = #{value} and status = 't'
-    </select>
+	<select id="selectRoles" parameterType="int" resultType="int">
+		select distinct role_id from SYS_AUTHORITY
+		where user_id = #{value} and status = 't'
+	</select>
 
-    <!-- 修改用户密码 -->
-    <update id="passwd" parameterType="com.an.sys.entity.User">
-        update SYS_USER set
-        password = #{password,jdbcType=VARCHAR},
-        first_time = #{firstTime,jdbcType=VARCHAR}
-        where user_id = #{userId,jdbcType=INTEGER}
-    </update>
+	<!-- 修改用户密码 -->
+	<update id="passwd" parameterType="com.an.sys.entity.User">
+		update SYS_USER set
+		password = #{password,jdbcType=VARCHAR},
+		first_time = #{firstTime,jdbcType=VARCHAR}
+		where user_id = #{userId,jdbcType=INTEGER}
+	</update>
 
-    <!-- 根据用户ID查询单个用户 -->
-    <select id="selectByPrimarykey" parameterType="int" resultMap="BaseResultMap">
-        select
-        <include refid="Base_Column_List"/>
-        from SYS_USER where user_id = #{userId}
-    </select>
+	<!-- 根据用户ID查询单个用户 -->
+	<select id="selectByPrimarykey" parameterType="int" resultMap="BaseResultMap">
+		select
+		<include refid="Base_Column_List" />
+		from SYS_USER where user_id = #{value}
+	</select>
 
-    <!-- 查询用户总数 -->
-    <select id="countByExample" resultType="int">
-        select count(1) from SYS_USER
-        <include refid="Example_Where_Clause"/>
-    </select>
+	<!-- 查询用户总数 -->
+	<select id="countByExample" resultType="int">
+		select count(1) from SYS_USER
+		<include refid="Example_Where_Clause" />
+	</select>
 
-    <!-- 查询用户列表 -->
-    <select id="selectByExample" resultMap="BaseResultMap">
-        SELECT
-        <include refid="Base_Column_List"/>
-        FROM SYS_USER
-        <include refid="Example_Where_Clause"/>
-        <if test="_BY != null">order by ${_BY}</if>
-    </select>
+	<!-- 查询用户列表 -->
+	<select id="selectByExample" resultMap="BaseResultMap">
+		SELECT
+		<include refid="Base_Column_List" />
+		FROM SYS_USER
+		<include refid="Example_Where_Clause" />
+		<if test="_BY != null">order by ${_BY}</if>
+	</select>
 
-    <!-- 新增用户 -->
-    <insert id="insert" parameterType="com.an.sys.entity.User">
-        insert into SYS_USER
-        (user_name,staff_code,real_name, first_time,
-        email,password,mobile,remark,org_id,group_ids,token,status,create_by,create_at)
-        values
-        (#{userName,jdbcType=VARCHAR},
-        #{staffCode,jdbcType=VARCHAR},
-        #{realName,jdbcType=VARCHAR},
-        #{firstTime,jdbcType=VARCHAR},
-        #{email,jdbcType=VARCHAR},
-        #{password,jdbcType=VARCHAR},
-        #{mobile,jdbcType=VARCHAR},
-        #{remark,jdbcType=VARCHAR},
-        #{org.id,jdbcType=VARCHAR},
-        #{groups,typeHandler=com.an.core.mybatis.handlers.JsonTypeHandler},
-        #{token,jdbcType=VARCHAR},
-        #{status,jdbcType=VARCHAR},
-        #userId, now())
-        <selectKey resultType="java.lang.Integer" keyProperty="userId">
-            SELECT @@IDENTITY AS id
-        </selectKey>
-    </insert>
+	<!-- 新增用户 -->
+	<insert id="insert" parameterType="com.an.sys.entity.User">
+		insert into SYS_USER
+		(user_name, password, staff_code, real_name, email, mobile, remark, org_id, group_ids, token, status, create_by, create_at, first_time, region_id)
+		values
+		(#{userName,jdbcType=VARCHAR},
+		#{password,jdbcType=VARCHAR},
+		#{staffCode,jdbcType=VARCHAR},
+		#{realName,jdbcType=VARCHAR},
+		#{email,jdbcType=VARCHAR},
+		#{mobile,jdbcType=VARCHAR},
+		#{remark,jdbcType=VARCHAR},
+		#{org.id,jdbcType=VARCHAR},
+		#{groups,typeHandler=com.an.core.mybatis.handlers.JsonTypeHandler},
+		#{token,jdbcType=VARCHAR},
+		#{status,jdbcType=VARCHAR},
+		#userId,
+		now(),
+		#{firstTime,jdbcType=VARCHAR},
+		#{regionId,jdbcType=INTEGER}
+		)
+		<selectKey resultType="int" keyProperty="userId">
+			SELECT @@IDENTITY AS id
+		</selectKey>
+	</insert>
 
-    <!-- 更新用户信息 -->
-    <update id="updateByPrimaryKey" parameterType="com.an.sys.entity.User">
-        update SYS_USER set
-        user_name =#{userName,jdbcType=VARCHAR},
-        real_name =#{realName,jdbcType=VARCHAR},
-        email =#{email,jdbcType=VARCHAR},
-        mobile =#{mobile,jdbcType=VARCHAR},
-        remark =#{remark,jdbcType=VARCHAR},
-        org_id =#{org.id,jdbcType=INTEGER},
-        group_ids =#{groups,typeHandler=com.an.core.mybatis.handlers.JsonTypeHandler},
-        token =#{token,jdbcType=VARCHAR},
-        status =#{status,jdbcType=CHAR},
-        create_by =#userId,
-        create_at =now()
-        where user_id = #{userId}
-    </update>
+	<!-- 更新用户信息 -->
+	<update id="updateByPrimaryKey" parameterType="com.an.sys.entity.User">
+		update SYS_USER set
+		user_name =#{userName,jdbcType=VARCHAR},
+		real_name =#{realName,jdbcType=VARCHAR},
+		email =#{email,jdbcType=VARCHAR},
+		mobile =#{mobile,jdbcType=VARCHAR},
+		remark =#{remark,jdbcType=VARCHAR},
+		org_id =#{org.id,jdbcType=INTEGER},
+		group_ids =#{groups,typeHandler=com.an.core.mybatis.handlers.JsonTypeHandler},
+		token =#{token,jdbcType=VARCHAR},
+		status =#{status,jdbcType=CHAR},
+		create_by =#userId,
+		create_at =now(),
+		region_id = #{regionId,jdbcType=INTEGER}
+		where user_id = #{userId}
+	</update>
 
-    <!-- 删除用户 -->
-    <delete id="deleteByPrimaryKey" parameterType="int">
-        update SYS_USER
-        set status = 'd', create_at = now()
-        where user_id = #{id}
-    </delete>
+	<!-- 删除用户 -->
+	<delete id="deleteByPrimaryKey" parameterType="int">
+		update SYS_USER
+		set status = 'd', create_at = now()
+		where user_id = #{value}
+	</delete>
 
-    <select id="selectKV" resultType="java.util.HashMap">
-        select user_id k, concat(staff_code, ' - ' ,real_name) v
-        from SYS_USER where status = 't'
-    </select>
+	<select id="selectKV" resultType="map">
+		select user_id k, concat(staff_code, ' - ' , real_name) v from SYS_USER where status = 't'
+	</select>
 
+	<select id="staffKV" resultType="map">
+		select staff_code k, concat(staff_code, ' - ' ,real_name) v from SYS_USER where status = 't' and staff_code != ''
+	</select>
 
-    <select id="staffKV" resultType="java.util.HashMap">
-        select staff_code k, concat(staff_code, ' - ' ,real_name) v
-        from SYS_USER where status = 't' and staff_code != ''
-    </select>
+	<delete id="deleteRolesByUserId" parameterType="int">
+		delete from SYS_AUTHORITY where user_id = #{value}
+	</delete>
 
+	<insert id="insertRolesByUserId" parameterType="map">
+		insert into SYS_AUTHORITY (user_id, role_id, status, create_by, create_at)
+		values (#{userId,jdbcType=INTEGER}, #{roleId,jdbcType=INTEGER},
+		#{status,jdbcType=VARCHAR}, #userId, now() )
+	</insert>
 
 </mapper>

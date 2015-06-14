@@ -18,7 +18,7 @@ public class TradeDao extends BaseDao<Trade, Integer> {
 
     public int insert(Trade trade) {
         trade.setBillCode("OF" + nextCode());
-        System.out.println(trade.getType());
+//        System.out.println(trade.getType());
         return super.insert(trade);
     }
     
@@ -27,22 +27,16 @@ public class TradeDao extends BaseDao<Trade, Integer> {
     }
 
     public String nextCode() {
-        return Util.CurrentTime("yyMMdd")
-                + String.format("%04d", (int) sqlSession.selectOne(
-                "PublicMapper.nextVal", "wm_bill_code_seq"));
-    }
-
-    public Trade selectByCode(String billCode) {
-        return sqlSession.selectOne(namespace + ".selectByPrimaryKey", billCode);
+        return Util.CurrentTime("yyMMdd") + String.format("%04d", (int) sqlSession.selectOne("PublicMapper.nextVal", "wm_bill_code_seq"));
     }
 
     public int updateState(Trade bill) {
         return sqlSession.update(namespace + ".updateState", bill);
     }
 
-    public int updateRealQuantity(String billCode) {
-        return sqlSession.update(namespace + ".updateRealQuantity", billCode);
-    }
+//    public int updateRealQuantity(String billCode) {
+//        return sqlSession.update(namespace + ".updateRealQuantity", billCode);
+//    }
 
     public List report(Map<String, Object> params) {
         return sqlSession.selectList(namespace + ".selectReport", params);

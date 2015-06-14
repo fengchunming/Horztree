@@ -1,109 +1,130 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="RegionMapper">
-    <resultMap id="BaseResultMap" type="com.an.base.entity.Region">
-        <id column="id" property="id" jdbcType="INTEGER"/>
-        <result column="parent" property="parent" jdbcType="INTEGER"/>
-        <result column="name" property="name" jdbcType="VARCHAR"/>
-        <result column="zip" property="zip" jdbcType="VARCHAR"/>
-        <result column="depth" property="depth" jdbcType="VARCHAR"/>
-        <result column="step" property="step" jdbcType="INTEGER"/>
-        <result column="group_id" property="group" jdbcType="INTEGER"/>
-        <result column="first_letters" property="firstLetters" jdbcType="VARCHAR"/>
-        <result column="path" property="path" jdbcType="VARCHAR"/>
-        <result column="is_leaf" property="isLeaf" jdbcType="BIT"/>
-        <result column="sort" property="sort" jdbcType="INTEGER"/>
-        <result column="status" property="status" jdbcType="VARCHAR"/>
-    </resultMap>
-    <sql id="Example_Where_Clause">
-        <where>
-            status != 'd'
-            <if test="own">and group_id in (#groups)</if>
-            <if test="group != null and group !=''">and group_id = #{group,jdbcType=INTEGER}</if>
-            <if test="parent != null and parent > -1 "> and parent = #{parent,jdbcType=INTEGER}</if>
-            <if test="step != null and step > 0 ">and step = #{step,jdbcType=INTEGER}</if>
-            <if test="id != null and id > 0 ">and id = #{id,jdbcType=INTEGER}</if>
-            <if test="name != null and name != ''">and name like concat('%',#{name},'%')</if>
-        </where>
-    </sql>
+	<resultMap id="BaseResultMap" type="com.an.base.entity.Region">
+		<id column="id" property="id" jdbcType="INTEGER" />
+		<result column="parent" property="parent" jdbcType="INTEGER" />
+		<result column="code" property="code" jdbcType="VARCHAR" />
+		<result column="name" property="name" jdbcType="VARCHAR" />
+		<result column="full_name" property="fullName" jdbcType="VARCHAR" />
+		<result column="type" property="type" jdbcType="VARCHAR" />
+		<result column="step" property="step" jdbcType="INTEGER" />
+		<result column="is_leaf" property="isLeaf" jdbcType="BIT" />
+		<result column="path" property="path" jdbcType="VARCHAR" />
+		<result column="depth" property="depth" jdbcType="VARCHAR" />
+		<result column="sort" property="sort" jdbcType="INTEGER" />
+		<result column="business_status" property="businessStatus" jdbcType="VARCHAR" />
+		<result column="status" property="status" jdbcType="VARCHAR" />
+		<result column="enter_by" property="enterBy" jdbcType="INTEGER" />
+		<result column="enter_at" property="enterAt" jdbcType="TIMESTAMP" />
+	</resultMap>
 
-    <sql id="Base_Column_List">
-        id, parent, name, zip, depth, step, first_letters, path, enter_at, is_leaf,
-        sort, status, group_id
-    </sql>
-    <select id="selectByExample" resultMap="BaseResultMap" parameterType="java.util.HashMap">
-        select
-        <include refid="Base_Column_List"/>
-        from BASE_REGION
-        <include refid="Example_Where_Clause"/>
-        order by depth
-    </select>
+	<sql id="Example_Where_Clause">
+		<where>
+			status != 'd'
+			<if test="own">and code like concat('#regionCode', '%')</if>
+			<if test="parent != null and parent > -1 "> and parent = #{parent,jdbcType=INTEGER}</if>
+			<if test="name != null and name != ''">and name like concat('%', #{name}, '%')</if>
+			<if test="fullName != null and fullName != ''">and full_name like concat('%', #{fullName}, '%')</if>
+			<if test="type == 'sm'.toString()">and (type = 's' or type = 'm')</if>
+			<if test="type == 's'.toString() or type == 'm'.toString()">and type = #{type}</if>
+		</where>
+	</sql>
 
-    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer">
-        select
-        <include refid="Base_Column_List"/>
-        from BASE_REGION
-        where id = #{id,jdbcType=INTEGER}
-    </select>
-    
-    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
-        delete from BASE_REGION
-        where id = #{id,jdbcType=INTEGER}
-    </delete>
+	<sql id="Base_Column_List">
+		id, parent, code, name, full_name, type, step, is_leaf, path, depth, sort, business_status, status, enter_by, enter_at
+	</sql>
 
-    <insert id="insert" parameterType="com.an.base.entity.Region">
-        insert into BASE_REGION (parent, name,
-        zip, depth, step, group_id,
-        first_letters, path, enter_at,
-        is_leaf, sort, status)
-        values (#{parent,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR},
-        #{zip,jdbcType=VARCHAR}, #{depth,jdbcType=VARCHAR}, #{step,jdbcType=INTEGER},
-        #{group,jdbcType=INTEGER},#{firstLetters,jdbcType=VARCHAR}, #{path,jdbcType=VARCHAR}, now(),
-        #{isLeaf,jdbcType=VARCHAR}, #{sort,jdbcType=INTEGER}, #{status,jdbcType=VARCHAR})
-        <selectKey resultType="java.lang.Integer" keyProperty="id">
-            SELECT @@IDENTITY AS id
-        </selectKey>
-    </insert>
-    <select id="countByExample" parameterType="java.util.HashMap" resultType="java.lang.Integer">
-        select count(1) from BASE_REGION
-        <include refid="Example_Where_Clause"/>
-    </select>
+	<select id="selectByExample" resultMap="BaseResultMap" parameterType="map">
+		select
+		<include refid="Base_Column_List" />
+		from SYS_REGION
+		<include refid="Example_Where_Clause" />
+		order by depth
+	</select>
 
-    <update id="updateByPrimaryKey" parameterType="com.an.base.entity.Region">
-        update BASE_REGION
-        set parent = #{parent,jdbcType=INTEGER},
-        name = #{name,jdbcType=VARCHAR},
-        zip = #{zip,jdbcType=VARCHAR},
-        depth = #{depth,jdbcType=VARCHAR},
-        step = #{step,jdbcType=INTEGER},
-        group_id = #{group,jdbcType=INTEGER},
-        first_letters = #{firstLetters,jdbcType=VARCHAR},
-        path = #{path,jdbcType=VARCHAR},
-        enter_at = now(),
-        is_leaf = #{isLeaf,jdbcType=BIT},
-        sort = #{sort,jdbcType=INTEGER},
-        status = #{status,jdbcType=VARCHAR}
-        where id = #{id,jdbcType=INTEGER}
-    </update>
+	<select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="int">
+		select
+		<include refid="Base_Column_List" />
+		from SYS_REGION where id = #{value,jdbcType=INTEGER}
+	</select>
 
-    <update id="updateLeaf" parameterType="com.an.base.entity.Region">
-        update BASE_REGION
-        set path = concat(#{path},#{id},','), step = #{step} + 1,
-        depth = concat(#{depth}, LPAD(#{sort}, 4, 0), LPAD(id, 4, 0))
-        where parent = #{id}
-    </update>
-    
-    <update id="updateStatus" parameterType="com.an.base.entity.Region">
-        update BASE_REGION
-        set status = #{status,jdbcType=VARCHAR}
-        where id = #{id}
-    </update>
+	<delete id="deleteByPrimaryKey" parameterType="int">
+		update SYS_REGION set status = 'd', enter_by = #userId, enter_at = now()
+		where id = #{value,jdbcType=INTEGER}
+	</delete>
 
-    <select id="selectKV" resultType="java.util.HashMap">
-        select id as k, name as v, step from BASE_REGION
-        where status = 't'
-        <if test="step != null and step != ''">and step = #{step} </if>
-        <if test="isLeaf != null and isLeaf != ''">and is_leaf = #{isLeaf}</if>
-        order by depth
-    </select>
+	<delete id="deleteChildren" parameterType="int">
+		update SYS_REGION
+		set status = 'd', enter_by = #userId, enter_dt = now()
+		where path like concat('%,', #{value}, ',%')
+	</delete>
+
+	<insert id="insert" parameterType="com.an.base.entity.Region">
+		insert into SYS_REGION (parent, code, name, full_name, type, step, is_leaf, path, depth, sort, business_status, status, enter_by, enter_at)
+		values (
+		#{parent,jdbcType=INTEGER},
+		#{code,jdbcType=VARCHAR},
+		#{name,jdbcType=VARCHAR},
+		#{fullName,jdbcType=VARCHAR},
+		#{type,jdbcType=VARCHAR},
+		#{step,jdbcType=INTEGER},
+		#{isLeaf,jdbcType=BIT},
+		#{path,jdbcType=VARCHAR},
+		#{depth,jdbcType=VARCHAR},
+		#{sort,jdbcType=INTEGER},
+		#{businessStatus,jdbcType=VARCHAR},
+		#{status,jdbcType=VARCHAR},
+		#userId,
+		now())
+		<selectKey resultType="int" keyProperty="id">
+			SELECT @@IDENTITY AS id
+		</selectKey>
+	</insert>
+
+	<select id="countByExample" parameterType="map" resultType="int">
+		select count(1) from SYS_REGION
+		<include refid="Example_Where_Clause" />
+	</select>
+
+	<update id="updateByPrimaryKey" parameterType="com.an.base.entity.Region">
+		update SYS_REGION
+		set parent = #{parent,jdbcType=INTEGER},
+		code = #{code,jdbcType=VARCHAR},
+		name = #{name,jdbcType=VARCHAR},
+		full_name = #{fullName,jdbcType=VARCHAR},
+		type = #{type,jdbcType=VARCHAR},
+		step = #{step,jdbcType=INTEGER},
+		is_leaf = #{isLeaf,jdbcType=BIT},
+		path = #{path,jdbcType=VARCHAR},
+		depth = #{depth,jdbcType=VARCHAR},
+		sort = #{sort,jdbcType=INTEGER},
+		business_status = #{businessStatus,jdbcType=VARCHAR},
+		status = #{status,jdbcType=VARCHAR},
+		enter_by = #userId,
+		enter_at = now()
+		where id = #{id,jdbcType=INTEGER}
+	</update>
+
+	<update id="updateChildren" parameterType="com.an.base.entity.Region">
+		update SYS_REGION set
+		step = #{step} + 1,
+		code = concat(#{code}, LPAD(id, 4, '0')),
+		path = concat(#{path}, #{id}, ','),
+		depth = concat(#{depth}, LPAD(sort, 2, '0'), LPAD(id, 4, '0'))
+		where parent = #{id}
+	</update>
+
+	<update id="updateBusinessStatus" parameterType="com.an.base.entity.Region">
+		update SYS_REGION set
+		business_status = #{businessStatus,jdbcType=VARCHAR}, enter_by = #userId, enter_dt = now()
+		where id = #{id}
+	</update>
+
+	<select id="selectKV" parameterType="map" resultType="map" >
+		select id as k, full_name as v, step from SYS_REGION
+		where status = 't' and (type = 's' or type = 'm')
+		<if test="own">and code like concat('#regionCode', '%')</if>
+		order by depth
+	</select>
 </mapper>

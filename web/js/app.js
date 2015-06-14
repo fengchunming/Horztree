@@ -103,7 +103,8 @@ $(function () {
             if (model.form && model.form.grid && !model.row) {
                 model.form.grid.addOne(model, true);
             }
-            if (_.isFunction(this.success)) this.success();
+            //if (_.isFunction(this.success)) this.success();
+            if (_.isFunction(model.success)) model.success();
         },
         hidden: function () {
 
@@ -306,10 +307,13 @@ $(function () {
                                 html += '<input type="' + c.type + '" name="' + c.key + '"' + (val ? ' checked' : '') + (model.locked(c) ? ' disabled' : '') + ' value="' + val + '">';
                             }
                             break;
-                        case (c.type === 'radio'): // checkbox
-                            html += '<input type="' + c.type + '" name="' + c.key + '"' + (model.locked(c) ? ' disabled' : '') + ' value="' + val + '">';
-                            break;
-
+                        case (c.type === 'radio'): // radio
+                            if (_.isUndefined(c.label) || c.label === '') {
+                                html += '<input type="' + c.type + '" name="' + c.key + '"' + (model.selected ? ' checked' : '') + (model.locked(c) ? ' disabled' : '') + ' value="' + val + '">';
+                            } else {
+                                html += '<input type="' + c.type + '" name="' + c.key + '"' + (val ? ' checked' : '') + (model.locked(c) ? ' disabled' : '') + ' value="' + val + '">';
+                            }
+                           break;
                         case (c.type === 'text' || c.type === 'number'): // input html element
                             if (!model.locked(c)) {
                                 html += '<input name="' + c.key + '" type="' + c.type + '" value="' + val + '" class="line-input" />';
@@ -401,6 +405,13 @@ $(function () {
                     this.model.set(data, {silent: true});
                     this.model.change(data);
                 }
+            } else if ($(e).attr('type') === 'radio') {
+            	this.model.collection.each(function (model) {
+                    if (!model.locked()) {
+                        model.select(false);
+                    }
+                });
+            	this.model.select(true);
             } else if (e.name) {
                 var o = e.name;
                 var v = e.value;
@@ -524,6 +535,7 @@ $(function () {
         toolbar: ['create', 'save', 'trash', 'hide'],
         display: false,
         rules: {},
+        messages: {},
         sync: false,
         title: '编辑',
         size: {width: 600},
@@ -541,7 +553,8 @@ $(function () {
             convertLocal();
 
             this.valid = this.$form.validate({
-                rules: this.rules
+                rules: this.rules,
+                messages: this.messages
             });
 
             var ts = this;

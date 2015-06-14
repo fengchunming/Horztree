@@ -1,5 +1,6 @@
 package com.an.sys.action;
 
+import com.an.base.dao.RegionDao;
 import com.an.core.exception.BadRequestException;
 import com.an.core.exception.ErrorModelAndView;
 import com.an.core.exception.NotAcceptableException;
@@ -11,6 +12,7 @@ import com.an.sys.dao.UserDao;
 import com.an.sys.entity.Module;
 import com.an.sys.entity.User;
 import com.an.utils.Util;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +23,7 @@ import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
+
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -37,6 +40,9 @@ public class GrantedController {
 
     @Autowired
     private UserDao userDao;
+    
+    @Autowired
+    private RegionDao regionDao;
 
     @Autowired
     private OrganizationDao orgDao;
@@ -74,10 +80,10 @@ public class GrantedController {
         }
 
         User user = userDao.selectByUsername(username);
-       /* if (SessionRepository.isOnline(user.getId(), session)) {
+       /* if (SessionRepository.isOnline(user.getUserName(), session)) {
             switch (force) {
                 case "true":
-                    SessionRepository.forceQuit(user.getId());
+                    SessionRepository.forceQuit(user.getUserName());
                     break;
                 case "false":
                     break;
@@ -87,6 +93,7 @@ public class GrantedController {
         }*/
 
         user.setOrg(orgDao.selectInit(user.getOrg().getId()));
+        user.setRegion(regionDao.selectInit(user.getRegionId()));
         for (Module mod : userDao.selectActions(user.getUserId())) {
             user.addAction(mod);
         }
@@ -100,7 +107,7 @@ public class GrantedController {
 //        Cookie xsrf = new Cookie("_xsrf", UUID.randomUUID().toString());
 //        session.setAttribute("CSRF_SALT_CACHE", xsrf.getValue());
 //        response.addCookie(xsrf);
- //       SessionRepository.add(user.getId(), session.getId());
+ //       SessionRepository.add(user.getUserName(), session.getId());
 //        logger.info("LoginSuccess: ID: " + username);
         return user;
 

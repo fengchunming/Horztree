@@ -1,420 +1,367 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <link href="js/umeditor/themes/default/css/umeditor.css" rel="stylesheet">
-    <script src="js/umeditor/umeditor.config.js"></script>
-    <script src="js/umeditor/umeditor.min.js"></script>
-    <style>
-        #gallery_handler {
-            top: 0;
-            left: 0;
-            width: 125px;
-            height: 125px;
-            background: rgba(0, 0, 0, .4);
-            position: absolute;
-            display: block;
-        }
+<link href="js/umeditor/themes/default/css/umeditor.css" rel="stylesheet">
+<script src="js/umeditor/umeditor.config.js"></script>
+<script src="js/umeditor/umeditor.min.js"></script>
+<style>
+#gallery_handler {
+	top: 0;
+	left: 0;
+	width: 125px;
+	height: 125px;
+	background: rgba(0, 0, 0, .4);
+	position: absolute;
+	display: block;
+}
 
-        #gallery_handler a {
-            color: #eee;
-            margin: 5px;
-        }
+#gallery_handler a {
+	color: #eee;
+	margin: 5px;
+}
 
-        #gallery_handler a:hover {
-            color: snow;
-        }
+#gallery_handler a:hover {
+	color: snow;
+}
 
-        #gallery_dialog img {
-            max-height: 600px;
-            max-width: 1000px;
-        }
+#gallery_dialog img {
+	max-height: 600px;
+	max-width: 1000px;
+}
 
-        #img-outline {
-            background: #fff;
-            padding: 5px;
-            border-radius: 4px;
-        }
+#img-outline {
+	background: #fff;
+	padding: 5px;
+	border-radius: 4px;
+}
 
-        .imb {
-            position: relative;
-            float: left;
-            width: 125px;
-            height: 125px;
-            margin: 2px;
-            border: 3px solid #eee;
-            border-radius: 3px;
-            cursor: pointer;
-        }
+.imb {
+	position: relative;
+	float: left;
+	width: 125px;
+	height: 125px;
+	margin: 2px;
+	border: 3px solid #eee;
+	border-radius: 3px;
+	cursor: pointer;
+}
 
-        .imb img {
-            max-width: 125px;
-            max-height: 125px;
-        }
+.imb img {
+	max-width: 125px;
+	max-height: 125px;
+}
 
-        .default {
-            border: 3px solid #20a3fa;
-        }
-    </style>
-    <script>
-        var um = UM.getEditor('goodsEditor');
-        $(function () {
-            App.Goods = App.Model.extend({
-                urlRoot: 'rest/mm/goods',
-                idAttribute: 'goodsId',
-                edit: function () {
-                    var ts = this;
-                    UM.getEditor('goodsEditor').setContent(this.get('description') || '');
-                    App.categoryGrid.collection.link(this.get('category'));
-                    $('#gallery').empty();
-                    if (this.get('images')) {
-                        $.each(this.get('images'), function (i, e) {
-                            ts.form.addImage(e);
-                        })
-                    }
-                },
-                success: function () {
-                    this.edit();
-                }
-            });
+.default {
+	border: 3px solid #20a3fa;
+}
+</style>
+<script>
 
-            App.GoodsEditor = App.FormView.extend({
-                toolbar: ['create', 'save', 'trash', 'hide'],
-                size: {width: 900},
-                prepare: function (item) {
-                    item.description = UM.getEditor('goodsEditor').getContent();
-                    item.images = [];
-                    $('#gallery').find('.imb').each(function () {
-                        if($(this).css('display') !== 'none') {
-                            if ($(this).hasClass('default')) {
-                                item.images.splice(0, 0, {path: $(this).attr('data-name'), default: true});
-                            } else {
-                                item.images.push({path: $(this).attr('data-name'), default: false});
-                            }
-                        }
-                    });
-                    item.category = App.categoryGrid.collection.selectIds();
-                    return item;
-                },
-                addImage: function (data) {
-                    var name = data.path;
-                    var small = 's_' + name;
-                    $('<div class="imb' + (data.default ? ' default' : '') + '" data-name="' + name + '"><img src="' + App.Static + small + '"></div>')
-                            .mouseover(function () {
-                                $('#gallery_handler').appendTo(this).show();
-                            })
-                            .mouseleave(function () {
-                                $('#gallery_handler').hide().appendTo('#tab_3');
-                            }).click(function () {
-                                var img = new Image();
-                                $.startLoading();
-                                img.onload = function () {
-                                    $.stopLoading();
-                                    var w, h;
-                                    if (600 / img.height > 1000 / img.width) {
-                                        w = 1000 < img.width ? 1000 : img.width;
-                                    } else {
-                                        h = 600 < img.height ? 600 : img.width;
-                                        w = img.width * h / img.height;
-                                    }
-                                    $('#img-outline').html(img);
-                                    $('#gallery_dialog').dialog({width: w + 34}).dialog('open');
-                                };
-                                img.onerror = function () {
-                                    $.stopLoading();
-                                };
-                                img.src = App.Static + name;
+	_LocalKV.storageType = {
+        "1": "常温存储",
+        "2": "冷藏存储"
+    };
 
-                            }).appendTo('#gallery');
-                }
-            });
+	var um = UM.getEditor('goodsEditor');
+	$(function () {
+		App.Goods = App.Model.extend({
+			urlRoot: 'rest/mm/goods',
+			idAttribute: 'id',
+			edit: function () {
+				var ts = this;
+				UM.getEditor('goodsEditor').setContent(this.get('description') || '');
+				$('#gallery').empty();
+				if (this.get('images')) {
+					$.each(this.get('images'), function (i, e) {
+						ts.form.addImage(e);
+					})
+				}
+			},
+			success: function () {
+				this.edit();
+			}
+		});
 
-            App.GoodsList = App.Collection.extend({
-                model: App.Goods,
-                columns: [
-                    {label: '编码', key: 'pn', sort: 'goods_code', thcss: 'width:100px'},
-                    {label: '名称', key: 'name', sort: true},
-                    {label: '条码', key: 'barcode', sort: 'goods_barcode', thcss: 'width:100px'},
-                    {label: '分类', key: 'category', local: 'mm/kv/category', sort: 'category', thcss: 'width:200px'},
-                    {label: '品牌', key: 'brand', local: 'mm/kv/brand', thcss: 'width:100px'},
-                    {label: '价格', key: 'salePrice', sort: true, thcss: 'width:50px;'},
-                    {label: '限购', key: 'maxLimit', sort: true, thcss: 'width:50px;'},
-                    {label: '单位', key: 'unit', local: 'base/kv/uom', thcss: 'width:50px;'},
-                    {label: '销量', key: 'soldVolume', thcss: 'width:50px;', sort: true},
-                    {label: '排序', key: 'sort', thcss: 'width:50px;', sort:true},
-                    {label: '状态', key: 'status', local: 'status', thcss: 'width:45px;'}
-                ]
-            });
+		App.GoodsForm = App.FormView.extend({
+			toolbar: ['create', 'save', 'trash', 'hide'],
+			size: {width: 900},
+			prepare: function (item) {
+				item.description = UM.getEditor('goodsEditor').getContent();
+				item.images = [];
+				$('#gallery').find('.imb').each(function () {
+					if($(this).css('display') !== 'none') {
+						if ($(this).hasClass('default')) {
+							item.images.splice(0, 0, {path: $(this).attr('data-name'), default: true});
+						} else {
+							item.images.push({path: $(this).attr('data-name'), default: false});
+						}
+					}
+				});
+				return item;
+			},
+			addImage: function (data) {
+				var name = data.path;
+				var small = 's_' + name;
+				$('<div class="imb' + (data.default ? ' default' : '') + '" data-name="' + name + '"><img src="' + App.Static + small + '"></div>')
+				.mouseover(function () {
+					$('#gallery_handler').appendTo(this).show();
+				})
+				.mouseleave(function () {
+					$('#gallery_handler').hide().appendTo('#tab_3');
+				}).click(function () {
+					var img = new Image();
+					$.startLoading();
+					img.onload = function () {
+						$.stopLoading();
+						var w, h;
+						if (600 / img.height > 1000 / img.width) {
+							w = 1000 < img.width ? 1000 : img.width;
+						} else {
+							h = 600 < img.height ? 600 : img.width;
+							w = img.width * h / img.height;
+						}
+						$('#img-outline').html(img);
+						$('#gallery_dialog').dialog({width: w + 34}).dialog('open');
+					};
+					img.onerror = function () {
+						$.stopLoading();
+					};
+					img.src = App.Static + name;
 
-            App.GoodsGrid = App.Grid.extend({
-                collection: new App.GoodsList,
-                form: new App.GoodsEditor,
-                toolbar: ['create'],
-                qel: '.queryBar'
-            });
+				}).appendTo('#gallery');
+			}
+		});
 
-            App.goodsGrid = new App.GoodsGrid();
+		App.GoodsList = App.Collection.extend({
+			model: App.Goods,
+			columns: [
+				{label: '编码', key: 'code', thcss: 'width:100px'},
+				{label: '条码', key: 'barcode', thcss: 'width:100px'},
+				{label: '名称', key: 'name'},
+				{label: '分类', key: 'categoryId', local: 'mm/kv/category', thcss: 'width:200px'},
+				{label: '品牌', key: 'brandId', local: 'mm/kv/brand', thcss: 'width:100px'},
+				{label: '单位', key: 'uomId', local: 'base/kv/uom', thcss: 'width:50px;'},
+				{label: '价格', key: 'salePrice', thcss: 'width:50px;'},
+				{label: '限购', key: 'maxLimit', thcss: 'width:50px;'},
+				{label: '销量', key: 'soldVolume', thcss: 'width:50px;'},
+				{label: '状态', key: 'status', local: 'status', thcss: 'width:45px;'}
+			]
+		});
 
+		App.GoodsGrid = App.Grid.extend({
+			collection: new App.GoodsList,
+			form: new App.GoodsForm,
+			toolbar: ['create'],
+			qel: '.queryBar'
+		});
 
-            App.Category = App.Model.extend({
-                urlRoot: 'rest/mm/category'
-            });
+		App.goodsGrid = new App.GoodsGrid();
 
-            App.Categorys = App.Collection.extend({
-                model: App.Category,
-                pageSize: 0,
-                sortCol: 'depth',
-                columns: [
-                    {key: 'id', type: 'checkbox', style: 'width:30px;'},
-                    {label: '分类名称', key: 'name', render: function (val, model) {
-                        return '<span style="display:inline-block;text-indent: ' + 15 * (model.get('step')-1) + 'px">' + val + '</span>';
-                    }}
-                ],
-                link: function (group) {
-                    _.each(this.models, function (model) {
-                        if (_.indexOf(group, model.id) >= 0) {
-                            model.select(true);
-                        } else {
-                            model.select(false);
-                        }
-                        model.row.render();
-                    });
-                }
-            });
+		$("#imageUpload").html5Uploader({
+			name: "photo",
+			url: "rest/mm/goods/upload",
+			onSuccess: function (e, file, response) {
+				App.goodsGrid.form.addImage(JSON.parse(response))
+			}
+		});
+		$('#uploadButton').click(function () {
+			$('#imageUpload').click();
+		});
 
-            App.CategoryGrid = App.Grid.extend({
-                el: '#bcategory',
-                head: false,
-                collection: new App.Categorys,
-                toolbar: []
-            });
-            App.categoryGrid = new App.CategoryGrid;
+		$('#gallery_handler').on('click','.remove', function(){
+			$(this).parents('.imb').hide();
+			return false;
+		}).on('click','.setDefault', function(){
+			$(this).parents('.imb').addClass("default").siblings('.default').removeClass('default');
+			return false;
+		});
 
-            $("#imageUpload").html5Uploader({
-                name: "photo",
-                url: "rest/mm/goods/upload",
-                onSuccess: function (e, file, response) {
-                    App.goodsGrid.form.addImage(JSON.parse(response))
-                }
-            });
-            $('#uploadButton').click(function () {
-                $('#imageUpload').click();
-            });
+		$("#gallery_dialog").dialog({
+			autoOpen: false,
+			resizable: false,
+			dialogClass: "with-close",
+			modal: true,
+			show: {effect: "blind", duration: 800}
+		});
 
-            $('#gallery_handler').on('click','.remove', function(){
-                $(this).parents('.imb').hide();
-                return false;
-            }).on('click','.setDefault', function(){
-                $(this).parents('.imb').addClass("default").siblings('.default').removeClass('default');
-                return false;
-            });
-
-            $("#gallery_dialog").dialog({
-                autoOpen: false,
-                resizable: false,
-                dialogClass: "with-close",
-                modal: true,
-                show: {effect: "blind", duration: 800}
-            });
-            
-           /*  $('#buttonUpload').click(function () {
-                $('#uploadFile').click();
-            }); */
-            $("#uploadFile").html5Uploader({
-                name: "file",
-                url: "rest/sys/test/list",
-                onSuccess: function (e, file, response) {
-                  //  App.goodsGrid.form.addImage(JSON.parse(response))
-                  alert("上传成功");
-                }
-            });
-	        $("#exportBtn").click(function(){ 
-	        	alert("exportBtn");
-	            var form1 = document.getElementById("exportForm")
-	            form1.action="rest/sys/test/list";
-	            form1.method="GET";
-	            form1.submit();
-	        });  
-        });
-    </script>
+	});
+</script>
 </head>
 <body>
-<div id="article">
-    <form class="queryBar" id="exportForm" action="">
-        <ul>
-            <li>
-                <label>商品名称：</label>
-                <input type="text" name="name"/>
-            </li>
-            <li>
-                <label>商品编号：</label>
-                <input type="text" name="pn"/>
-            </li>
-            <li>
-                <label>商品条码：</label>
-                <input type="text" name="barcode"/>
-            </li>
-            <li>
-                <label>分类：</label>
-                <select name="category" data-local="mm/kv/category">
-                    <option value="">所有</option>
-                </select>
-            </li>
-            <li>
-                <label>品牌：</label>
-                <select name="brand" data-local="mm/kv/brand">
-                    <option value="">所有</option>
-                </select>
-            </li>
-            <li>
-                <label>状态：</label>
-                <select name="status" data-local="status" data-value="t">
-                    <option value="">所有</option>
-                </select>
-            </li>
-            <li>
-                <button class="search"><i></i>查询</button>
-                <button type="reset" class="reset"><i></i>重置</button>
-            </li>
-            <li class="toolBar"></li>
-        </ul>
-        <div style="margin:5px;">
-             <!-- <button id="buttonUpload">上传文件</button>  -->
-             <input type="file" id="uploadFile" multiple > 
-             <input  id="exportBtn" type="button" value="导出文件"  />
-        </div>
-    </form>
-    
-	<!-- <form id="test" action="rest/sys/test/list" method="get">
-	      <input type="text" value="zjg"  />
-	     <input type="submit" value="导出文件"  />
-	</form> -->
-   
-    <div class="dataGrid">
-        <table class="app"></table>
-    </div>
-    <div class="page"></div>
-</div>
+	<div id="article">
+		<form class="queryBar">
+			<ul>
+				<li>
+					<label>编码：</label>
+					<input type="text" name="code" />
+				</li>
+				<li>
+					<label>条形码：</label>
+					<input type="text" name="barcode" />
+				</li>
+				<li>
+					<label>商品名称：</label>
+					<input type="text" name="name" />
+				</li>
+				<li>
+					<label>分类：</label>
+					<select name="categoryId" data-local="mm/kv/category">
+						<option value="">所有</option>
+					</select>
+				</li>
+				<li>
+					<label>品牌：</label>
+					<select name="brandId" data-local="mm/kv/brand">
+						<option value="">所有</option>
+					</select>
+				</li>
+				<li>
+					<label>状态：</label>
+					<select name="status" data-local="status" data-value="t">
+						<option value="">所有</option>
+					</select>
+				</li>
+				<li>
+					<button class="search"><i></i>查询</button>
+				</li>
+				<li class="toolBar"></li>
+			</ul>
+		</form>
+		<div class="dataGrid">
+			<table class="app"></table>
+		</div>
+		<div class="page"></div>
+	</div>
 
-<div class="navPanel">
-    <div class="toolBar"></div>
-    <div class="editorPanel">
-        <div id="tabs">
-            <ul>
-                <li><a href="#tab_1"><span>基本信息</span></a></li>
-                <li><a href="#tab_2"><span>商品描述</span></a></li>
-                <li><a href="#tab_3"><span>图片</span></a></li>
-                <li><a href="#tab_4"><span>规格</span></a></li>
-            </ul>
-            <div id="tab_1">
-                <form style="float: left;width:500px">
-                    <ol>
-                        <li>
-                            <label>商品名称:</label>
-                            <input type="text" name="name" required placeholder="商品名称"/>
-                        </li>
-                        <li>
-                            <label>商品编码:</label>
-                            <input type="text" name="pn" id="pn" required placeholder="商品编码"/>
-                        </li>
-                        <li>
-                            <label>商品条形码:</label>
-                            <input type="text" name="barcode" placeholder="商品条形码">
-                        </li>
-                        <li>
-                            <label>商品标题:</label>
-                            <input type="text" name="title" style="width:300px">
-                        </li>
-                        <li>
-                            <label>副标题:</label>
-                            <input type="text" name="tips" style="width:300px">
-                        </li>
-                        <!--<li>-->
-                            <!--<label>商品类型:</label>-->
-                            <!--<select name="goodsType" data-local="goodsType"></select>-->
-                        <!--</li>-->
-                        <li>
-                            <label>度量单位:</label>
-                            <select name="unit" data-local="base/kv/uom"></select>
-                        </li>
-                        <li>
-                            <label>重量(g):</label>
-                            <input type="number" name="netWeight">
-                        </li>
-                        <!--<li>-->
-                            <!--<label>基准价:</label>-->
-                            <!--<input type="number" name="standPrice" step="0.0001"-->
-                                   <!--placeholder="最低销价"/>-->
-                        <!--</li>-->
-                        <li>
-                            <label>价格:</label>
-                            <input type="number" name="salePrice" step="0.0001"
-                                   required placeholder="价格"/>
-                        </li>
-                        <li>
-                            <label>市场价:</label>
-                            <input type="number" name="marketPrice" step="0.0001"
-                                   placeholder="市场价"/>
-                        </li>
-                        <li>
-                            <label>限购:</label>
-                            <input type="number" name="maxLimit" step="1"
-                                   placeholder="每单限购"/>
-                        </li>
-                        <li>
-                            <label>保质期(天):</label>
-                            <input type="number" name="shelfLife" min="0" placeholder="保质期（天）"/>
-                        </li>
-                        <li>
-                            <label>品牌:</label>
-                            <select name="brand" data-local="mm/kv/brand">
-                                <option></option>
-                            </select>
-                        </li>
-                        <li>
-                            <label>销量:</label>
-                            <input type="number" name="soldVolume" min="0" placeholder="销量"/>
-                        </li>
-                        <li>
-                            <label>排序:</label>
-                            <input type="number" name="sort" min="0" placeholder="排序"/>
-                        </li>
-                        <li>
-                            <label>状态:</label>
-                            <select name="status" data-local="status"></select>
-                        </li>
-                    </ol>
-                </form>
-                <div class="side-panel" id="bcategory">
-                    <h3>所属分类</h3>
-                    <table class="app"></table>
-                </div>
+	<div class="navPanel">
+		<div class="toolBar"></div>
+		<div class="editorPanel">
+			<div id="tabs">
+				<ul>
+					<li><a href="#tab_1"><span>基本信息</span></a></li>
+					<li><a href="#tab_2"><span>商品描述</span></a></li>
+					<li><a href="#tab_3"><span>图片</span></a></li>
+					<li><a href="#tab_4"><span>规格</span></a></li>
+				</ul>
+				<div id="tab_1">
+					<form>
+						<ol>
+							<li>
+								<label>商品编码:</label>
+								<input type="text" name="code" placeholder="商品编码" readonly />
+							</li>
+							<li>
+								<label>商品条形码:</label>
+								<input type="text" name="barcode" placeholder="商品条形码" />
+							</li>
+							<li>
+								<label>商品名称:</label>
+								<input type="text" name="name" style="width: 300px" required placeholder="商品名称" />
+							</li>
+							<li>
+								<label>商品标题:</label>
+								<input type="text" name="title" style="width: 300px" />
+							</li>
+							<li>
+								<label>副标题:</label>
+								<input type="text" name="tips" style="width: 300px" />
+							</li>
+							<li>
+								<label>商品类型:</label>
+								<select name="type" data-local="goodsType"></select>
+							</li>
+							<li>
+								<label>商品分类：</label>
+								<select name="categoryId" data-local="mm/kv/category">
+									<option value=""></option>
+								</select>
+							</li>
+							<li>
+								<label>度量单位:</label>
+								<select name="uomId" data-local="base/kv/uom"></select>
+							</li>
+						</ol>
+						<ol>
+							<li>
+								<label>重量(g):</label>
+								<input type="number" name="weight" />
+							</li>
+							<li>
+								<label>成本价:</label>
+								<input type="number" name="costPrice" placeholder="成本价" />
+							</li>
+							<li>
+								<label>销售价:</label>
+								<input type="number" name="salePrice" required placeholder="销售价" />
+							</li>
+							<li>
+								<label>市场价:</label>
+								<input type="number" name="marketPrice" placeholder="市场价" />
+							</li>
+							<li>
+								<label>限购:</label>
+								<input type="number" name="maxLimit" step="1" placeholder="每单限购" />
+							</li>
+							<li>
+								<label>保质期(天):</label>
+								<input type="number" name="shelfLife" min="0" placeholder="保质期（天）" />
+							</li>
+							<li>
+								<label>存储方式:</label>
+								<select name="storageType" data-local="storageType"></select>
+							</li>
+							<li>
+								<label>生产厂商:</label>
+								<input type="text" name="producer" placeholder="生产厂商" />
+							</li>
+							<li>
+								<label>品牌:</label>
+								<select name="brandId" data-local="mm/kv/brand">
+									<option></option>
+								</select>
+							</li>
+							<li>
+								<label>销量:</label>
+								<input type="number" name="soldVolume" min="0" placeholder="销量" />
+							</li>
+							<li>
+								<label>排序:</label>
+								<input type="number" name="sort" min="0" placeholder="排序" />
+							</li>
+							<li>
+								<label>状态:</label>
+								<select name="status" data-local="status"></select>
+							</li>
+						</ol>
+					</form>
+				</div>
 
-            </div>
+				<div id="tab_2">
+					<script type="text/plain" id="goodsEditor" style="width: 850px; height: auto!important;"></script>
+				</div>
 
-            <div id="tab_2">
-                <script type="text/plain" id="goodsEditor" style="width:850px; height:auto!important;"></script>
-            </div>
-            <div id="tab_3">
-                <div style="margin:5px;">
-                    <button id="uploadButton">上传图片</button>
-                    <input type="file" id="imageUpload" multiple style="display:none">
-                </div>
-                <div id="gallery" style="overflow: hidden;"></div>
-                <div id="gallery_dialog">
-                    <div id="img-outline"></div>
-                </div>
-                <div id="gallery_handler" style="display:none">
-                    <a href="javascript:void(0)" class="remove">删除</a>
-                    <a href="javascript:void(0)" class="setDefault">设为首图</a>
-                </div>
-            </div>
-            <div id="tab_4">
-                <div class="toolBar"></div>
-                <table class="app"></table>
-                <div class="page"></div>
-            </div>
-        </div>
-    </div>
-</div>
+				<div id="tab_3">
+					<div style="margin: 5px;">
+						<button id="uploadButton">上传图片</button>
+						<input type="file" id="imageUpload" multiple style="display: none">
+					</div>
+					<div id="gallery" style="overflow: hidden;"></div>
+					<div id="gallery_dialog">
+						<div id="img-outline"></div>
+					</div>
+					<div id="gallery_handler" style="display: none">
+						<a href="javascript:void(0)" class="remove">删除</a>
+						<a href="javascript:void(0)" class="setDefault">设为首图</a>
+					</div>
+				</div>
+
+				<div id="tab_4">
+					<div class="toolBar"></div>
+					<table class="app"></table>
+					<div class="page"></div>
+				</div>
+			</div>
+		</div>
+	</div>
 </body>
 </html>

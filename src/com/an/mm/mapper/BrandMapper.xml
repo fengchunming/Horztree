@@ -1,76 +1,81 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="MM.BrandMapper">
-    <resultMap id="BaseResultMap" type="com.an.mm.entity.Brand">
-        <id column="id" property="id" jdbcType="VARCHAR"/>
-        <result column="name" property="name" jdbcType="VARCHAR"/>
-        <result column="icon" property="icon" jdbcType="CHAR"/>
-        <result column="description" property="description" jdbcType="VARCHAR"/>
-        <result column="status" property="status" jdbcType="CHAR"/>
-        <result column="enter_by" property="enterBy" jdbcType="INTEGER"/>
-        <result column="enter_at" property="enterAt" jdbcType="TIMESTAMP"/>
-    </resultMap>
-    <sql id="Base_Column_List">
-        id, name, icon, status, enter_by, enter_at
-    </sql>
-    <sql id="Where_Clause">
-        <where>
-            status != 'd'
-            <if test="name != null and name != ''">and upper(name) like concat('%',upper(#{name}),'%')</if>
-            <if test="status != null and status != ''">and status = #{status}</if>
-        </where>
-    </sql>
-    <!-- 总数 -->
-    <select id="countByExample" resultType="int" parameterType="java.util.HashMap">
-        select count(1) from MM_BRAND
-        <include refid="Where_Clause"/>
-    </select>
+	<resultMap id="BaseResultMap" type="com.an.mm.entity.Brand">
+		<id column="id" property="id" jdbcType="INTEGER" />
+		<result column="name" property="name" jdbcType="VARCHAR" />
+		<result column="icon" property="icon" jdbcType="VARCHAR" />
+		<result column="description" property="description" jdbcType="VARCHAR" />
+		<result column="enter_by" property="enterBy" jdbcType="INTEGER" />
+		<result column="enter_at" property="enterAt" jdbcType="TIMESTAMP" />
+		<result column="status" property="status" jdbcType="CHAR" />
+	</resultMap>
 
-    <!--列表查询 -->
-    <select id="selectByExample" resultMap="BaseResultMap" parameterType="java.util.HashMap">
-        select
-        <include refid="Base_Column_List"/>
-        from MM_BRAND
-        <include refid="Where_Clause"/>
-        <if test="_BY != null">order by ${_BY}</if>
-    </select>
+	<sql id="Base_Column_List">
+		id, name, icon, description, enter_by, enter_at, status
+	</sql>
+	<sql id="Where_Clause">
+		<where>
+			<if test="status != null and status != ''">
+				status = #{status}
+			</if>
+			<if test="status == null">
+				status != 'd'
+			</if>
+			<if test="name != null and name != ''">
+				and name like concat('%', #{name}, '%')
+			</if>
+		</where>
+	</sql>
 
-    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="java.lang.Integer">
-        select
-        <include refid="Base_Column_List"/>, description
-        from MM_BRAND
-        where ID = #{id,jdbcType=INTEGER}
+	<select id="countByExample" resultType="int" parameterType="map">
+		select count(1) from MM_BRAND
+		<include refid="Where_Clause" />
+	</select>
 
-    </select>
-    <insert id="insert" parameterType="com.an.mm.entity.Brand">
-        insert into MM_BRAND (name, icon,
-        description, enter_by, enter_at, status)
-        values (#{name,jdbcType=VARCHAR}, #{icon,jdbcType=CHAR}, #{description,jdbcType=VARCHAR},
-        #userId, now(),#{status,jdbcType=VARCHAR})
-        <selectKey resultType="java.lang.Integer" keyProperty="id">
-            SELECT @@IDENTITY AS id
-        </selectKey>
-    </insert>
+	<select id="selectByExample" resultMap="BaseResultMap" parameterType="map">
+		select
+		<include refid="Base_Column_List" />
+		from MM_BRAND
+		<include refid="Where_Clause" />
+		<if test="_BY != null">order by ${_BY}</if>
+	</select>
 
-    <update id="updateByPrimaryKey" parameterType="com.an.mm.entity.Brand">
-        update MM_BRAND
-        set name = #{name,jdbcType=VARCHAR},
-        icon = #{icon,jdbcType=CHAR},
-        description = #{description,jdbcType=VARCHAR},
-        enter_by = #userId,
-        status = #{status,jdbcType=CHAR},
-        enter_at = now()
-        where ID = #{id,jdbcType=VARCHAR}
-    </update>
+	<select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="int">
+		select
+		<include refid="Base_Column_List" />
+		from MM_BRAND
+		where id = #{value,jdbcType=INTEGER}
+	</select>
 
-    <delete id="deleteByPrimaryKey" parameterType="java.lang.Integer">
-        update MM_BRAND
-        set status = 'd' where id = #{value}
-    </delete>
+	<insert id="insert" parameterType="com.an.mm.entity.Brand">
+		insert into MM_BRAND (name, icon, description, enter_by, enter_at, status)
+		values (#{name,jdbcType=VARCHAR}, #{icon,jdbcType=VARCHAR},
+		#{description,jdbcType=VARCHAR},
+		#userId, now(), #{status,jdbcType=VARCHAR})
+		<selectKey resultType="int" keyProperty="id">
+			SELECT @@IDENTITY AS id
+		</selectKey>
+	</insert>
 
-    <select id="selectKV" resultType="java.util.HashMap">
-        select id k, name v
-        from MM_BRAND where status = 't'
-    </select>
+	<update id="updateByPrimaryKey" parameterType="com.an.mm.entity.Brand">
+		update MM_BRAND
+		set name = #{name,jdbcType=VARCHAR},
+		icon = #{icon,jdbcType=VARCHAR},
+		description = #{description,jdbcType=VARCHAR},
+		enter_by = #userId,
+		enter_at = now(),
+		status = #{status,jdbcType=CHAR},
+		where id = #{id,jdbcType=VARCHAR}
+	</update>
+
+	<delete id="deleteByPrimaryKey" parameterType="int">
+		update MM_BRAND
+		set status = 'd' where id = #{value}
+	</delete>
+
+	<select id="selectKV" resultType="map">
+		select id k, name v from MM_BRAND where status = 't'
+	</select>
 
 </mapper>

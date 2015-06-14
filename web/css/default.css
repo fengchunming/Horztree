@@ -293,8 +293,8 @@ table.app td {
     border: 1px solid #EEE;
     cursor: default;
     height: 25px;
-    user-select: none;
-    -webkit-user-select: none; /*webkit浏览器*/
+/*    user-select: none;
+    -webkit-user-select: none;*/ /*webkit浏览器*/
 }
 
 table.app td input[type=checkbox], #article table td input[type=radio] {
@@ -326,7 +326,8 @@ table.app td.checkline {
 }
 
 table.app tr.ui-selected {
-    background: #0073ea;
+    /*background: #0073ea;*/
+    background: #aaa;
 }
 
 table.app tr.ui-selected td {
@@ -1087,6 +1088,22 @@ table.app tr.level-5 td:first-child i {
 
 table.app tr.level-6 td:first-child i {
     margin-left: 100px;
+}
+
+table.app tr.level-7 td:first-child i {
+    margin-left: 120px;
+}
+
+table.app tr.level-8 td:first-child i {
+    margin-left: 140px;
+}
+
+table.app tr.level-9 td:first-child i {
+    margin-left: 160px;
+}
+
+table.app tr.level-10 td:first-child i {
+    margin-left: 180px;
 }
 
 .warning {

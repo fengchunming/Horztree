@@ -3,11 +3,11 @@ package com.an.trade.action;
 import com.an.core.exception.BadRequestException;
 import com.an.core.exception.ErrorModelAndView;
 import com.an.sys.dao.OrganizationDao;
+import com.an.trade.dao.TradeBillDetailDao;
 import com.an.trade.dao.TradeDao;
-import com.an.trade.dao.TradeDetailDao;
 import com.an.trade.entity.Trade;
 import com.an.wm.action.IssueController;
-import com.an.wm.entity.WorkBill;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,10 +15,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
-
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * 交易管理(业务单据管理)
@@ -37,7 +33,7 @@ public class SellController {
     private TradeDao tradeDao;
 
     @Autowired
-    private TradeDetailDao tradeDetailDao;
+    private TradeBillDetailDao tradeBillDetailDao;
 
     @Autowired
     private OrganizationDao orgDao;
@@ -51,7 +47,7 @@ public class SellController {
      *
      * @param ids
      * @throws BadRequestException
-     */
+     *//*
     @RequestMapping(value = "/checkTrade/{ids}", method = RequestMethod.GET)
     public void checkTrade(@PathVariable(value="ids") String ids) throws BadRequestException {
         Map<String, Object> param = new HashMap<>();
@@ -64,7 +60,7 @@ public class SellController {
             trade.setStatus("check");
             tradeDao.updateState(trade);
         }
-    }
+    }*/
 
     /**
      * 暂停单据执行
@@ -73,8 +69,8 @@ public class SellController {
      * @throws BadRequestException
      */
     @RequestMapping(value = "/pauseTrade/{id}", method = RequestMethod.GET)
-    public void pauseTrade(@PathVariable(value="id") String id) throws BadRequestException {
-        Trade trade = tradeDao.selectByCode(id);
+    public void pauseTrade(@PathVariable(value="id") int id) throws BadRequestException {
+        Trade trade = tradeDao.selectOne(id);
         trade.setStatus("pause");
         tradeDao.updateState(trade);
     }
@@ -86,8 +82,8 @@ public class SellController {
      * @throws BadRequestException
      */
     @RequestMapping(value = "/stopTrade/{id}", method = RequestMethod.GET)
-    public void stopTrade(@PathVariable(value="id") String id) throws BadRequestException {
-        Trade trade = tradeDao.selectByCode(id);
+    public void stopTrade(@PathVariable(value="id") int id) throws BadRequestException {
+        Trade trade = tradeDao.selectOne(id);
         trade.setStatus("stop");
         tradeDao.updateState(trade);
     }
@@ -97,7 +93,7 @@ public class SellController {
      *
      * @param trade
      * @throws BadRequestException
-     */
+     *//*
     @RequestMapping(value = "/tradeIssue", method = RequestMethod.POST)
     public void tradeIssue(@RequestBody Trade trade) throws BadRequestException {
         trade.setDealStatus("WAIT_BUYER_CONFIRM_GOODS");
@@ -108,12 +104,10 @@ public class SellController {
 //            issueService.checkIssue(issue.getId(), 0);
         }
 
-		/*
-         * 第三方平台发货
-		 */
+         //第三方平台发货
 //        Organization org = orgDao.selectOne(trade.getPartyB().getId());
 //        ApiService.shipSend(trade, org);
-    }
+    }*/
 
 //    @RequestMapping(value = "/tradeSync", method = RequestMethod.GET)
 //    public void tradeSync() throws BadRequestException {

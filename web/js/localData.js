@@ -209,6 +209,7 @@ function tryLoad(local) {
 
 function clearLocal(key) {
     delete _LocalKV[key];
+    delete _LocalKV[key + '__sort'];
 }
 
 function reloadLocal(local) {
@@ -224,9 +225,11 @@ function reloadLocal(local) {
         async: false,
         success: function (data) {
             if (!_.isArray(data)) data = data.mapList;
+            _LocalKV[local + '__sort'] = [];
             $.each(data, function (i, item) {
-                if (item.step) item.v = new Array(item.step).join('&nbsp;&nbsp;') + item.v;
+                if (item.step) item.v = new Array(item.step).join('&nbsp;&nbsp;&nbsp;') + item.v;
                 _LocalKV[local][item.k] = item.v;
+                _LocalKV[local + '__sort'].push(item.k);
             });
         }
     });
@@ -262,10 +265,17 @@ $.fn.clearSelect = function () {
 }
 function mkOptions(d, v) {
     tryLoad(d);
-    return $.map(_LocalKV[d], function (i, key) {
-        return '<option value="' + key + '" ' + (v == key ? 'selected' : '') + '>'
-            + _LocalKV[d][key] + '</option>';
-    }).join('');
+    
+    if (_LocalKV[d + '__sort']) {
+    	return $.map(_LocalKV[d + '__sort'], function (key) {
+            return '<option value="' + key + '" ' + (v == key ? 'selected' : '') + '>' + _LocalKV[d][key] + '</option>';
+        }).join('');
+    } else {
+        return $.map(_LocalKV[d], function (i, key) {
+            return '<option value="' + key + '" ' + (v == key ? 'selected' : '') + '>' + _LocalKV[d][key] + '</option>';
+        }).join('');
+    };
+
 }
 
 function kToV(d, k) {

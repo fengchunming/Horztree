@@ -1,226 +1,240 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <script>
-        $(function () {
-            App.User = App.Model.extend({
-                urlRoot: 'rest/sys/user',
-                idAttribute: 'userId',
-                edit: function () {
-                    if (this.isNew())
-                        $('#initPassword').show();
-                    else
-                        $('#initPassword').hide();
-                    App.groupList.link(this.get('groups'));
-                }
-            });
+<script>
+	$(function () {
+		App.User = App.Model.extend({
+			urlRoot: 'rest/sys/user',
+			idAttribute: 'userId',
+			edit: function () {
+				if (this.isNew())
+					$('#initPassword').show();
+				else
+					$('#initPassword').hide();
+				App.roleList.link(this.get('roles'));
+			}
+		});
 
-            App.UserList = App.Collection.extend({
-                model: App.User,
-                columns: [
-                    {label: '账号', key: 'userName', sort: 'user_name'},
-                    {label: '员工号', key: 'staffCode', sort: 'staff_code'},
-                    {label: '姓名', key: 'realName', sort: 'real_name'},
-                    {label: '手机', key: 'mobile'},
-                    {label: '邮箱', key: 'email'},
-                    {label: '状态', key: 'status', local: 'status'}
-                ]
-            });
+		App.UserList = App.Collection.extend({
+			model: App.User,
+			columns: [
+				{label: '账号', key: 'userName'},
+				{label: '工号', key: 'staffCode'},
+				{label: '姓名', key: 'realName'},
+				{label: '手机', key: 'mobile'},
+				{label: '邮箱', key: 'email'},
+				{label: '状态', key: 'status', local: 'status'}
+			]
+		});
 
-            App.UserForm = App.FormView.extend({
-                toolbar: ['create', {'save': '保存', 'id': 'sys.user.put'}, {
-                    'trash': '删除', 'id': 'sys.user.delete'
-                }, 'hide'],
-                size: {width: 750},
-                prepare: function (param) {
-                    param.password = $.sha1(param.userName + param.password);
-                    param.groups = App.groupList.selectIds();
-                    return param;
-                },
-                rules: {
-                    userName: {
-                        required: true, minlength: 4,
-                        remote: {
-                            url: "rest/sys/user/isExistLoginName",
-                            data: {
-                                id: function () {
-                                    if (App.userGrid.form.model.id)
-                                        return App.userGrid.form.model.id;
-                                    else
-                                        return '';
-                                }
-                            }
-                        }
-                    }
-                }
-            });
+		App.UserForm = App.FormView.extend({
+			toolbar: ['create', {'save': '保存', 'id': 'sys.user.put'}, {'trash': '删除', 'id': 'sys.user.delete'}, 'hide'],
+			size: {width: 750},
+			prepare: function (param) {
+				param.password = $.sha1(param.userName + param.password);
+				param.roles = App.roleList.selectIds();
+				return param;
+			},
+			
+			rules: {
+				userName: {
+					required: true, minlength: 4,
+					remote: {
+						url: "rest/sys/user/isExistUserName",
+						data: {
+							id: function () {
+								if (App.userGrid.form.model.id)
+									return App.userGrid.form.model.id;
+								else
+									return '';
+							}
+						}
+					}
+				}
+			},
+			
+			messages: {
+				userName: {
+					remote: "请修正此栏位（账号已存在）" 
+				}
+			}
+		});
 
-            App.UserGrid = App.Grid.extend({
-                collection: new App.UserList,
-                form: new App.UserForm,
-                toolbar: ['create'],
-                qel: '.queryBar'
-            });
-            App.userGrid = new App.UserGrid();
+		App.UserGrid = App.Grid.extend({
+			collection: new App.UserList,
+			form: new App.UserForm,
+			toolbar: ['create'],
+			qel: '.queryBar'
+		});
 
-            App.GroupList = App.Collection.extend({
-                urlRoot: 'rest/sys/group/_/list',
-                model: App.Model,
-                pageSize: 0,
-                columns: [
-                    {key: 'id', type: 'checkbox', thcss: 'width:30px'}, {
-                        key: 'name', label: '网点', render: function (val, model) {
-                            return '<span style="text-indent: ' + 10 * model.get('level') + 'px">' + val + '</span>';
-                        }
-                    }
-                ],
-                link: function (group) {
-                    _.each(this.models, function (model) {
-                        if (_.indexOf(group, model.id) >= 0) {
-                            model.select(true);
-                        } else {
-                            model.select(false);
-                        }
-                        model.row.render();
-                    });
-                }
-            });
+		App.userGrid = new App.UserGrid();		
 
-            App.groupList = new App.GroupList;
-
-            App.GroupGrid = App.Grid.extend({
-                el: '#districtGrid',
-                collection: App.groupList,
-                toolbar: []
-            });
-            new App.GroupGrid();
-
-
-            $("#resetForm").submit(function () {
-                var params = $(this).serializeObject();
-                if (params.rePasswd != params.password) {
-                    $.sticky("新密码两次输入不一致");
-                    return false;
-                }
-                delete params.rePasswd;
-                params.userId = App.userGrid.form.model.id;
-                params.userName = App.userGrid.form.model.get('userName');
-                params.password = $.sha1(params.userName + params.password);
-
-                $.ajax({
-                    contentType: 'application/json',
-                    dataType: 'json',
-                    data: JSON.stringify(params),
-                    type: 'POST',
-                    precessData: false,
-                    url: 'rest/sys/passwd'
-                });
-                return false;
-            });
+		
+        App.Role = App.Model.extend({
+            urlRoot: 'rest/sys/role',
+            idAttribute: 'roleId'
         });
-    </script>
+        
+		App.RoleList = App.Collection.extend({
+			model: App.Role,
+			pageSize: 0,
+			columns: [
+				{key: 'roleId', type: 'checkbox', thcss: 'width:30px;'},
+				{label: '角色名称', key: 'roleName'}
+			],
+			
+			link: function (roles) {
+				_.each(this.models, function (model) {
+					if (_.indexOf(roles, model.id) >= 0) {
+	                    model.select(true);
+	                } else {
+	                    model.select(false);
+	                }
+					model.row.render();
+				});
+			}
+		});
+		
+		App.roleList = new App.RoleList;
+
+		App.RoleGrid = App.Grid.extend({
+			el: '#roleGrid',
+//			head: false,
+			collection: App.roleList,
+			toolbar: []
+		});
+
+		new App.RoleGrid();
+
+		$("#resetForm").submit(function () {
+			var params = $(this).serializeObject();
+			if (params.rePasswd != params.password) {
+				$.sticky("新密码两次输入不一致");
+				return false;
+			}
+			delete params.rePasswd;
+			params.userId = App.userGrid.form.model.id;
+			params.userName = App.userGrid.form.model.get('userName');
+			params.password = $.sha1(params.userName + params.password);
+
+			$.ajax({
+				contentType: 'application/json',
+				dataType: 'json',
+				data: JSON.stringify(params),
+				type: 'POST',
+				precessData: false,
+				url: 'rest/sys/passwd'
+			});
+			return false;
+		});
+	});
+</script>
 </head>
 <body>
-<div id="article">
-    <form class="queryBar">
-        <ul>
-            <li>
-                <label>账号：</label>
-                <input type="text" name="userName"/>
-            </li>
-            <li>
-                <label>员工号：</label>
-                <input type="text" name="staffCode"/>
-            </li>
-            <li>
-                <label>姓名：</label>
-                <input type="text" name="realName"/>
-            </li>
-            <li>
-                <button class="search"><i></i>查询</button>
-                <button type="reset" class="reset"><i></i>重置</button>
-            </li>
-            <li class="toolBar"></li>
-        </ul>
-    </form>
-    <div class="dataGrid">
-        <table class="app"></table>
-    </div>
-    <div class="page"></div>
-</div>
+	<div id="article">
+		<form class="queryBar">
+			<ul>
+				<li>
+					<label>账号：</label>
+					<input type="text" name="userName" />
+				</li>
+				<li>
+					<label>员工号：</label>
+					<input type="text" name="staffCode" />
+				</li>
+				<li>
+					<label>姓名：</label>
+					<input type="text" name="realName" />
+				</li>
+				<li>
+					<button class="search"><i></i>查询</button>
+					<!-- <button type="reset" class="reset"><i></i>重置</button> -->
+				</li>
+				<li class="toolBar"></li>
+			</ul>
+		</form>
+		<div class="dataGrid">
+			<table class="app"></table>
+		</div>
+		<div class="page"></div>
+	</div>
 
-<div class="navPanel">
-    <div class="toolBar"></div>
-    <div class="editorPanel">
-        <div id="tabs">
-            <ul>
-                <li><a href="#tab_1"><span>基本信息</span></a></li>
-                <li><a href="#tab_2"><span>重置密码</span></a></li>
-            </ul>
-            <div id="tab_1">
-                <form style="width:350px;float:left" id="userEditForm">
-                    <ol>
-                        <li>
-                            <label>账号:</label>
-                            <input type="text" name="userName" required placeholder="请输入用户登陆账号"/>
-                        </li>
-                        <li id="initPassword">
-                            <label>初始密码:</label>
-                            <input type="password" name="password" placeholder="请输入用户初始密码,仅新建有效"/>
-                        </li>
-                        <li>
-                            <label>员工号:</label>
-                            <input type="text" name="staffCode" placeholder="请输入员工号"/>
-                        </li>
-                        <li>
-                            <label>姓名:</label>
-                            <input type="text" required name="realName"/>
-                        </li>
-                        <li>
-                            <label>手机号码:</label>
-                            <input type="text" name="mobile"/>
-                        </li>
-                        <li>
-                            <label>邮箱:</label>
-                            <input type="text" name="email"/>
-                        </li>
-                        <li>
-                            <label>状态:</label>
-                            <select name="status" data-local="status"></select>
-                        </li>
-                        <li>
-                            <label>备注:</label>
-                            <textarea name="remark" style="height:100px"></textarea>
-                        </li>
-                    </ol>
-                </form>
-
-                <div id="districtGrid" class="side-panel">
-                    <table class="app"></table>
-                </div>
-            </div>
-            <div id="tab_2">
-                <form id="resetForm" method="post">
-                    <ol>
-                        <li>
-                            <label>请输入新密码:</label>
-                            <input type="password" name="password" required placeholder="请输入用户新密码"/>
-                            <input type="hidden" name="userName" form="userEditForm"/>
-                        </li>
-                        <li>
-                            <label>请再输入一次:</label>
-                            <input type="password" name="rePasswd" required placeholder="请再次输入密码"/>
-                        </li>
-                        <li>
-                            <label></label>
-                            <button class="check" id="resetPwd" type="submit"><i></i><span>确认</span></button>
-                        </li>
-
-                    </ol>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
+	<div class="navPanel">
+		<div class="toolBar"></div>
+		<div class="editorPanel">
+			<div id="tabs">
+				<ul>
+					<li><a href="#tab_1"><span>基本信息</span></a></li>
+					<li><a href="#tab_2"><span>重置密码</span></a></li>
+				</ul>
+				<div id="tab_1">
+					<div style="width: 320px; float: left">
+						<form id="userEditForm">
+							<ol>
+								<li>
+									<label>账号:</label>
+									<input type="text" name="userName" required placeholder="请输入用户登陆账号" />
+								</li>
+								<li id="initPassword">
+									<label>初始密码:</label>
+									<input type="password" name="password" placeholder="请输入用户初始密码,仅新建有效" />
+								</li>
+								<li>
+									<label>员工号:</label>
+									<input type="text" name="staffCode"	placeholder="请输入员工号" />
+								</li>
+								<li>
+									<label>姓名:</label>
+									<input type="text" required name="realName" required /></li>
+								<li>
+									<label>手机号码:</label>
+									<input type="text" name="mobile" />
+								</li>
+								<li>
+									<label>邮箱:</label>
+									<input type="text" name="email" />
+								</li>
+								<li>
+									<label>所属区域：</label>
+									<select name="regionId" style="width:200px;" data-local="base/kv/region" required>
+										<option value=""></option>
+									</select>
+								</li>
+								<li>
+									<label>状态:</label>
+									<select name="status" data-local="status"></select>
+								</li>
+								<li>
+									<label>备注:</label>
+									<textarea name="remark"	style="height: 30px"></textarea>
+								</li>
+							</ol>
+						</form>
+					</div>
+					<div id="roleGrid" class="side-panel" style="width: 300px;">
+						<table class="app"></table>
+					</div>
+				</div>
+				<div id="tab_2">
+					<form id="resetForm" method="post">
+						<ol>
+							<li>
+								<label>请输入新密码:</label>
+								<input type="password" name="password" required placeholder="请输入用户新密码" />
+								<input type="hidden" name="userName" form="userEditForm" /></li>
+							<li>
+								<label>请再输入一次:</label>
+								<input type="password" name="rePasswd" required placeholder="请再次输入密码" />
+							</li>
+							<li>
+								<label></label>
+								<button class="check" id="resetPwd" type="submit"><i></i><span>确认</span></button>
+							</li>
+						</ol>
+					</form>
+				</div>
+			</div>
+		</div>
+	</div>
 </body>
 </html>

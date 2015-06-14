@@ -2,17 +2,12 @@ package com.an.wm.action;
 
 import com.an.core.exception.BadRequestException;
 import com.an.core.exception.ErrorModelAndView;
+import com.an.mm.dao.WorkBillDao;
+import com.an.mm.dao.WorkBillDetailDao;
+import com.an.mm.entity.WorkBill;
 import com.an.sys.dao.OrganizationDao;
-import com.an.sys.entity.Organization;
-import com.an.trade.dao.TradeDetailDao;
-import com.an.trade.entity.Trade;
-import com.an.wm.dao.WorkBillDao;
-import com.an.wm.dao.WorkBillDetailDao;
-import com.an.wm.entity.Item;
-import com.an.wm.entity.Location;
-import com.an.wm.entity.WorkBill;
-import com.an.wm.service.InventoryService;
-import net.sf.json.JSONObject;
+import com.an.trade.dao.TradeBillDetailDao;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +16,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
-import java.math.BigDecimal;
 import java.util.*;
 
 /**
@@ -33,20 +27,16 @@ import java.util.*;
 @RequestMapping("/wm")
 public class IssueController {
 
-    private static final Logger logger = LoggerFactory
-            .getLogger(IssueController.class);
+    private static final Logger logger = LoggerFactory.getLogger(IssueController.class);
 
     @Autowired
     private WorkBillDao billDao;
 
     @Autowired
-    private TradeDetailDao tradeDetailDao;
+    private TradeBillDetailDao tradeBillDetailDao;
 
     @Autowired
     private WorkBillDetailDao detailDao;
-
-    @Autowired
-    private InventoryService stockService;
 
     @Autowired
     private OrganizationDao orgDao;
@@ -67,7 +57,7 @@ public class IssueController {
      *
      * @param trade   交易订单
      * @param setReal 是否填写实发数量
-     */
+     *//*
     public WorkBill makeIssue(Trade trade, boolean setReal)
             throws BadRequestException {
 
@@ -135,7 +125,7 @@ public class IssueController {
 
         return issue;
     }
-
+*/
 
     /**
      * 单据打印
@@ -144,8 +134,7 @@ public class IssueController {
      * @throws BadRequestException
      */
     @RequestMapping(value = "/issue/printTrade/{ids}", method = RequestMethod.GET)
-    public ModelAndView printTrade(@PathVariable("ids") String ids)
-            throws BadRequestException {
+    public ModelAndView printTrade(@PathVariable("ids") String ids) throws BadRequestException {
         ModelAndView mav = new ModelAndView("report/pickings");
         Map<String, Object> param = new HashMap<>();
 
@@ -157,38 +146,11 @@ public class IssueController {
         }
         Collection<WorkBill> bills = billDao.selectList(param);
         for (WorkBill bill : bills) {
-            bill.setItems((List<Item>) detailDao.selectByBill(bill
-                    .getId()));
-            bill.setPrintStatus(bill.getPrintStatus() | 2);
+            bill.setDetails(detailDao.selectByBill(bill.getId()));
+            //bill.setPrintStatus(bill.getPrintStatus() | 2);
             if ("input".equals(bill.getStatus()))
                 bill.setStatus("working");
-            billDao.updateStatus(bill);
-        }
-        mav.addObject("trades", bills);
-        return mav;
-    }
-
-    /**
-     * 快递单打印
-     *
-     * @param ids
-     * @throws BadRequestException
-     */
-    @RequestMapping(value = "/issue/printShip/{ids}", method = RequestMethod.GET)
-    public ModelAndView printShip(@PathVariable("ids") String ids)
-            throws BadRequestException {
-        ModelAndView mav = new ModelAndView("report/shipPrint");
-        Map<String, Object> param = new HashMap<String, Object>();
-        if (ids.length() > 0) {
-            param.put("billCodes", ids.split("-"));
-        } else {
-            param.put("status", "input");
-            param.put("printStatus", 1);
-        }
-        Collection<WorkBill> bills = billDao.selectList(param);
-        for (WorkBill bill : bills) {
-            bill.setPrintStatus(bill.getPrintStatus() | 1);
-            billDao.updateStatus(bill);
+            billDao.updateDealStatus(bill);
         }
         mav.addObject("trades", bills);
         return mav;

@@ -19,7 +19,7 @@
         <result column="fax" property="fax" jdbcType="VARCHAR"/>
         <result column="status" property="status" jdbcType="CHAR"/>
         <result column="enter_by" property="enterBy" jdbcType="INTEGER"/>
-        <result column="enter_at" property="enterAt" jdbcType="DATE"/>
+        <result column="enter_at" property="enterAt" jdbcType="TIMESTAMP"/>
         <result column="region_id" property="regionId" jdbcType="INTEGER"/>
         <result column="abbr" property="abbr" jdbcType="VARCHAR"/>
     </resultMap>
@@ -110,7 +110,7 @@
         fax = #{fax,jdbcType=VARCHAR},
         status = #{status,jdbcType=CHAR},
         enter_by = #userId,
-        enter_at = sysdate(),
+        enter_at = now(),
         type = #{type,jdbcType=VARCHAR},
         abbr = #{abbr,jdbcType=VARCHAR}
         where id = #{id,jdbcType=INTEGER}

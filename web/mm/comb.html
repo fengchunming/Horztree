@@ -1,164 +1,168 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <script>
-        $(function () {
-            App.Goods = App.Model.extend({
-                idAttribute: 'goodsId',
-                focus: function () {
-                    App.goodsGrid.focus = this;
-                    if (this.get('tips') == null)
-                        App.itemList.reset();
-                    else if (this.get('tips').substr(0, 1) != '_')
-                        App.itemList.load({'goodsId': this.id, 'goodsCode': null});
-                    else
-                        App.itemList.load({'goodsId': null ,'goodsCode': this.get("pn")});
+<script>
+	$(function () {
+		App.Goods = App.Model.extend({
+			idAttribute: 'goodsId',
+			focus: function () {
+				App.goodsGrid.focus = this;
+				if (this.get('status') == 'unComb')
+					App.itemList.reset();
+//				else if (this.get('tips').substr(0, 1) != '_')
+//					App.itemList.load('rest/mm/goods/items/' + this.id);
+				else
+					App.itemList.load('rest/mm/goods/items/' + this.id);
+			}
+		});
 
-                }
-            });
+		App.GoodsList = App.Collection.extend({
+			urlRoot: 'rest/mm/goods/comb',
+			model: App.Goods,
+			columns: [
+				{label: '商品名称', key: 'goodsName', thcss: 'width:400px',
+					render: function (val, model) {
+						if (model.get('status') == 'unComb')
+							return '<span style="color:rgba(255, 0, 0, 0.73)">' + val + '</span>';
+//						else if (model.get('tips').substr(0, 1) != '_')
+//							return '<span style="color:#3ebf4b">' + val + '</span>';
+						else
+							return val;
+					}
+				},
+				{label: '商品编码', key: 'goodsCode', thcss: '100px'}
+			]
+		});
 
-            App.GoodsList = App.Collection.extend({
-                urlRoot: 'rest/mm/goods/comb',
-                model: App.Goods,
-                columns: [
-                    { label: '名称', key: 'name', thcss: 'width:400px', sort: true,
-                        render: function (val, model) {
-                            if (model.get('tips') == null)
-                                return '<span style="color:rgba(255, 0, 0, 0.73)">' + val + '</span>';
-                            else if (model.get('tips').substr(0, 1) != '_')
-                                return '<span style="color:#3ebf4b">' + val + '</span>';
-                            else
-                                return val;
-                        }
-                    },
-                    { label: '编码', key: 'pn', sort: 'goods_code', thcss: '100px'}
-                ]
-            });
+		App.GoodsGrid = App.Grid.extend({
+			el: '#goodsGrid',
+			collection: new App.GoodsList,
+			qel: '.queryBar',
+			save: function () {
+			}
+		});
 
-            App.GoodsGrid = App.Grid.extend({
-                el: '#goodsGrid',
-                collection: new App.GoodsList,
-                qel: '.queryBar',
-                save: function () {
-                }
-            });
+		App.goodsGrid = new App.GoodsGrid();
 
-            App.goodsGrid = new App.GoodsGrid();
+		App.Item = App.Model.extend({
+			idAttribute: 'id',
+			edit: function(){
 
-            App.Item = App.Model.extend({
-                idAttribute: 'itemId',
-                edit: function(){
+			}
+		});
 
-                }
-            });
+		App.ItemList = App.Collection.extend({
+			urlRoot: 'rest/mm/goods/items',
+			autoLoad: false,
+			model: App.Item,
+			pageSize: 0,
+			columns: [
+				{key: 'id', type:'checkbox'},
+				{label: '货品名称', key: 'name', },
+				{label: '货品编号', key: 'pn', thcss: 'width:100px'},
+				{label: '关联数量', key: 'combQuantity', type:'number', thcss: 'width:100px'}
+			]
+		});
 
-            App.ItemList = App.Collection.extend({
-                urlRoot: 'rest/mm/goods/items',
-                autoLoad: false,
-                model: App.Item,
-                pageSize: 0,
-                columns: [
-                    {key: 'itemId', type:'checkbox'},
-                    {key: 'name', label: '货品'},
-                    {key: 'pn', label: '编号', thcss: 'width:100px'},
-                    {key: 'realQuantity', label: '数量', type:'number', thcss: 'width:100px'}
-                ]
-            });
-            App.itemList = new App.ItemList;
-            App.ItemGrid = App.Grid.extend({
-                el: '#itemGrid',
-                tel: '.toolBar',
-                toolbar: ['append','remove','save'],
-                collection: App.itemList,
-                append: function(){
-                    this.collection.add($('#goodsCode').data('cache'));
-                },
-                save: function(){
-                    $.ajax({
-                        contentType: 'application/json',
-                        dataType: 'json',
-                        data: JSON.stringify(this.collection.toJSON()),
-                        type: 'POST',
-                        precessData: false,
-                        url: 'rest/mm/goods/comb/' + App.goodsGrid.focus.id,
-                        success: function () {
-                            App.goodsGrid.collection.load();
-                        }
-                    });
-                }
-            });
-            App.itemGrid = new App.ItemGrid();
+		App.itemList = new App.ItemList;
 
-            $('#goodsCode').autocomplete({
-                source: function (request, response) {
-                    $.ajax({
-                        url: 'rest/wm/item/list',
-                        dataType: "json",
-                        data: {_SH: request.term, _LM: 20},
-                        success: function (data) {
-                            response($.map(data.list, function (item) {
-                                return {
-                                    label: item.pn + " - " + item.name,
-                                    value: item
-                                }
-                            }));
-                        }
-                    });
-                },
-                focus: function (event, ui) {
-                    $(this).val(ui.item.label);
-                    return false;
-                },
-                select: function (event, ui) {
-                    $(this).data('cache', ui.item.value);
-                    $(this).val(ui.item.label);
-                    return false;
-                },
-                change: function (event, ui) {
-                    if (!ui.item) {
-                        $(this).data('cache',null);
-                    }
-                }
-            });
-        });
-    </script>
+		App.ItemGrid = App.Grid.extend({
+			el: '#itemGrid',
+			tel: '.toolBar',
+			toolbar: ['append', 'remove', 'save'],
+			collection: App.itemList,
+			append: function(){
+				this.collection.add($('#pn').data('cache'));
+			},
+			save: function(){
+				$.ajax({
+					contentType: 'application/json',
+					dataType: 'json',
+					data: JSON.stringify(this.collection.toJSON()),
+					type: 'POST',
+					precessData: false,
+					url: 'rest/mm/goods/comb/' + App.goodsGrid.focus.id,
+					success: function () {
+						App.goodsGrid.collection.load();
+					}
+				});
+			}
+		});
+		App.itemGrid = new App.ItemGrid();
+
+		$('#pn').autocomplete({
+			source: function (request, response) {
+				$.ajax({
+					url: 'rest/wm/item/list',
+					dataType: "json",
+					data: {_SH: request.term, _LM: 20},
+					success: function (data) {
+						response($.map(data.list, function (item) {
+							return {
+								label: item.pn + " - " + item.name,
+								value: item
+							}
+						}));
+					}
+				});
+			},
+			focus: function (event, ui) {
+				$(this).val(ui.item.label);
+				return false;
+			},
+			select: function (event, ui) {
+				$(this).data('cache', ui.item.value);
+				$(this).val(ui.item.label);
+				return false;
+			},
+			change: function (event, ui) {
+				if (!ui.item) {
+					$(this).data('cache', null);
+				}
+			}
+		});
+	});
+</script>
 </head>
 <body>
-<div style="margin:5px;">
-    <div id="goodsGrid" style="float:left;width:49%;">
-        <form class="queryBar" style="margin:5px 0 5px 10px;">
-            <ul>
-                <li>
-                    <label>商品名称/编号：</label>
-                    <input type="text" name="pn"/>
-                </li>
-                <li>
-                    <label>状态：</label>
-                    <select name="status">
-                        <option value="">所有启用商品</option>
-                        <option value="undefined">未关联商品</option>
-                        <option value="comb">组合商品</option>
-                    </select>
-                </li>
-                <li>
-                    <button class="search"><i></i>查询</button>
-                </li>
-            </ul>
-        </form>
-        <div class="dataGrid">
-            <table class="app"></table>
-        </div>
-        <div class="page"></div>
-    </div>
-    <div style="width:49%;float:right" id="itemGrid" class="side-right">
-        <div style="margin:7px 0 6px 10px;">
-            <span><input type="text" id="goodsCode" style="width:300px"/></span>
-            <span class="toolBar"></span>
-        </div>
-        <div class="dataGrid">
-            <table class="app"></table>
-        </div>
-    </div>
-</div>
+	<div style="margin: 5px;">
+		<div id="goodsGrid" style="float: left; width: 49%;">
+			<form class="queryBar" style="margin: 5px 0 5px 10px;">
+				<ul>
+					<li>
+						<label>编号：</label>
+						<input type="text" name="goodsCode" />
+					</li>
+					<li>
+						<label>名称：</label>
+						<input type="text" name="goodsName" />
+					</li>
+					<li>
+						<label>状态：</label>
+						<select name="combStatus">
+							<option value="">所有启用商品</option>
+							<option value="unComb">未关联商品</option>
+						</select>
+					</li>
+					<li>
+						<button class="search"><i></i>查询</button>
+					</li>
+				</ul>
+			</form>
+			<div class="dataGrid">
+				<table class="app"></table>
+			</div>
+			<div class="page"></div>
+		</div>
+		<div style="width: 49%; float: right" id="itemGrid" class="side-right">
+			<div style="margin: 7px 0 6px 10px;">
+				<span><input type="text" id="pn" style="width: 300px" /></span>
+				<span class="toolBar"></span>
+			</div>
+			<div class="dataGrid">
+				<table class="app"></table>
+			</div>
+		</div>
+	</div>
 </body>
 </html>

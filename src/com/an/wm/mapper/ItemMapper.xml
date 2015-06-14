@@ -1,163 +1,126 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="WM.ItemMapper">
-    <cache eviction="LRU" type="com.an.core.mybatis.cache.RedisCache" />
-    <resultMap id="BaseResultMap" type="com.an.wm.entity.Item">
-        <id column="id" property="itemId" jdbcType="INTEGER"/>
-        <result column="pn" property="pn" jdbcType="VARCHAR"/>
-        <result column="barcode" property="barcode" jdbcType="VARCHAR"/>
-        <result column="name" property="name" jdbcType="VARCHAR"/>
-        <result column="type" property="type" jdbcType="VARCHAR"/>
-        <result column="short_name" property="shortName" jdbcType="VARCHAR"/>
-        <result column="category" property="category" jdbcType="INTEGER"/>
-        <result column="sku_uom" property="skuUom.id" jdbcType="INTEGER"/>
-        <result column="loss_rate" property="lossRate" jdbcType="NUMERIC"/>
-        <result column="cost_price" property="costPrice" jdbcType="NUMERIC"/>
-        <result column="avg_price" property="avgPrice" jdbcType="NUMERIC"/>
-        <result column="sale_price" property="salePrice" jdbcType="NUMERIC"/>
-        <result column="supplier" property="supplier.id" jdbcType="INTEGER"/>
-        <result column="belong" property="belong.id" jdbcType="INTEGER"/>
-        <result column="input_tax" property="inputTax.id" jdbcType="INTEGER"/>
-        <result column="output_tax" property="outputTax.id" jdbcType="INTEGER"/>
-        <result column="batch_attr" property="batchAttr" typeHandler="com.an.core.mybatis.handlers.JsonTypeHandler"/>
-        <result column="usage_type" property="usageType" jdbcType="INTEGER"/> 
-        <result column="storage_type" property="storageType" jdbcType="INTEGER"/>             
-        <result column="turnover" property="turnover" jdbcType="INTEGER"/>
-        <result column="shelf_life" property="shelfLife" jdbcType="INTEGER"/>
-        <result column="remain_life" property="remainLife" jdbcType="INTEGER"/>
-        <result column="safe_line" property="safeLine" jdbcType="INTEGER"/>
-        <result column="weight" property="weight" jdbcType="NUMERIC"/>
-        <result column="volume" property="volume" jdbcType="NUMERIC"/>
-        <result column="status" property="status" jdbcType="VARCHAR"/>
-        <result column="remark" property="remark" jdbcType="VARCHAR"/>
-    </resultMap>
+	<resultMap id="BaseResultMap" type="com.an.wm.entity.Item">
+		<id column="id" property="id" jdbcType="INTEGER" />
+		<result column="pn" property="pn" jdbcType="VARCHAR" />
+		<result column="barcode" property="barcode" jdbcType="VARCHAR" />
+		<result column="name" property="name" jdbcType="VARCHAR" />
+		<result column="type" property="type" jdbcType="VARCHAR" />
+		<result column="sku_uom" property="skuUom" jdbcType="INTEGER" />
+		<result column="cost_price" property="costPrice" jdbcType="NUMERIC" />
+		<result column="sale_price" property="salePrice" jdbcType="NUMERIC" />
+		<result column="supplier" property="supplier" jdbcType="VARCHAR" />
+		<result column="storage_type" property="storageType" jdbcType="INTEGER" />
+		<result column="shelf_life" property="shelfLife" jdbcType="INTEGER" />
+		<result column="weight" property="weight" jdbcType="NUMERIC" />
+		<result column="status" property="status" jdbcType="VARCHAR" />
+		<result column="remark" property="remark" jdbcType="VARCHAR" />
+		<result column="enter_by" property="enterBy" jdbcType="INTEGER" />
+		<result column="enter_at" property="enterAt" jdbcType="TIMESTAMP" />
+	</resultMap>
 
-    <sql id="Example_Where_Clause">
-        <where>
-            status != 'd'
-            <if test="_SH != null and _SH != ''">
-                and (pn like concat('%', #{_SH}, '%') or name like concat('%', #{_SH}, '%'))
-            </if>
-            <if test="goodsName != null and goodsName != ''">
-                and name like concat('%', #{goodsName}, '%')
-            </if>
-            <if test="pn != null and pn != ''">
-                and pn like concat('%', #{pn}, '%')
-            </if>
-            <if test="goodsCode != null and goodsCode != ''">
-                and pn = #{goodsCode}
-            </if>
-            <if test="barcode != null and barcode != ''">
-                and barcode like concat('%', #{barcode}, '%')
-            </if>
-            <if test="category != null and category != ''">
-                and category_id = #{category}
-            </if>
-            <if test="brand != null and brand != ''">
-                and brand = #{brand}
-            </if>
-        </where>
-    </sql>
+	<sql id="Example_Where_Clause">
+		<where>
+			<if test="status != null and status != ''">
+				status = #{status}
+			</if>
+			<if test="status == null">
+				status != 'd'
+			</if>
+			<if test="_SH != null and _SH != ''">
+				and (pn like concat('%', #{_SH}, '%') or name like concat('%', #{_SH}, '%'))
+			</if>
+			<if test="pn != null and pn != ''">
+				and pn like concat('%', #{pn}, '%')
+			</if>
+			<if test="name != null and name != ''">
+				and name like concat('%', #{name}, '%')
+			</if>
+			<if test="barcode != null and barcode != ''">
+				and barcode like concat('%', #{barcode}, '%')
+			</if>
+		</where>
+	</sql>
 
-    <sql id="Base_Column_List">
-        id, pn, barcode, name, type, short_name,
-        category, sku_uom, loss_rate, cost_price, avg_price, sale_price,
-        supplier, belong, input_tax, output_tax, batch_attr, usage_type,
-        storage_type, turnover, shelf_life, remain_life, safe_line, weight,
-        volume, status, remark, enter_at
-    </sql>
+	<sql id="Base_Column_List">
+		id, pn, barcode, name, type, 
+		sku_uom, cost_price, sale_price, supplier, storage_type,
+		shelf_life, weight, status, remark, enter_at
+	</sql>
 
-    <select id="selectByExample" resultMap="BaseResultMap" parameterType="map">
-        select
-        <include refid="Base_Column_List"/>
-        from WM_ITEM
-        <include refid="Example_Where_Clause"/>
-        <if test="_BY != null">order by ${_BY}</if>
-    </select>
+	<select id="selectByExample" resultMap="BaseResultMap" parameterType="map">
+		select
+		<include refid="Base_Column_List" />
+		from WM_ITEM
+		<include refid="Example_Where_Clause" />
+		<if test="_BY != null">order by ${_BY}</if>
+	</select>
 
-    <select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="int">
-        select
-        <include refid="Base_Column_List"/>
-        from WM_ITEM
-        where id = #{value}
-    </select>
+	<select id="selectByPrimaryKey" resultMap="BaseResultMap" parameterType="int">
+		select
+		<include refid="Base_Column_List" />
+		from WM_ITEM
+		where id = #{value}
+	</select>
 
-    <select id="selectByPn" resultMap="BaseResultMap" parameterType="java.lang.String">
-        select
-        <include refid="Base_Column_List"/>
-        from WM_ITEM
-        where pn = #{value}
-    </select>
+	<delete id="deleteByPrimaryKey" parameterType="int">
+		update WM_ITEM
+		set
+		status = 'd', enter_at = now()
+		where id = #{value, jdbcType=INTEGER}
+	</delete>
 
-    <delete id="deleteByPrimaryKey" parameterType="int">
-        update WM_ITEM
-        set status = 'd', enter_at = now()
-        where id = #{id, jdbcType=INTEGER}
-    </delete>
+	<insert id="insert" parameterType="com.an.wm.entity.Item">
+		insert into WM_ITEM (
+			pn, barcode, name, type, 
+			sku_uom, cost_price, sale_price, supplier,
+			storage_type, shelf_life, weight, status, remark, enter_by, enter_at
+		)
+		values (
+			#{pn,jdbcType=VARCHAR},
+			#{barcode,jdbcType=VARCHAR},
+			#{name,jdbcType=VARCHAR},
+			#{type,jdbcType=VARCHAR},
+			#{skuUom,jdbcType=INTEGER},
+			#{costPrice,jdbcType=NUMERIC},
+			#{salePrice,jdbcType=NUMERIC},
+			#{supplier,jdbcType=VARCHAR},
+			#{storageType,jdbcType=INTEGER},
+			#{shelfLife,jdbcType=INTEGER},
+			#{weight,jdbcType=NUMERIC},
+			#{status,jdbcType=VARCHAR},
+			#{remark,jdbcType=VARCHAR},
+			#userId,
+			now()
+		)
+		<selectKey resultType="int" keyProperty="id">
+			SELECT @@IDENTITY AS id
+		</selectKey>
+	</insert>
 
-    <insert id="insert" parameterType="com.an.wm.entity.Item">
-        insert into WM_ITEM (pn, barcode, name, type, short_name,
-            category, sku_uom, loss_rate, cost_price, avg_price, sale_price,
-            supplier, belong, input_tax, output_tax, batch_attr, usage_type,
-            storage_type, turnover, shelf_life, remain_life, safe_line, weight,
-            volume, status, remark, enter_at)
-        values (#{pn,jdbcType=VARCHAR}, #{barcode,jdbcType=VARCHAR}, #{name,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, #{shortName,jdbcType=VARCHAR},
-            #{category,jdbcType=INTEGER}, #{skuUom.id,jdbcType=INTEGER}, #{lossRate,jdbcType=NUMERIC}, #{costPrice,jdbcType=NUMERIC}, #{avgPrice,jdbcType=NUMERIC}, #{salePrice,jdbcType=NUMERIC},
-            #{supplier.id,jdbcType=INTEGER}, #{belong.id,jdbcType=INTEGER}, #{inputTax.id,jdbcType=INTEGER}, #{outputTax.id,jdbcType=INTEGER}, #{batchAttr,typeHandler=com.an.core.mybatis.handlers.JsonTypeHandler}, #{usageType,jdbcType=INTEGER},
-            #{storageType,jdbcType=INTEGER}, #{turnover,jdbcType=INTEGER}, #{shelfLife,jdbcType=INTEGER}, #{remainLife,jdbcType=INTEGER}, #{safeLine,jdbcType=INTEGER}, #{weight,jdbcType=NUMERIC},
-            #{volume,jdbcType=NUMERIC}, #{status,jdbcType=VARCHAR}, #{remark,jdbcType=VARCHAR}, now())
-        <selectKey resultType="int" keyProperty="id">
-            SELECT @@IDENTITY AS id
-        </selectKey>
-    </insert>
+	<select id="countByExample" parameterType="map" resultType="int">
+		select count(*) from WM_ITEM
+		<include refid="Example_Where_Clause" />
+	</select>
 
-    <select id="countByExample" parameterType="map" resultType="int">
-        select count(*) from WM_ITEM
-        <include refid="Example_Where_Clause"/>
-    </select>
-
-    <update id="updateByPrimaryKey" parameterType="com.an.wm.entity.Item">
-        update WM_ITEM set
-        pn = #{pn,jdbcType=VARCHAR},
-        barcode = #{barcode,jdbcType=VARCHAR},
-        name = #{name,jdbcType=VARCHAR},
-        type = #{type,jdbcType=VARCHAR},
-        short_name = #{shortName,jdbcType=VARCHAR},
-        category = #{category,jdbcType=INTEGER},
-        sku_uom = #{skuUom.id,jdbcType=INTEGER},
-        loss_rate = #{lossRate,jdbcType=NUMERIC},
-        cost_price = #{costPrice,jdbcType=NUMERIC},
-        avg_price = #{avgPrice,jdbcType=NUMERIC},
-        sale_price = #{salePrice,jdbcType=NUMERIC},
-        supplier = #{supplier.id,jdbcType=INTEGER},
-        belong = #{belong.id,jdbcType=INTEGER},
-        input_tax = #{inputTax.id,jdbcType=INTEGER},
-        output_tax = #{outputTax.id,jdbcType=INTEGER},
-        batch_attr = #{batchAttr,typeHandler=com.an.core.mybatis.handlers.JsonTypeHandler},
-        usage_type = #{usageType,jdbcType=INTEGER},
-        storage_type = #{storageType,jdbcType=INTEGER},
-        turnover = #{turnover,jdbcType=INTEGER},
-        shelf_life = #{shelfLife,jdbcType=INTEGER},
-        remain_life = #{remainLife,jdbcType=INTEGER},
-        safe_line = #{safeLine,jdbcType=INTEGER},
-        weight = #{weight,jdbcType=NUMERIC},
-        volume = #{volume,jdbcType=NUMERIC},
-        status = #{status,jdbcType=VARCHAR},
-        remark = #{remark,jdbcType=VARCHAR},
-        enter_at = now()
-        where id = #{itemId,jdbcType=INTEGER}
-    </update>
-
-    <update id="updateMovingAveragePrice" parameterType="com.an.wm.entity.Item">
-        update WM_ITEM
-        set avg_price = #{avgPrice,jdbcType=NUMERIC}
-        where id = #{itemId,jdbcType=INTEGER}
-    </update>
-
-    <select id="selectKV" resultType="java.util.HashMap">
-        select pn as k, name as v from WM_ITEM
-        where status != 'd'
-        order by pn
-    </select>
-
+	<update id="updateByPrimaryKey" parameterType="com.an.wm.entity.Item">
+		update WM_ITEM set
+		pn = #{pn,jdbcType=VARCHAR},
+		barcode = #{barcode,jdbcType=VARCHAR},
+		name = #{name,jdbcType=VARCHAR},
+		type = #{type,jdbcType=VARCHAR},
+		sku_uom = #{skuUom,jdbcType=INTEGER},
+		cost_price = #{costPrice,jdbcType=NUMERIC},
+		sale_price = #{salePrice,jdbcType=NUMERIC},
+		supplier = #{supplier,jdbcType=VARCHAR},
+		storage_type = #{storageType,jdbcType=INTEGER},
+		shelf_life = #{shelfLife,jdbcType=INTEGER},
+		weight = #{weight,jdbcType=NUMERIC},
+		status = #{status,jdbcType=VARCHAR},
+		remark = #{remark,jdbcType=VARCHAR},
+		enter_by = #userId,
+		enter_at = now()
+		where id = #{id,jdbcType=INTEGER}
+	</update>
 </mapper>

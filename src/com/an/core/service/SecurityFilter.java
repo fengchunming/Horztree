@@ -137,15 +137,12 @@ public class SecurityFilter extends HttpServlet implements Filter {
                 sb.append(uri);
                 sb.append(",body:");
 
-                if ("application/json".equalsIgnoreCase(request
-                        .getContentType())) {
-                    PayLoadRequestWrapper wrapper = new PayLoadRequestWrapper(
-                            request);
+                if ("application/json".equalsIgnoreCase(request.getContentType())) {
+                    PayLoadRequestWrapper wrapper = new PayLoadRequestWrapper(request);
                     sb.append(wrapper.getBody());
                     request = wrapper;
                 } else {
-                    sb.append(JSONObject.fromObject(request.getParameterMap())
-                            .toString());
+                    sb.append(JSONObject.fromObject(request.getParameterMap()).toString());
                 }
 
                 logger.info(sb);

@@ -129,7 +129,7 @@
                 model: App.ReturnDetail,
                 pageSize: 50,
                 columns: [
-                    {label: '', key: 'id', type: 'checkbox', style: 'width:22px'},
+                    {label: '', key: 'id', type: 'checkbox', thcss: 'width:30px'},
                     {label: '商品编号', key: 'pn', sort: 'goods_code'},
                     {label: '商品名称', key: 'name'},
                     {label: '进价', key: 'standardCostPrice'},
@@ -184,7 +184,7 @@
                 model: App.Stock,
                 urlRoot: 'rest/wm/stockList',
                 columns: [
-                    {label: '', key: 'stockId', type: 'checkbox', style: 'width:22px'},
+                    {label: '', key: 'stockId', type: 'checkbox', thcss: 'width:30px'},
                     {label: '名称', key: 'name'},
                     {label: '编码', key: 'pn'},
                     {label: '单位', key: 'goodsUnit.uomCode', local: 'base/kv/uom'},

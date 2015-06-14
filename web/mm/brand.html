@@ -1,103 +1,98 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <link href="js/umeditor/themes/default/css/umeditor.css" rel="stylesheet">
-    <script src="js/umeditor/umeditor.config.js"></script>
-    <script src="js/umeditor/umeditor.min.js"></script>
-    <script>
+<link href="js/umeditor/themes/default/css/umeditor.css" rel="stylesheet">
+<script src="js/umeditor/umeditor.config.js"></script>
+<script src="js/umeditor/umeditor.min.js"></script>
+<script>
+	var um = UM.getEditor('htmlEditor');
 
-        var um = UM.getEditor('htmlEditor');
+	$(function () {
+		App.Brand = App.Model.extend({
+			urlRoot: 'rest/mm/brand',
+			idAttribute: 'id',
+			edit: function () {
+				if(this.isNew() || this.get('description')){
+					UM.getEditor('htmlEditor').setContent(this.get('description') || '')
+				}else{
+					this.fetch({
+						success: function (model) {
+							UM.getEditor('htmlEditor').setContent(model.get('description') || '');
+						}
+					});
+				}
+			}
+		});
 
-        $(function () {
-            App.Brand = App.Model.extend({
-                urlRoot: 'rest/mm/brand',
-                idAttribute: 'id',
-                edit: function () {
-                    if(this.isNew() || this.get('description')){
-                        UM.getEditor('htmlEditor').setContent(this.get('description') || '')
-                    }else{
-                        this.fetch({
-                            success: function (model) {
-                                UM.getEditor('htmlEditor').setContent(model.get('description') || '');
-                            }
-                        });
-                    }
-                }
-            });
+		App.BrandList = App.Collection.extend({
+			model: App.Brand,
+			columns: [
+				{label: '品牌', key: 'name'},
+				{label: '类型', key: 'icon'},
+				{label: '状态', key: 'status', local: 'status', thcss:'width:100px'}
+			]
+		});
 
-            App.BrandList = App.Collection.extend({
-                model: App.Brand,
-                columns: [
-                    {label: '品牌', key: 'name'},
-                    {label: '类型', key: 'icon', thcss:'width:100px'},
-                    {label: '创建人', key: 'enterBy', local: 'sys/kv/user', thcss:'width:100px'},
-                    {label: '创建日期', key: 'enterAt', sort: true, thcss:'width:100px'},
-                    {label: '状态', key: 'status', local: 'status', thcss:'width:100px', sort: true}
-                ]
-            });
+		App.BrandForm = App.FormView.extend({
+			size: { width: 900 },
+			toolbar: ['create', 'save', 'trash', 'hide'],
+			prepare: function (item) {
+				item.description = UM.getEditor('htmlEditor').getContent();
+				return item;
+			}
+		});
 
-            App.BrandForm = App.FormView.extend({
-                size: { width: 900 },
-                toolbar: ['create', 'save', 'trash', 'hide'],
-                prepare: function (item) {
-                    item.description = UM.getEditor('htmlEditor').getContent();
-                    return item;
-                }
-            });
-
-            App.BrandGrid = App.Grid.extend({
-                qel: '.queryBar',
-                form: new App.BrandForm,
-                collection: new App.BrandList,
-                toolbar: ['create']
-            });
-            App.brandGrid = new App.BrandGrid();
-        });
-    </script>
+		App.BrandGrid = App.Grid.extend({
+			qel: '.queryBar',
+			form: new App.BrandForm,
+			collection: new App.BrandList,
+			toolbar: ['create']
+		});
+		App.brandGrid = new App.BrandGrid();
+	});
+</script>
 </head>
 <body>
-<div id="article">
-    <form class="queryBar">
-        <ul>
-            <li><label>标题：</label><input type="text" name="name"/></li>
-            <li><label>状态：</label>
-                <select name="status" data-local="status">
-                    <option value="">所有</option>
-                </select>
-            </li>
-            <li>
-                <button class="search"><i></i>查询</button>
-                <button type="reset" class="reset"><i></i>清空</button>
-            </li>
-            <li class="toolBar"></li>
-        </ul>
-    </form>
-    <div class="dataGrid">
-        <table class="app"></table>
-    </div>
-    <div class="page"></div>
-</div>
+	<div id="article">
+		<form class="queryBar">
+			<ul>
+				<li><label>标题：</label><input type="text" name="name" /></li>
+				<li><label>状态：</label> <select name="status"
+					data-local="status">
+						<option value="">所有</option>
+				</select></li>
+				<li>
+					<button class="search">
+						<i></i>查询
+					</button>
+					<button type="reset" class="reset">
+						<i></i>清空
+					</button>
+				</li>
+				<li class="toolBar"></li>
+			</ul>
+		</form>
+		<div class="dataGrid">
+			<table class="app"></table>
+		</div>
+		<div class="page"></div>
+	</div>
 
-<div class="navPanel">
-    <div class="toolBar"></div>
-    <div class="editorPanel">
-        <form>
-            <ol class="left-align">
-                <li>
-                    <label>品牌名称：
-                        <input name="name" type="text" placeholder="请输入品牌名称" required style="width:500px;"/>
-                    </label>
-                    <label>状态：
-                        <select name="status" data-local="status"></select>
-                    </label>
-                </li>
-                <li>
-                    <script type="text/plain" id="htmlEditor" style="width:800px;height:500px;"></script>
-                </li>
-            </ol>
-        </form>
-    </div>
-</div>
+	<div class="navPanel">
+		<div class="toolBar"></div>
+		<div class="editorPanel">
+			<form>
+				<ol class="left-align">
+					<li><label>品牌名称： <input name="name" type="text"
+							placeholder="请输入品牌名称" required style="width: 500px;" />
+					</label> <label>状态： <select name="status" data-local="status"></select>
+					</label></li>
+					<li><script type="text/plain" id="htmlEditor"
+							style="width: 800px; height: 500px;"></script></li>
+				</ol>
+			</form>
+		</div>
+	</div>
 </body>
 </html>
-        
+

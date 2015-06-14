@@ -2,9 +2,10 @@ package com.an.wm.action;
 
 import com.an.core.exception.BadRequestException;
 import com.an.core.exception.ErrorModelAndView;
-import com.an.wm.dao.WorkBillDao;
-import com.an.wm.dao.WorkBillDetailDao;
-import com.an.wm.entity.WorkBill;
+import com.an.mm.dao.WorkBillDao;
+import com.an.mm.dao.WorkBillDetailDao;
+import com.an.mm.entity.WorkBill;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +47,7 @@ public class PurchaseController {
         if (!bill.getStatus().equals("input"))
             throw new BadRequestException("采购单状态不满足确认条件！");
         bill.setStatus("1");
-        if (billDao.updateStatus(bill) < 1) {
+        if (billDao.updateDealStatus(bill) < 1) {
             throw new BadRequestException("确认失败！");
         } else {
             return bill;

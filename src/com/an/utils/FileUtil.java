@@ -2,7 +2,6 @@ package com.an.utils;
 
 import java.io.BufferedInputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -17,10 +16,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-
-import com.an.sys.entity.Setting;
-import com.an.sys.entity.TestExcelIn;
 
 import net.sf.jxls.reader.ReaderBuilder;
 import net.sf.jxls.reader.XLSReader;
@@ -28,11 +23,9 @@ import net.sf.jxls.transformer.XLSTransformer;
 
 public class FileUtil{
 
-    public static List parseExcelFileToBeans(InputStream xlsFile,
-            File jxlsConfigFile)
-            throws Exception {
+    public static List<Object> parseExcelFileToBeans(InputStream xlsFile, File jxlsConfigFile) throws Exception {
         XLSReader xlsReader = ReaderBuilder.buildFromXML(jxlsConfigFile);
-        List result = new ArrayList();
+        List<Object> result = new ArrayList<Object>();
         Map<String, Object> beans = new HashMap<String, Object>();
         beans.put("result", result);
         InputStream inputStream = null;

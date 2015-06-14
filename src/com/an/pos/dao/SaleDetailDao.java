@@ -16,11 +16,12 @@ public class SaleDetailDao extends BaseDao<Item, Integer> {
 
 
     public int save(Item line) {
-        if (selectBySeqNo(line.getOriginNo()) != null) {
-            return update(line);
-        } else {
-            return insert(line);
-        }
+//        if (selectBySeqNo(line.getOriginNo()) != null) {
+//            return update(line);
+//        } else {
+//            return insert(line);
+//        }
+    	return 0;
     }
 
     public Collection<Item> selectByCode(String code) {

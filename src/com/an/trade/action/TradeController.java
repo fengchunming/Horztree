@@ -1,18 +1,21 @@
 package com.an.trade.action;
 
+import com.an.base.dao.RegionDao;
 import com.an.core.exception.BadRequestException;
 import com.an.core.exception.ErrorModelAndView;
 import com.an.core.exception.ServerErrorException;
-import com.an.mm.dao.GoodsCombDao;
 import com.an.mm.dao.GoodsDao;
 import com.an.mm.entity.Goods;
+import com.an.mm.entity.WorkBill;
+import com.an.mm.entity.WorkBillDetail;
+import com.an.trade.dao.TradeBillDetailDao;
 import com.an.trade.dao.TradeDao;
-import com.an.trade.dao.TradeDetailDao;
 import com.an.trade.entity.Trade;
+import com.an.trade.entity.TradeBillDetail;
+import com.an.utils.HttpInvoker;
 import com.an.utils.Util;
-import com.an.wm.action.WorkBillController;
-import com.an.wm.entity.Item;
-import com.an.wm.entity.MaterialUom;
+import com.an.mm.dao.WorkBillDao;
+import com.an.mm.dao.WorkBillDetailDao;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,13 +27,15 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.io.IOException;
 import java.math.BigDecimal;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 /**
- * 交易管理(业务单据管理)
+ * 订单管理
  *
  * @author Karas
  * @date 2012-3-8
@@ -45,16 +50,19 @@ public class TradeController {
     private TradeDao tradeDao;
 
     @Autowired
-    private TradeDetailDao tradeDetailDao;
+    private TradeBillDetailDao tradeBillDetailDao;
 
-    @Autowired
-    private GoodsCombDao goodsCombDao;
-    
     @Autowired
     private GoodsDao goodsDao;
+    
+	@Autowired
+	private WorkBillDao billDao;
 
-    @Autowired
-    private WorkBillController billAction;
+	@Autowired
+	private WorkBillDetailDao detailDao;
+	
+	@Autowired
+	private RegionDao regionDao;
 
     /**
      * 查询订单列表
@@ -71,7 +79,6 @@ public class TradeController {
         result.put("count", tradeDao.count(mParam));
         return result;
     }
-
 
     /**
      * 查询订单详细
@@ -126,48 +133,59 @@ public class TradeController {
     }
 
     /**
-     * 根据单据号删除单条单据
+     * 取消订单
      *
      * @param id
      * @throws BadRequestException
      */
     @Transactional
     @RequestMapping(value = "/bill/{id}", method = RequestMethod.DELETE)
-    public void deleteTrade(@PathVariable(value = "id") int id) throws BadRequestException {
+    public void deleteTrade(@PathVariable("id") int id) throws BadRequestException {
     	Trade trade = tradeDao.selectOne(id);
         if ("345".indexOf(trade.getStatus())!=-1) {
             throw new BadRequestException("已发货，已完结，已取消的订单不可取消!");
         }
+        
+        if ("WX".equals(trade.getPayment())) {//微信支付，退款
+        	try {
+				String returnMsg = HttpInvoker.readContentFromGet(trade.getBillCode());
+				if (!"success".equals(returnMsg)) {
+					throw new BadRequestException("微信支付退款失败！");
+				}
+			} catch (IOException e) {
+				throw new BadRequestException("微信支付退款失败！", e);
+			}
+        }
+        
+        Integer regionId = trade.getRegionId();
+        List<TradeBillDetail> details = tradeBillDetailDao.selectByBill(id);
+        for (TradeBillDetail detail : details) {
+        	Goods goods = goodsDao.selectGoodsInventory(detail.getGoodsId(), regionId);
+ 		    if (goods == null) {
+ 		    	throw new BadRequestException("仓库【" + regionDao.selectOne(regionId).getFullName() + "】中的商品【" + detail.getGoodsName() + "】不存在，无法完成锁定库存的释放！");
+ 		    }
+ 		    goods.setStockSum(goods.getStockSum() + detail.getQuantity().intValue());
+ 		    goods.setStockLocked(goods.getStockLocked() - detail.getQuantity().intValue());
+ 		    goodsDao.updateGoodsInventory(goods);
+        }
+        
         if (tradeDao.delete(id) <= 0) {
             throw new BadRequestException("删除失败");
         } else {
-            tradeDetailDao.deleteByBill(id);
+            tradeBillDetailDao.deleteByBill(id);
         }
-        
-        Integer groupId = trade.getGroupId();
-        List<Item> details = tradeDetailDao.selectByBill(id);
-        for (Item detail : details) {
-        // TODO: goods -》 item
-	        Map stock = goodsDao.selectStocksBy2Gids(groupId, detail.getGoodsId());
-	        if(stock!=null){
-	        Integer newStockSum = (stock.get("stockSum") == null ? 0 : (Integer)stock.get("stockSum"));
-	        Integer newStockLocked = (stock.get("stockLocked") == null ? 0 : (Integer)stock.get("stockLocked")) - detail.getPlanQuantity().intValue();
-	        goodsDao.updateStocksBy2Gids(groupId, detail.getGoodsId(), newStockSum, newStockLocked);}
-        }
-        
-       
     }
 
     /**
-     * 查看订单明细
+     * 查看订单明细列表
      *
      * @param id
      * @return
      * @throws BadRequestException
      */
     @RequestMapping(value = "/details/{id}", method = RequestMethod.GET)
-    public List<Item> selectTradeDetail(@PathVariable("id") int id) throws BadRequestException {
-        return tradeDetailDao.selectByBill(id);
+    public List<TradeBillDetail> selectTradeDetail(@PathVariable("id") int id) throws BadRequestException {
+        return tradeBillDetailDao.selectByBill(id);
     }
 
     /**
@@ -178,11 +196,11 @@ public class TradeController {
      */
     private void saveTradeDetail(Trade trade) throws BadRequestException {
         if (trade.getItems() == null) return;
-        for (Item item : trade.getItems()) {
+        for (TradeBillDetail item : trade.getItems()) {
             if (item.getId() == null && "d".equals(item.getStatus()))
                 continue;
             item.setBillId(trade.getId());
-            tradeDetailDao.save(item);
+            tradeBillDetailDao.save(item);
         }
     }
 
@@ -195,46 +213,54 @@ public class TradeController {
     @Transactional
     public void checkTrade(@RequestParam("ids[]") Integer[] ids) throws BadRequestException {
         for (int id : ids) {
-            Trade trade = tradeDao.selectOne(id);
-            trade.setStatus("3");
-            tradeDao.updateState(trade);
-//            WorkBill bill = new WorkBill();
-//            bill.setType("OT");
-//            bill.setOriginBill(trade);
-//            bill.setFrom(new Location(trade.getGroupId()));
-//            Organization org = new Organization();
-//            org.setAddr(trade.getAddr());
-//            bill.setTarget(org);
-//            // TODO 生成一个出库单
-//
-//            List<Item> details = tradeDetailDao.selectByBill(id);
-//            for (Item detail : details) {
-//                // TODO: goods -》 item
-//                Map<String, Object> param = new HashMap<>();
-//                param.put("goodsId", detail.getGoodsId());
-//                param.put("pn", detail.getPn());
-//                List<Item> items = goodsCombDao.selectDirectItems(param);
-//                for (Item item : items) {
-//                    System.out.println(item.getName());
-////              bill.addItem(item);
-//                }
-//            }
-            
-            Integer groupId = trade.getGroupId();
-            List<Item> details = tradeDetailDao.selectByBill(id);
-            for (Item detail : details) {
-            // TODO: goods -》 item
-		        Map stock = goodsDao.selectStocksBy2Gids(groupId, detail.getGoodsId());
-		        if(stock!=null){
-			        Integer newStockSum = (stock.get("stockSum") == null ? 0 : (Integer)stock.get("stockSum")) - detail.getPlanQuantity().intValue();
-			        Integer newStockLocked = (stock.get("stockLocked") == null ? 0 : (Integer)stock.get("stockLocked")) - detail.getPlanQuantity().intValue();
-			        goodsDao.updateStocksBy2Gids(groupId, detail.getGoodsId(), newStockSum, newStockLocked);
-		        }
+           	Trade trade = tradeDao.selectOne(id);
+            if ("345".indexOf(trade.getStatus())!=-1) {
+                throw new BadRequestException("已发货，已完结，已取消的订单不可发货!");
             }
             
-        }
+            trade.setStatus("3");
+            tradeDao.updateState(trade);
+            
+            Integer regionId = trade.getRegionId();
+            List<TradeBillDetail> details = tradeBillDetailDao.selectByBill(id);
+            
+            //生产出货单
+            WorkBill wb = new WorkBill();
+            wb.setBillName("发货单【" + trade.getShipRegion() + "-" + trade.getBillDate() + "-" + trade.getBillCode() + "】");
+            wb.setBillType("DG");//发货单
+            wb.setFromRegion(regionId);
 
-//        billAction.insertBill(bill);
+            for (TradeBillDetail detail : details) {
+            	WorkBillDetail wbd = new WorkBillDetail();
+            	wbd.setBillId(1);
+            	wbd.setCostPrice(new BigDecimal(detail.getSalePrice()));
+            	wbd.setGoodsId(detail.getGoodsId());
+            	wbd.setGoodsCode(null);
+            	wbd.setGoodsBarcode(detail.getBarcode());
+            	wbd.setGoodsName(detail.getGoodsName());
+            	wbd.setQuantity(new BigDecimal(detail.getQuantity()));
+            	wbd.setUomId(detail.getUom());
+            	wbd.setSubTotal(new BigDecimal(detail.getSubTotal()));
+     		    wb.addDetail(wbd);
+            }
+            
+            billDao.save(wb);
+            for (WorkBillDetail detail : wb.getDetails()) {
+				detail.setBillId(wb.getId());
+				detailDao.save(detail);
+			}
+            
+    		Integer from = wb.getFromRegion();
+    		for (WorkBillDetail detail : wb.getDetails()) {
+    			if (from != null) {
+    				goodsDao.reduceStock(detail.getGoodsId(), from, detail.getQuantity().intValue());
+    			}
+    		}
+
+    		wb.setDealStatus("1");
+    		wb.setDealTime(new Date());
+    		billDao.updateDealStatus(wb);
+        }
     }
 
     /**
@@ -248,22 +274,22 @@ public class TradeController {
         ModelAndView mav = new ModelAndView("report/trade");
         Trade trade = tradeDao.selectOne(id);
         
-        List<Item> details = tradeDetailDao.selectByBill(id);
-        int count = tradeDetailDao.countByBill(id);
+        List<TradeBillDetail> details = tradeBillDetailDao.selectByBill(id);
+        int count = tradeBillDetailDao.countByBill(id);
         //2015-06-01,六一活动，满6元送1包奶（仅限不夜城下单用户）
-       /* if (trade.getAmount().compareTo(new BigDecimal(6.00)) >= 0 && trade.getAddr() != null && "我爱不夜城".equals(trade.getAddr().getLinkman())) {
-        	Item detail = new Item();
-        	detail.setPn("");//pn商品编号
-        	detail.setName("牛奶一盒（赠品）");//商品名称
-        	detail.setSalePrice(new BigDecimal(0.00));//单价
-        	detail.setPlanQuantity(new BigDecimal(1.00));//数量
-        	MaterialUom uom = new MaterialUom();
-        	uom.setId(9);//盒
-        	detail.setUom(uom);//单位
-        	detail.setSaleTotal(new BigDecimal(0.00));//小计
+        if (trade.getAmount().compareTo(new BigDecimal(6.00)) >= 0 && trade.getAddr() != null && "我爱不夜城".equals(trade.getAddr().getLinkman())) {
+        	TradeBillDetail detail = new TradeBillDetail();
+//        	detail.setPn("");//pn商品编号
+//        	detail.setName("牛奶一盒（赠品）");//商品名称
+//        	detail.setSalePrice(new BigDecimal(0.00));//单价
+//        	detail.setPlanQuantity(new BigDecimal(1.00));//数量
+//        	MaterialUom uom = new MaterialUom();
+//        	uom.setId(9);//盒
+//        	detail.setUom(uom);//单位
+//        	detail.setSaleTotal(new BigDecimal(0.00));//小计
         	details.add(detail);
         	count++;
-        }*/
+        }
         mav.addObject("bill", trade);
         mav.addObject("list", details);
         mav.addObject("count", count);

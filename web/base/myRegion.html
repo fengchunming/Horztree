@@ -1,128 +1,126 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <script>
-        $(function () {
-            _LocalKV.regionStatus = {
-                "t": "启用",
-                "f": "停用",
-                "s": "休息",
-                "w": "营业"
-            };
-            App.Region = App.Model.extend({
-                urlRoot: 'rest/base/region',
-                idAttribute: 'id',
-                defaults: { sort: 50 },
-                edit: function () {
-                    $('#path').stepSelection('load', this.id);
-                }
-            });
+<script>
+	$(function () {
+		_LocalKV.regionType = {
+			"r": "区域区划",
+			"s": "网点仓库",
+			"m": "不夜城"
+		};
 
-            App.RegionList = App.Collection.extend({
-                type: 'tbody',
-                model: App.Region,
-                //param: {own: true},
-                pageSize: 0,
-                columns: [
-                    {label: '区域', key: 'name'},
-                    {label: '网点', key: 'group', local:'sys/kv/group'},
-                    {label: '状态', key: 'status', local:'regionStatus'}
-                ]
-            });
-            
-            App.RegioForm = App.FormView.extend({
-                toolbar: [{'work': '营业'}, {'sleep': '休息'}, 'hide'],
-                work: function () {
-	                var model = this.model;
-	                $.get('rest/base/region/work/' + model.id, function () {
-                        $.sticky('修改状态成功，目前正在营业！');
-                        model.fetch();
-                    });
-	            },
-	            sleep: function () {
-	                var model = this.model;
-	                $.get('rest/base/region/sleep/' + model.id, function () {
-	                    $.sticky('修改状态成功，目前正在休息！');
-	                    model.fetch();
-	                });
-	            }
-            });
+		_LocalKV.businessStatus = {
+			"n": "未开业",
+			"w": "营业中",
+			"s": "休息中"
+		};
 
-            App.RegionTable = App.Grid.extend({
-                qel: '.queryBar',
-                form: new App.RegioForm,
-                collection: new App.RegionList,
-                toolbar: []
-            });
+		App.Region = App.Model.extend({
+			urlRoot: 'rest/base/region',
+			idAttribute: 'id',
+			defaults: {sort: 50},
+			edit: function () {
+				$('#path').stepSelection('load', this.id);
+			}
+		});
 
-            new App.RegionTable();
+		App.RegionList = App.Collection.extend({
+			type: 'tbody',
+			model: App.Region,
+			param: {own: true},
+			pageSize: 0,
+			columns: [
+				{label: '名称', key: 'name'},
+				{label: '编码', key: 'code'},
+				{label: '类型', key: 'type', local:'regionType'}
+				{label: '营业状态', key: 'usinessStatus', local:'businessStatus'}
+			]
+		});
 
-            $('#path').stepSelection({
-                urlRoot: 'rest/base/region/list',
-                callback: function (id) {
-                    $('#parent').val(id);
-                }
-            });
-        });
-    </script>
+		App.RegionForm = App.FormView.extend({
+			toolbar: [{'work': '营业'}, {'sleep': '休息'}, 'hide'],
+			work: function () {
+				var model = this.model;
+				$.get('rest/base/region/work/' + model.id, function () {
+					$.sticky('修改状态成功，目前处于营业状态！');
+					model.fetch();
+				});
+			},
+			sleep: function () {
+				var model = this.model;
+				$.get('rest/base/region/sleep/' + model.id, function () {
+					$.sticky('修改状态成功，目前处于休息状态！');
+					model.fetch();
+				});
+			}
+		});
+
+		App.RegionGrid = App.Grid.extend({
+			qel: '.queryBar',
+			form: new App.RegionForm,
+			collection: new App.RegionList,
+			toolbar: []
+		});
+
+		new App.RegionGrid();
+
+		$('#path').stepSelection({
+			urlRoot: 'rest/base/region/list',
+			callback: function (id) {
+				$('#parent').val(id);
+			}
+		});
+	});
+</script>
 </head>
 <body>
-<div id="article">
-    <form class="queryBar">
-        <ul>
-            <li>
-                <label>地区名称：</label>
-                <input type="text" name="name"/>
-                <input type="hidden" name="own" value="true"/>
-            </li>
-            <li>
-                <button class="search"><i></i>查询</button>
-            </li>
-            <li class="toolBar"></li>
-        </ul>
-    </form>
-    <div class="dataGrid">
-        <table class="app"></table>
-    </div>
-    <div class="page"></div>
-</div>
+	<div id="article">
+		<form class="queryBar">
+			<ul>
+				<li>
+					<label>编码：</label>
+					<input type="text" name="code" />
+				</li>
+				<li>
+					<label>名称：</label>
+					<input type="text" name="name" />
+				</li>
+				<li>
+					<button class="search"><i></i>查询</button>
+				</li>
+				<li class="toolBar"></li>
+			</ul>
+		</form>
+		<div class="dataGrid">
+			<table class="app"></table>
+		</div>
+		<div class="page"></div>
+	</div>
 
-<div class="navPanel">
-    <div class="toolBar"></div>
-    <div class="editorPanel">
-        <form>
-            <ol>
-                <li>
-                    <label>名称:</label>
-                    <input type="text" name="name" placeholder="名称" disabled/>
-                </li>
-
-                <li>
-                    <label>网点:</label>
-                    <select name="group" data-local="sys/kv/group" disabled><option value="">不指定</option></select>
-                </li>
-                <li>
-                    <label>邮编:</label>
-                    <input type="text" name="zip" disabled/>
-                </li>
-                <!-- 
-                <li style="height:30px;">
-                    <label>上级节点:</label>
-                    <input type="text" name="parent" id="parent" style="display:none"/>
-                    <input type="text" name="path" id="path" style="display:none"/>
-                </li>
-                 -->
-                <li>
-                    <label>排序:</label>
-                    <input type="number" name="sort" required max="99" min="0" disabled/>
-                </li>
-                <li>
-                    <label>状态:</label>
-                    <select name="status" data-local="regionStatus" disabled></select>
-                </li>
-            </ol>
-        </form>
-    </div>
-</div>
+	<div class="navPanel">
+		<div class="toolBar"></div>
+		<div class="editorPanel">
+			<form>
+				<ol>
+					<li>
+						<label>编码:</label>
+						<input type="text" name="code" placeholder="编码" disabled />
+					</li>
+					<li>
+						<label>名称:</label>
+						<input type="text" name="name" placeholder="名称" disabled />
+					</li>
+					<li>
+						<label>排序:</label>
+						<input type="number" name="sort" required max="99" min="0" disabled />
+					</li>
+					<li>
+						<label>营业状态:</label>
+						<select name="businessStatus" data-local="businessStatus" disabled></select>
+					</li>
+				</ol>
+			</form>
+		</div>
+	</div>
 </body>
 </html>
