@@ -56,7 +56,7 @@
 
 	<delete id="deleteChildren" parameterType="int">
 		update SYS_REGION
-		set status = 'd', enter_by = #userId, enter_dt = now()
+		set status = 'd', enter_by = #userId, enter_at = now()
 		where path like concat('%,', #{value}, ',%')
 	</delete>
 
@@ -117,7 +117,7 @@
 
 	<update id="updateBusinessStatus" parameterType="com.an.base.entity.Region">
 		update SYS_REGION set
-		business_status = #{businessStatus,jdbcType=VARCHAR}, enter_by = #userId, enter_dt = now()
+		business_status = #{businessStatus,jdbcType=VARCHAR}, enter_by = #userId, enter_at = now()
 		where id = #{id}
 	</update>
 

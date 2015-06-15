@@ -17,4 +17,8 @@
 		    #{leftAmountReturn,jdbcType=VARCHAR,mode=OUT}
 		)} 
     </select>  
+    <select id="countByExample" parameterType="map" resultType="int">
+		select count(*) from TRADE_BILL where
+		bill_date = #{billDate,jdbcType=VARCHAR}
+	</select>
 </mapper>

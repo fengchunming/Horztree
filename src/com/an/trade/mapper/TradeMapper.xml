@@ -47,11 +47,17 @@
 	</resultMap>
 	<sql id="Example_Where_Clause">
 		<where>
-			<if test="region_code = null || billCode == ''">
+			<!-- <if test="regionCode == null || regionCode == ''">
 				region_code like concat('#regionCode', '%')
 			</if>
-			<if test="region_code != null and billCode != ''">
+			<if test="regionCode != null and regionCode != ''">
 				region_code like concat(#{regionCode}, '%')
+			</if> -->
+			 <if test="regionId != null and regionId > 0">
+				region_id =#{regionId,jdbcType=INTEGER}
+			</if>
+			<if test="regionId == null || regionId == ''">
+				region_code like concat('#regionCode', '%')
 			</if>
 			<if test="billCode != null and billCode != ''">
 				and bill_code like concat('%', #{billCode,jdbcType=VARCHAR}, '%')

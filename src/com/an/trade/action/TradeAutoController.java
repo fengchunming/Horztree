@@ -47,8 +47,19 @@ public class TradeAutoController {
     public  Map<String,Object> autoBillPro(@RequestParam String billDate,@RequestParam int maxAmount) {
     	Map<String, Object> mParam = new HashMap<>();
     	mParam.put("billDate", billDate);
-    	mParam.put("maxAmount", maxAmount);
-        return tradeAutoDao.autoBillPro(mParam);
+    	
+    	int existAmount = tradeAutoDao.count(mParam);
+    	int tempMaxAmount = existAmount;
+    	if(maxAmount-existAmount>0){
+	    	for(int i=maxAmount-existAmount;i>0;i-=50){
+	    		tempMaxAmount += (i>=50?50:i);
+	    		mParam.put("maxAmount",tempMaxAmount);
+	    		tradeAutoDao.autoBillPro(mParam);
+	    	}
+    	}
+    	mParam.put("existAmount", existAmount);
+    	mParam.put("leftAmountReturn", maxAmount-existAmount);
+        return mParam;
     }
     
     @SuppressWarnings("unchecked")

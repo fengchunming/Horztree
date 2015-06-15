@@ -232,11 +232,11 @@
                 model: App.Item,
                 columns: [
                     {key: 'id', type: 'checkbox', thcss: 'width:22px'},
-                    {label: '商品名称', key: 'name', thcss: 'width:300px'},
+                    {label: '商品名称', key: 'goodsName', thcss: 'width:300px'},
                     {label: '价格', key: 'salePrice', editable: true},
-                    {label: '单位', key: 'uom.id', local: 'base/kv/uom'},
-                    {label: '数量', key: 'planQuantity', editable: true},
-                    {label: '小计', key: 'saleTotal'}
+                    {label: '单位', key: 'uom', local: 'base/kv/uom'},
+                    {label: '数量', key: 'quantity', editable: true},
+                    {label: '小计', key: 'subTotal'}
                 ],
                 save: function () {
                     $.ajax({
@@ -353,12 +353,12 @@
                 <label>会员：</label>
                 <input type="text" name="consumer">
             </li> -->
-            <li>
+            <!-- <li>
                 <label>订单信息：</label>
                 <input type="text" name="receiver">
-            </li>
+            </li> -->
             <li>
-                <label>类型：</label>
+                <label>渠道类型：</label>
                 <select name="type" data-local="tradeType">
                     <option></option>
                 </select>
@@ -368,7 +368,7 @@
             <li>
                 <label>网点区域：</label>
                 <select name="regionId" data-local="base/kv/ownRegion">
-                    <option></option>
+                   
                 </select>
             </li>
             <li>

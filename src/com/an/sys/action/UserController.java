@@ -71,6 +71,14 @@ public class UserController {
 		if (userDao.save(user) != 1) {
 			throw new BadRequestException("保存失败！");
 		} else {
+			userDao.deleteRolesByUserId(user.getUserId());
+			for (Integer roleId : user.getRoles()) {
+				userDao.insertRolesByUserId(user.getUserId(), roleId);
+            }
+			
+			if (user.getStatus().equals("f")) {
+				SessionRepository.forceQuit(user.getUserName());
+			}
 			user.setPassword("");
 			return user;
 		}
