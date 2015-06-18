@@ -1,0 +1,86 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<link href="js/umeditor/themes/default/css/umeditor.css"
+	rel="stylesheet">
+<script src="js/umeditor/umeditor.config.js"></script>
+<script src="js/umeditor/umeditor.min.js"></script>
+<script>
+	$(function() {
+		App.TradeConfig = App.Model.extend({
+			urlRoot : 'rest/trade/tradeConfig',
+			idAttribute : 'id',
+			edit: function () {
+             }
+		});
+
+		App.TradeConfigList = App.Collection.extend({
+			model : App.TradeConfig,
+			columns : [ {
+				label : '订单日期',
+				key : 'billDate'
+			}, {
+				label : '已有订单数量',
+				key : 'existAmount',
+				sort : false
+				
+			}, {
+				label : '期望订单数量',
+				key : 'maxAmount'
+			} ]
+		});
+
+		App.TradeConfigEditor = App.FormView.extend({
+            size: {width: 700}
+        });
+
+        App.TradeConfigTable = App.Grid.extend({
+            qel: '.queryBar',
+            form: new App.TradeConfigEditor,
+            collection: new App.TradeConfigList,
+            toolbar: ['create']
+        });
+
+        new App.TradeConfigTable();
+
+       
+	});
+</script>
+</head>
+<body>
+	<div id="article">
+		<form class="queryBar">
+			<ul>
+				<li><label>订单日期：</label> <input class="mindatepicker" type="text"
+					name="billDate" size="10" /></li> 
+				<li>
+					<button class="search">
+						<i></i>查询
+					</button> 
+				</li>
+				<li class="toolBar"></li>
+			</ul>
+		</form>
+		<div class="dataGrid">
+			<table class="app"></table>
+		</div>
+		<div class="page"></div>
+	</div>
+
+	<div class="navPanel">
+		<div class="toolBar"></div>	
+		<div class="editorPanel">
+			<form>
+				<ol class="">
+					<li><label>订单日期： </label> 
+					   <input name="billDate"  type="text"  class="mindatepicker" placeholder="请输入订单日期" required />
+				    </li>
+					<li><label>期望订单数量： </label>
+					   <input type="number" name="maxAmount"	required /></li>
+				</ol>
+			</form>
+		</div>
+	</div>
+</body>
+</html>
+

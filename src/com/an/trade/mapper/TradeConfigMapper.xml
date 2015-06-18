@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="TradeConfigMapper">
+    <resultMap id="BaseResultMap" type="com.an.trade.entity.TradeConfig">
+		<id column="id" property="id" jdbcType="INTEGER" />
+		<result column="trade_date" property="billDate" jdbcType="VARCHAR" />
+		<result column="real_amount" property="existAmount" jdbcType="INTEGER" />
+		<result column="expect_amount" property="maxAmount" jdbcType="INTEGER" />
+		<result column="status" property="status" jdbcType="VARCHAR" />
+	</resultMap>
+	
+	<sql id="Example_Where_Clause">
+		<where>
+			<if test="billDate != null and billDate!=''">
+				 trade_date = #{billDate}
+			</if>
+		</where>
+	</sql>
+	
+	<sql id="Base_Column_List">
+		id,trade_date, real_amount,expect_amount,status
+	</sql>
+	
+	<select id="selectByExample" resultMap="BaseResultMap" parameterType="map">
+		select
+		<include refid="Base_Column_List" />
+		from trade_bill_config
+		<include refid="Example_Where_Clause" />
+		<if test="_BY != null">order by ${_BY}</if>
+	</select>
+	
+	<select id="countByExample" parameterType="map" resultType="int">
+		select count(*) from trade_bill_config
+		<include refid="Example_Where_Clause" />
+	</select>
+    
+	<insert id="insert" parameterType="com.an.trade.entity.TradeConfig">
+		insert into trade_bill_config (trade_date, expect_amount, enter_by, enter_at)
+		values (
+		#{billDate,jdbcType=VARCHAR},
+		#{maxAmount,jdbcType=INTEGER},				
+		#userId,
+		now())
+		<selectKey resultType="int" keyProperty="id">
+			SELECT @@IDENTITY AS id
+		</selectKey>
+	</insert>
+	
+	<delete id="deleteByPrimaryKey" parameterType="int">
+		delete from  trade_bill_config 
+		where id = #{value,jdbcType=INTEGER}
+	</delete>
+	
+	<update id="updateByPrimaryKey" parameterType="com.an.trade.entity.TradeConfig">
+		update trade_bill_config
+		set expect_amount = #{maxAmount,jdbcType=INTEGER},
+		enter_by = #userId,
+		enter_at = now()
+		where id = #{id,jdbcType=INTEGER}
+	</update>
+	
+</mapper>

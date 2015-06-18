@@ -41,13 +41,36 @@
 			qel: '.queryBar'
 		});
 		new App.GoodsGrid();
+		
+		$("#importData").html5Uploader({
+		    name: "xls",
+		    url: "rest/mm/inventory/import",
+		    onSuccess: function (e, file, response) {
+		      var result = JSON.parse(response);
+		      $.sticky(result);
+		    }
+	   });
+		$('#uploadButton').click(function () {
+	         $('#importData').click();
+	     });
+		
+		
+		$('#exportBtn').click(function () {
+	         $('#export').click();
+	     });
+		$("#export").click(function(){ 
+            var form1 = document.getElementById("form1")
+            form1.action="rest/mm/inventory/export";
+            form1.method="GET";
+            form1.submit();
+        });  
 	
 	});
 </script>
 </head>
 <body>
 <div id="article">
-	<form class="queryBar">
+	<form id="form1" class="queryBar">
 		<ul>
 			<li>
 				<label>商品编码：</label>
@@ -66,6 +89,17 @@
 			<li>
 				<button class="search"><i></i>查询</button>
 			</li>
+			
+			<li>
+               <button id="uploadButton">导入库存</button>
+               <input style="display:none;" type="file" multiple id="importData" />
+           </li>   
+           
+           <li>
+               <button id="exportBtn">导出库存</button>
+               <input style="display:none;"  id="export" type="button" value="导出库存" class="ui-state-default ui-corner-all" />
+           </li>  
+             
 		</ul>
 	</form>
 	<div class="dataGrid">

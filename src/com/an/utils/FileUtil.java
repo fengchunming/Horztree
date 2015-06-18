@@ -59,7 +59,7 @@ public class FileUtil{
 			HttpServletRequest request, HttpServletResponse response,
 			String templatePath) throws Exception {
 		String currentTime = Period.getSystemTime();
-		String exportFileName = currentTime + ".xls";
+		String exportFileName = "【"+beans.get("title")+"】"+"仓库库存统计表_"+currentTime + ".xlsx";
 		XLSTransformer transformer = new XLSTransformer();
 		transformer.transformXLS(templatePath, beans, exportFileName);
 		response.reset();

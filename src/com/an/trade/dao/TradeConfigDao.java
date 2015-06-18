@@ -6,6 +6,7 @@ import com.an.sys.entity.Module;
 import com.an.sys.entity.Role;
 import com.an.sys.entity.User;
 import com.an.trade.entity.Trade;
+import com.an.trade.entity.TradeConfig;
 
 import org.springframework.stereotype.Repository;
 
@@ -15,16 +16,13 @@ import java.util.List;
 import java.util.Map;
 
 @Repository
-public class TradeAutoDao extends BaseDao<Trade, Integer> {
-    public TradeAutoDao() {
+public class TradeConfigDao extends BaseDao<TradeConfig, Integer> {
+    public TradeConfigDao() {
         super();
-        namespace = "TradeAutoMapper";
+        namespace = "TradeConfigMapper";
     }
     
-  public Map<String,Object> autoBillPro(Map<String, Object> params){
-	   sqlSession.selectOne(namespace + ".createTradeBillPro", params);
-	   return params;
-  }
+ 
     
 
    

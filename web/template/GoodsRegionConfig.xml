@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<workbook>
+  <worksheet name="Sheet1">
+    <section startRow="0" endRow="1" />
+    <loop startRow="2" endRow="2" items="result" var="goods" varType="com.an.mm.entity.Goods">
+      <section startRow="2" endRow="2">
+        <mapping row="2" col="0">goods.code</mapping> 
+		<mapping row="2" col="1">goods.name</mapping> 
+	    <mapping row="2" col="2">goods.regionCode</mapping> 	
+        <mapping row="2" col="3">goods.regionName</mapping> 
+	    <mapping row="2" col="4">goods.stockSum</mapping> 	   
+      </section>
+      <loopbreakcondition>
+        <rowcheck offset="0">
+          <cellcheck offset="0" ></cellcheck>
+        </rowcheck>
+      </loopbreakcondition>
+    </loop>
+  </worksheet>
+</workbook>
