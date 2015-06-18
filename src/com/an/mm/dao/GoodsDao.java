@@ -56,7 +56,7 @@ public class GoodsDao extends BaseDao<Goods, Integer> {
 		return sqlSession.update(namespace + ".insertOrUpdateInventory", goods);
 	}
 
-	public int reduceStock(int goodsId, int regionId, int amount) {
+	public int reduceStock(int goodsId, int regionId, int amount, boolean changeSoldVolume) {
 		if (amount == 0) return 0;
     	Goods goods = selectGoodsInventory(goodsId, regionId);
 		if (goods == null) {
@@ -70,6 +70,9 @@ public class GoodsDao extends BaseDao<Goods, Integer> {
 				throw new BadRequestException("仓库【" + regionName + "】中的商品【" + goodsName + "】库存余量不足，无法完成扣减");
 			}
     		goods.setStockSum(goods.getStockSum() - amount);
+		}
+		if (changeSoldVolume) {
+			goods.setSoldVolume(goods.getSoldVolume() + amount);
 		}
 		return this.updateGoodsInventory(goods);
 	}

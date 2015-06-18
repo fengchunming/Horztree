@@ -1,89 +1,94 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="CRM.CommentMapper">
-    <resultMap id="commentMap" type="com.an.crm.entity.Comment">
-        <id column="ID" property="id" jdbcType="VARCHAR"/>
-        <result column="TITLE" property="title" jdbcType="VARCHAR"/>
-        <result column="TYPE" property="type" jdbcType="CHAR"/>
-        <result column="CONTENT" property="content" jdbcType="VARCHAR"/>
-        <result column="READ_TIMES" property="readTimes" jdbcType="VARCHAR"/>
-        <result column="STATUS" property="status" jdbcType="CHAR"/>
-        <result column="CREATE_BY" property="createBy" jdbcType="VARCHAR"/>
-        <result column="CREATE_AT" property="createAt" jdbcType="TIMESTAMP"/>
-        <result column="LANGUAGE" property="language" jdbcType="VARCHAR"/>
-    </resultMap>
-    <sql id="Base_Column_List">
-        ID, TITLE, TYPE, READ_TIMES, STATUS, CREATE_BY, CREATE_AT,LANGUAGE, content
-    </sql>
-    <sql id="Where_Clause">
-        <where>
-            <if test="title != null and title != ''">and upper(TITLE) like concat('%',upper(#{title}),'%')</if>
-            <if test="content != null and content != ''">and upper(CONTENT) like concat('%',upper(#{content}),'%')</if>
-            <if test="language != null and language != ''">and LANGUAGE =#{language}</if>
-            <if test="minreadTimes != null and minreadTimes != ''">
-                and READ_TIMES <![CDATA[>=]]> #{minreadTimes}
-            </if>
-            <if test="maxreadTimes != null and maxreadTimes != ''">
-                and READ_TIMES<![CDATA[<=]]>#{maxreadTimes}
-            </if>
-            <if test="status != null and status != ''">and STATUS =#{status}</if>
-            <if test="type != null and type != ''">and TYPE =#{type}</if>
-            <if test="startTime != null and startTime != ''">
-                and CREATE_AT <![CDATA[>=]]> to_date(#{startTime},'yyyy-mm-dd')
-            </if>
-            <if test="endTime != null and endTime != ''">
-                and CREATE_AT<![CDATA[<=]]>to_date(#{endTime},'yyyy-mm-dd')+1
-            </if>
-        </where>
-    </sql>
-    <!-- 总数 -->
-    <select id="countByExample" resultType="int" parameterType="hashmap">
-        select count(1) from CRM_COMMENT
-        <include refid="Where_Clause"/>
-    </select>
+	<resultMap id="commentMap" type="com.an.crm.entity.Comment">
+		<id column="ID" property="id" jdbcType="VARCHAR" />
+		<result column="TITLE" property="title" jdbcType="VARCHAR" />
+		<result column="TYPE" property="type" jdbcType="CHAR" />
+		<result column="CONTENT" property="content" jdbcType="VARCHAR" />
+		<result column="READ_TIMES" property="readTimes" jdbcType="VARCHAR" />
+		<result column="STATUS" property="status" jdbcType="CHAR" />
+		<result column="CREATE_BY" property="createBy" jdbcType="VARCHAR" />
+		<result column="CREATE_AT" property="createAt" jdbcType="TIMESTAMP" />
+		<result column="LANGUAGE" property="language" jdbcType="VARCHAR" />
+	</resultMap>
+	<sql id="Base_Column_List">
+		ID, TITLE, TYPE, READ_TIMES, STATUS, CREATE_BY, CREATE_AT,LANGUAGE,	CONTENT
+	</sql>
+	<sql id="Where_Clause">
+		<where>
+			<if test="title != null and title != ''">and upper(TITLE) like concat('%',upper(#{title}),'%')</if>
+			<if test="content != null and content != ''">and upper(CONTENT) like concat('%',upper(#{content}),'%')</if>
+			<if test="language != null and language != ''">and LANGUAGE =#{language}</if>
+			<if test="minreadTimes != null and minreadTimes != ''">
+				and READ_TIMES <![CDATA[>=]]>
+				#{minreadTimes}
+			</if>
+			<if test="maxreadTimes != null and maxreadTimes != ''">
+				and READ_TIMES<![CDATA[<=]]>#{maxreadTimes}
+			</if>
+			<if test="status != null and status != ''">and STATUS =#{status}</if>
+			<if test="type != null and type != ''">and TYPE =#{type}</if>
+			<if test="startTime != null and startTime != ''">
+				and CREATE_AT <![CDATA[>=]]>
+				to_date(#{startTime},'yyyy-mm-dd')
+			</if>
+			<if test="endTime != null and endTime != ''">
+				and CREATE_AT<![CDATA[<=]]>to_date(#{endTime},'yyyy-mm-dd')+1
+			</if>
+		</where>
+	</sql>
+	<!-- 总数 -->
+	<select id="countByExample" resultType="int" parameterType="hashmap">
+		select count(1) from CRM_COMMENT
+		<include refid="Where_Clause" />
+	</select>
 
-    <!--列表查询 -->
-    <select id="selectByExample" resultMap="commentMap" parameterType="hashmap">
-        select
-        <include refid="Base_Column_List"/>
-        from CRM_COMMENT
-        <include refid="Where_Clause"/>
-        <if test="_BY != null">order by ${_BY}</if>
-    </select>
+	<!--列表查询 -->
+	<select id="selectByExample" resultMap="commentMap"
+		parameterType="hashmap">
+		select
+		<include refid="Base_Column_List" />
+		from CRM_COMMENT
+		<include refid="Where_Clause" />
+		<if test="_BY != null">order by ${_BY}</if>
+	</select>
 
-    <select id="selectByPrimaryKey" resultMap="commentMap" parameterType="hashmap">
-        select
-        <include refid="Base_Column_List"/>
-        ,CONTENT
-        from CRM_COMMENT
-        where ID = #{id,jdbcType=INTEGER}
+	<select id="selectByPrimaryKey" resultMap="commentMap"
+		parameterType="hashmap">
+		select
+		<include refid="Base_Column_List" />
+		,CONTENT
+		from CRM_COMMENT
+		where ID = #{id,jdbcType=INTEGER}
 
-    </select>
-    <insert id="insert" parameterType="com.an.crm.entity.Comment">
-        insert into CRM_COMMENT (TITLE, TYPE,
-        CONTENT, READ_TIMES, STATUS,
-        CREATE_BY, CREATE_AT,LANGUAGE)
-        values (#{title,jdbcType=VARCHAR}, #{type,jdbcType=CHAR},
-        #{content,jdbcType=VARCHAR}, #{readTimes,jdbcType=VARCHAR}, #{status,jdbcType=CHAR},
-        #userId, now(),#{language,jdbcType=VARCHAR})
+	</select>
+	<insert id="insert" parameterType="com.an.crm.entity.Comment">
+		insert into CRM_COMMENT (TITLE, TYPE,
+		CONTENT, READ_TIMES, STATUS,
+		CREATE_BY, CREATE_AT,LANGUAGE)
+		values (#{title,jdbcType=VARCHAR}, #{type,jdbcType=CHAR},
+		#{content,jdbcType=VARCHAR}, #{readTimes,jdbcType=VARCHAR},
+		#{status,jdbcType=CHAR},
+		#userId, now(),#{language,jdbcType=VARCHAR})
 
-        <selectKey resultType="java.lang.Integer" keyProperty="id">
-            SELECT @@IDENTITY AS id
-        </selectKey>
-    </insert>
-    <update id="updateByPrimaryKey" parameterType="com.an.crm.entity.Comment">
-        update CRM_COMMENT
-        set TITLE = #{title,jdbcType=VARCHAR},
-        TYPE = #{type,jdbcType=CHAR},
-        CONTENT = #{content,jdbcType=VARCHAR},
-        READ_TIMES = #{readTimes,jdbcType=VARCHAR},
-        STATUS = #{status,jdbcType=CHAR},
-        LANGUAGE =#{language,jdbcType=VARCHAR}
-        where ID = #{id,jdbcType=VARCHAR}
-    </update>
-    <update id="updateState" parameterType="com.an.crm.entity.Comment">
-        update CRM_COMMENT set
-        STATUS = #{status,jdbcType=CHAR}
-        where ID = #{id,jdbcType=INTEGER}
-    </update>
+		<selectKey resultType="java.lang.Integer" keyProperty="id">
+			SELECT @@IDENTITY AS id
+		</selectKey>
+	</insert>
+	<update id="updateByPrimaryKey" parameterType="com.an.crm.entity.Comment">
+		update CRM_COMMENT
+		set TITLE = #{title,jdbcType=VARCHAR},
+		TYPE = #{type,jdbcType=CHAR},
+		CONTENT = #{content,jdbcType=VARCHAR},
+		READ_TIMES = #{readTimes,jdbcType=VARCHAR},
+		STATUS = #{status,jdbcType=CHAR},
+		LANGUAGE =#{language,jdbcType=VARCHAR}
+		where ID = #{id,jdbcType=VARCHAR}
+	</update>
+	<update id="updateState" parameterType="com.an.crm.entity.Comment">
+		update CRM_COMMENT set
+		STATUS = #{status,jdbcType=CHAR}
+		where ID = #{id,jdbcType=INTEGER}
+	</update>
 </mapper>

@@ -1,74 +1,75 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="CMS.NoticeMapper">
-    <resultMap id="noticeMap" type="com.an.cms.entity.Notice">
-        <id column="ID" property="id" jdbcType="VARCHAR"/>
-        <result column="TITLE" property="title" jdbcType="VARCHAR"/>
-        <result column="TYPE" property="type" jdbcType="CHAR"/>
-        <result column="READ_TIMES" property="readTimes" jdbcType="VARCHAR"/>
-        <result column="STATUS" property="status" jdbcType="CHAR"/>
-        <result column="CREATE_BY" property="createBy" jdbcType="VARCHAR"/>
-        <result column="CREATE_AT" property="createAt" jdbcType="TIMESTAMP"/>
-        <result column="CONTENT" property="content" jdbcType="VARCHAR"/>
-    </resultMap>
-    <sql id="Base_Column_List">
-        ID, TITLE, TYPE, READ_TIMES, STATUS, CREATE_BY, CREATE_AT
-    </sql>
-    <sql id="Where_Clause">
-        <where>
-            <if test="title != null and title != ''">and upper(TITLE) like concat('%', upper(#{title}), '%')</if>
-            <if test="status != null and status != ''">and STATUS = #{status}</if>
-            <if test="type != null and type != ''">and TYPE = #{type}</if>
-            <if test="startTime != null and startTime != ''">
-                and CREATE_AT <![CDATA[>=]]> concat(#{startTime}, ' 00:00:00')
-            </if>
-            <if test="endTime != null and endTime != ''">
-                and CREATE_AT <![CDATA[<=]]> concat(#{endTime}, ' 23:59:59')
-            </if>
-        </where>
-    </sql>
-    <!-- 总数 -->
-    <select id="countByExample" resultType="int" parameterType="java.util.Map">
-        select count(1) from CMS_NOTICE
-        <include refid="Where_Clause"/>
-    </select>
+	<resultMap id="noticeMap" type="com.an.cms.entity.Notice">
+		<id column="ID" property="id" jdbcType="INTEGER" />
+		<result column="TITLE" property="title" jdbcType="VARCHAR" />
+		<result column="TYPE" property="type" jdbcType="CHAR" />
+		<result column="READ_TIMES" property="readTimes" jdbcType="INTEGER" />
+		<result column="STATUS" property="status" jdbcType="CHAR" />
+		<result column="CREATE_BY" property="createBy" jdbcType="INTEGER" />
+		<result column="CREATE_AT" property="createAt" jdbcType="TIMESTAMP" />
+		<result column="CONTENT" property="content" jdbcType="VARCHAR" />
+	</resultMap>
 
-    <!--列表查询 -->
-    <select id="selectByExample" resultMap="noticeMap" parameterType="java.util.Map">
-        select
-        <include refid="Base_Column_List"/>
-        from CMS_NOTICE
-        <include refid="Where_Clause"/>
-        <if test="_BY != null">order by ${_BY}</if>
-    </select>
+	<sql id="Base_Column_List">
+		ID, TITLE, TYPE, READ_TIMES, STATUS, CREATE_BY, CREATE_AT
+	</sql>
 
-    <select id="selectByPrimaryKey" resultMap="noticeMap" parameterType="java.util.Map">
-        select
-        <include refid="Base_Column_List"/>, CONTENT
-        from CMS_NOTICE
-        where ID = #{id,jdbcType=INTEGER}
+	<sql id="Where_Clause">
+		<where>
+			<if test="title != null and title != ''">and TITLE like concat('%', #{title}, '%')</if>
+			<if test="status != null and status != ''">and STATUS = #{status}</if>
+			<if test="type != null and type != ''">and TYPE = #{type}</if>
+			<if test="startTime != null and startTime != ''">and CREATE_AT <![CDATA[>=]]> concat(#{startTime}, ' 00:00:00')</if>
+			<if test="endTime != null and endTime != ''">and CREATE_AT <![CDATA[<=]]> concat(#{endTime}, ' 23:59:59')</if>
+		</where>
+	</sql>
 
-    </select>
-    <insert id="insert" parameterType="com.an.cms.entity.Notice">
-        insert into CMS_NOTICE (TITLE, TYPE, READ_TIMES, STATUS, CREATE_BY, CREATE_AT, CONTENT)
-        values (#{title,jdbcType=VARCHAR}, #{type,jdbcType=CHAR}, #{readTimes,jdbcType=VARCHAR}, 
-        #{status,jdbcType=CHAR}, #userId, now(), #{content,jdbcType=VARCHAR}) 
-        <selectKey resultType="java.lang.Integer" keyProperty="id">
-            SELECT @@IDENTITY AS id
-        </selectKey>
-    </insert>
-    <update id="updateByPrimaryKey" parameterType="com.an.cms.entity.Notice">
-        update CMS_NOTICE
-        set TITLE = #{title,jdbcType=VARCHAR},
-        TYPE = #{type,jdbcType=CHAR},
-        READ_TIMES = #{readTimes,jdbcType=VARCHAR},
-        STATUS = #{status,jdbcType=CHAR},
-        CONTENT = #{content,jdbcType=VARCHAR}
-        where ID = #{id,jdbcType=VARCHAR}
-    </update>
-    <update id="updateState" parameterType="com.an.cms.entity.Notice">
-        update CMS_NOTICE set
-        STATUS = #{status,jdbcType=CHAR}
-        where ID = #{id,jdbcType=INTEGER}
-    </update>
+	<select id="countByExample" resultType="int" parameterType="map">
+		select count(1) from CMS_NOTICE
+		<include refid="Where_Clause" />
+	</select>
+
+	<select id="selectByExample" resultMap="noticeMap" parameterType="map">
+		select
+		<include refid="Base_Column_List" />
+		from CMS_NOTICE
+		<include refid="Where_Clause" />
+		<if test="_BY != null">order by ${_BY}</if>
+		<if test="_BY == null">order by ID desc</if>
+	</select>
+
+	<select id="selectByPrimaryKey" resultMap="noticeMap" parameterType="map">
+		select
+		<include refid="Base_Column_List" />, CONTENT
+		from CMS_NOTICE
+		where ID = #{id,jdbcType=INTEGER}
+	</select>
+
+	<insert id="insert" parameterType="com.an.cms.entity.Notice">
+		insert into CMS_NOTICE (TITLE, TYPE, READ_TIMES, STATUS, CREATE_BY, CREATE_AT, CONTENT)
+		values (#{title,jdbcType=VARCHAR}, #{type,jdbcType=CHAR}, #{readTimes,jdbcType=INTEGER},
+		#{status,jdbcType=CHAR}, #userId, now(), #{content,jdbcType=VARCHAR})
+		<selectKey resultType="int" keyProperty="id">
+			SELECT @@IDENTITY AS id
+		</selectKey>
+	</insert>
+
+	<update id="updateByPrimaryKey" parameterType="com.an.cms.entity.Notice">
+		update CMS_NOTICE
+		set TITLE = #{title,jdbcType=VARCHAR},
+		TYPE = #{type,jdbcType=CHAR},
+		READ_TIMES = #{readTimes,jdbcType=INTEGER},
+		STATUS = #{status,jdbcType=CHAR},
+		CONTENT = #{content,jdbcType=VARCHAR}
+		where ID = #{id,jdbcType=INTEGER}
+	</update>
+
+	<update id="updateState" parameterType="com.an.cms.entity.Notice">
+		update CMS_NOTICE set
+		STATUS = #{status,jdbcType=CHAR},
+		CREATE_AT = now()
+		where ID = #{id,jdbcType=INTEGER}
+	</update>
 </mapper>

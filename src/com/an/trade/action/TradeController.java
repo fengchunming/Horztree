@@ -75,7 +75,28 @@ public class TradeController {
     public Map<?, ?> selectTrades(WebRequest request) throws BadRequestException {
         Map<String, Object> mParam = Util.GetRequestMap(request);
         Map<String, Object> result = new HashMap<>();
+        String regionId = mParam.get("regionId").toString();
+        String regionCode = regionDao.selectOne(Integer.valueOf(regionId)).getCode();
+        mParam.put("regionCode", regionCode);
+        mParam.remove("regionId");
         result.put("list", tradeDao.selectList(mParam));
+        result.put("count", tradeDao.count(mParam));
+        return result;
+    }
+    
+    /**
+     * 查询待发货订单数量
+     * @param request
+     * @return
+     * @throws BadRequestException
+     */
+    @RequestMapping(value = "/bill/waitSend", method = RequestMethod.GET)
+    public Map<?, ?> selectWaitSendTrades(WebRequest request) throws BadRequestException {
+        Map<String, Object> mParam = Util.GetRequestMap(request);
+        mParam.put("own", true);
+        mParam.put("status", "1");//待发货
+        Map<String, Object> result = new HashMap<>();
+        //result.put("list", tradeDao.selectList(mParam));
         result.put("count", tradeDao.count(mParam));
         return result;
     }
@@ -253,7 +274,7 @@ public class TradeController {
     		Integer from = wb.getFromRegion();
     		for (WorkBillDetail detail : wb.getDetails()) {
     			if (from != null) {
-    				goodsDao.reduceStock(detail.getGoodsId(), from, detail.getQuantity().intValue());
+    				goodsDao.reduceStock(detail.getGoodsId(), from, detail.getQuantity().intValue(), true);
     			}
     		}
 
@@ -277,8 +298,8 @@ public class TradeController {
         List<TradeBillDetail> details = tradeBillDetailDao.selectByBill(id);
         int count = tradeBillDetailDao.countByBill(id);
         //2015-06-01,六一活动，满6元送1包奶（仅限不夜城下单用户）
-        if (trade.getAmount().compareTo(new BigDecimal(6.00)) >= 0 && trade.getAddr() != null && "我爱不夜城".equals(trade.getAddr().getLinkman())) {
-        	TradeBillDetail detail = new TradeBillDetail();
+//        if (trade.getAmount().compareTo(new BigDecimal(6.00)) >= 0 && "我爱不夜城".equals(trade.getShipName())) {
+//       	TradeBillDetail detail = new TradeBillDetail();
 //        	detail.setPn("");//pn商品编号
 //        	detail.setName("牛奶一盒（赠品）");//商品名称
 //        	detail.setSalePrice(new BigDecimal(0.00));//单价
@@ -287,9 +308,9 @@ public class TradeController {
 //        	uom.setId(9);//盒
 //        	detail.setUom(uom);//单位
 //        	detail.setSaleTotal(new BigDecimal(0.00));//小计
-        	details.add(detail);
-        	count++;
-        }
+//        	details.add(detail);
+//        	count++;
+//        }
         mav.addObject("bill", trade);
         mav.addObject("list", details);
         mav.addObject("count", count);

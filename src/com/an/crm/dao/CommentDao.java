@@ -6,9 +6,8 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public class CommentDao extends BaseDao<Comment, Integer> {
-    public CommentDao() {
-        super();
-        namespace = "CRM.CommentMapper";
-    }
-
+	public CommentDao() {
+		super();
+		namespace = "CRM.CommentMapper";
+	}
 }

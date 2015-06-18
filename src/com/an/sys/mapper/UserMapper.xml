@@ -59,7 +59,7 @@
 
 	<!-- 根据用户名查询用户密码 -->
 	<select id="selectPassword" resultType="string" parameterType="string">
-		select password from SYS_USER where user_name = #{userName} and status = 't'
+		select password from SYS_USER where user_name = #{value} and status = 't'
 	</select>
 
 	<!-- 查询用户菜单 -->

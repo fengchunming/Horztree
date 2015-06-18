@@ -122,14 +122,12 @@ public class GoodsController {
 	 * @throws BadRequestException
 	 */
 	@RequestMapping(value = "/goods/upload", method = RequestMethod.POST)
-	public Picture update(HttpServletRequest request) throws BadRequestException {
+	public Picture upload(HttpServletRequest request) throws BadRequestException {
 		try {
 			String filename = Upload.htmlUpload(request, Setting.resourcePath);
 			String source = Setting.resourcePath + filename;
-			String s = source.substring(0, source.lastIndexOf("/") + 1) + "s_"
-					+ source.substring(source.lastIndexOf("/") + 1);
-			String xs = source.substring(0, source.lastIndexOf("/") + 1)
-					+ "xs_" + source.substring(source.lastIndexOf("/") + 1);
+			String s = source.substring(0, source.lastIndexOf("/") + 1) + "s_" + source.substring(source.lastIndexOf("/") + 1);
+			String xs = source.substring(0, source.lastIndexOf("/") + 1) + "xs_" + source.substring(source.lastIndexOf("/") + 1);
 
 			ImageUtil.fill(source, s, 220, 220);
 			ImageUtil.fill(source, xs, 90, 90);
@@ -158,11 +156,29 @@ public class GoodsController {
 	 * @return
 	 * @throws BadRequestException
 	 */
-	@RequestMapping(value = "/inventory", method = RequestMethod.GET)
+	@RequestMapping(value = "/inventory/list", method = RequestMethod.GET)
 	public Map<?, ?> queryInventory(WebRequest request) throws BadRequestException {
 		Map<String, Object> mParam = Util.GetRequestMap(request);
 		Map<String, Object> result = new HashMap<>();
 		result.put("list", goodsDao.selectInventory(mParam));
+		result.put("count", goodsDao.countInventory(mParam));
+		return result;
+	}
+
+	/**
+	 * 查询低库存
+	 * 
+	 * @param request
+	 * @return
+	 * @throws BadRequestException
+	 */
+	@RequestMapping(value = "/inventory/low", method = RequestMethod.GET)
+	public Map<?, ?> queryLowerInventory(WebRequest request) throws BadRequestException {
+		Map<String, Object> mParam = Util.GetRequestMap(request);
+		mParam.put("own", true);
+		mParam.put("low", true);
+		Map<String, Object> result = new HashMap<>();
+//		result.put("list", goodsDao.selectInventory(mParam));
 		result.put("count", goodsDao.countInventory(mParam));
 		return result;
 	}

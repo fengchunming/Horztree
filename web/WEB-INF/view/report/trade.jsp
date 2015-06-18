@@ -24,7 +24,7 @@ $(function() {
 	<div class="container">
 		<div id="pagehead">
 			<div style="float: left">
-				门口头 - <span data-local="sys/kv/group">${bill.groupId}</span>
+				门口头 - <span data-local="base/kv/region">${bill.regionId}</span>
 			</div>
 			<div style="float: right">
 				<img src="<%=request.getContextPath() %>/barcode.svg?msg=${bill.billCode}&height=15&mw=0.5">

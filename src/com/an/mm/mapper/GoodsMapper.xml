@@ -215,6 +215,12 @@
 	<select id="countInventory" parameterType="map" resultType="int">
 		select count(1) from MM_GOODS g, MM_GOODS_REGION gr
 		where g.id = gr.goods_id and g.status != 'd'
+		<if test="own">
+			and gr.region_id = #regionId
+		</if>
+		<if test="low">
+			and gr.stock_sum <![CDATA[<]]> gr.safe_line
+		</if>
 		<if test="regionId != null and regionId > 0">
 			and gr.region_id = #{regionId,jdbcType=INTEGER}
 		</if>
@@ -249,8 +255,8 @@
 		sold_volume = values(sold_volume), 
 		cmt_point = values(cmt_point), 
 		status = values(status),
-		enter_by = values(enter_by),
-		enter_at = values(enter_at)		
+		enter_by = #userId,
+		enter_at = now()		
 	</insert>
 
 </mapper>

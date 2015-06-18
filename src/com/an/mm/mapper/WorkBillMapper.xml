@@ -24,8 +24,7 @@
 			<if test="billCode != null and billCode !=''">and bill_code like concat('%', #{billCode}, '%')</if>
 			<if test="billName != null and billName !=''">and bill_name like concat('%', #{billName}, '%')</if>
 			<if test="billType != null and billType !=''">and bill_type = #{billType,jdbcType=VARCHAR}</if>
-			<if test="fromRegion != null and fromRegion > 0">and from_region = #{fromRegion,jdbcType=INTEGER}</if>
-			<if test="toRegion != null and toRegion > 0">and to_region = #{toRegion,jdbcType=INTEGER}</if>
+			<if test="fromRegion != null and fromRegion > 0">and (from_region = #{fromRegion,jdbcType=INTEGER} or to_region = #{fromRegion,jdbcType=INTEGER})</if>
 			<if test="status != null and status !=''">and status = #{status,jdbcType=VARCHAR}</if>
 			<if test="dealStatus != null and dealStatus !=''">and deal_status = #{dealStatus,jdbcType=VARCHAR}</if>
 		</where>

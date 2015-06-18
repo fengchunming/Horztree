@@ -97,6 +97,9 @@
 						}
 					}
 				});
+				if (item.images.length > 0) {
+					item.image = item.images[0].path;
+				}
 				return item;
 			},
 			addImage: function (data) {
@@ -168,10 +171,10 @@
 			$('#imageUpload').click();
 		});
 
-		$('#gallery_handler').on('click','.remove', function(){
+		$('#gallery_handler').on('click', '.remove', function(){
 			$(this).parents('.imb').hide();
 			return false;
-		}).on('click','.setDefault', function(){
+		}).on('click', '.setDefault', function(){
 			$(this).parents('.imb').addClass("default").siblings('.default').removeClass('default');
 			return false;
 		});

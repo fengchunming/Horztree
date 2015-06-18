@@ -1,137 +1,137 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <link href="js/umeditor/themes/default/css/umeditor.css" rel="stylesheet">
-    <script src="js/umeditor/umeditor.config.js"></script>
-    <script src="js/umeditor/umeditor.min.js"></script>
-    <script>
-        _LocalKV.noticeType = {
-            '1': '公告',
-            '2': '广告'
-        };
-        _LocalKV.noticeStatus = {
-            "t": "启用",
-            "f": "停用",
-            "p": "发布",
-        };
-        var um = UM.getEditor('htmlEditor');
+<link href="js/umeditor/themes/default/css/umeditor.css" rel="stylesheet">
+<script src="js/umeditor/umeditor.config.js"></script>
+<script src="js/umeditor/umeditor.min.js"></script>
+<script>
+	_LocalKV.noticeType = {
+		'1': '公告',
+		'2': '广告'
+	};
+	_LocalKV.noticeStatus = {
+		"t": "启用",
+		"f": "停用",
+		"p": "发布",
+	};
+	var um = UM.getEditor('htmlEditor');
 
-        $(function () {
-            App.Notice = App.Model.extend({
-                urlRoot: 'rest/cms/notice',
-                idAttribute: 'id',
-                edit: function () {
-                    if(this.isNew() || this.get('content')){
-                        UM.getEditor('htmlEditor').setContent(this.get('content') || '')
-                    }else{
-                        this.fetch({
-                            success: function (model) {
-                                UM.getEditor('htmlEditor').setContent(model.get('content') || '');
-                            }
-                        });
-                    }
-                }
-            });
+	$(function () {
+		App.Notice = App.Model.extend({
+			urlRoot: 'rest/cms/notice',
+			idAttribute: 'id',
+			edit: function () {
+				if(this.isNew() || this.get('content')){
+					UM.getEditor('htmlEditor').setContent(this.get('content') || '')
+				}else{
+					this.fetch({
+						success: function (model) {
+							UM.getEditor('htmlEditor').setContent(model.get('content') || '');
+						}
+					});
+				}
+			}
+		});
 
-            App.NoticeList = App.Collection.extend({
-                model: App.Notice,
-                columns: [
-                    {label: '标题', key: 'title'},
-                    {label: '点击量', key: 'readTimes', thcss:'width:100px', sort: true},
-                    {label: '类型', key: 'type', local: 'noticeType', thcss:'width:100px'},
-                    {label: '创建人', key: 'createBy', local: 'sys/kv/user', thcss:'width:100px'},
-                    {label: '创建日期', key: 'createAt', sort: true, thcss:'width:100px'},
-                    {label: '状态', key: 'status', local: 'noticeStatus', thcss:'width:100px'}
-                ]
-            });
+		App.NoticeList = App.Collection.extend({
+			model: App.Notice,
+			columns: [
+				{label: '标题', key: 'title'},
+				{label: '点击量', key: 'readTimes', thcss:'width:100px', sort: true},
+				{label: '类型', key: 'type', local: 'noticeType', thcss:'width:100px'},
+				{label: '创建人', key: 'createBy', local: 'sys/kv/user', thcss:'width:100px'},
+				{label: '创建日期', key: 'createAt', sort: true, thcss:'width:100px'},
+				{label: '状态', key: 'status', local: 'noticeStatus', thcss:'width:100px'}
+			]
+		});
 
-            App.NoticeForm = App.FormView.extend({
-                size: { width: 800 },
-                toolbar: ['create', 'save', {'check': '发布', 'id': 'cms.notice.check'}, 'trash', 'hide'],
-                check: function () {
-                    if (confirm('是否要发布？')) {
-                        this.model.set({'status': 'p'});
-                        $.post('rest/cms/noticeCheck/' + this.model.id);
-                    }
-                },
-                prepare: function (item) {
-                    item.content = UM.getEditor('htmlEditor').getContent();
-                    return item;
-                }
-            });
+		App.NoticeForm = App.FormView.extend({
+			size: { width: 800 },
+			toolbar: ['create', 'save', {'check': '发布', 'id': 'cms.notice.check'}, 'trash', 'hide'],
+			check: function () {
+				if (confirm('是否要发布？')) {
+					this.model.set({'status': 'p'});
+					$.post('rest/cms/noticeCheck/' + this.model.id);
+				}
+			},
+			prepare: function (item) {
+				item.content = UM.getEditor('htmlEditor').getContent();
+				return item;
+			}
+		});
 
-            App.NoticeGrid = App.Grid.extend({
-                qel: '.queryBar',
-                form: new App.NoticeForm,
-                collection: new App.NoticeList,
-                toolbar: ['create']
-            });
-            App.noticeGrid = new App.NoticeGrid();
-        });
-    </script>
+		App.NoticeGrid = App.Grid.extend({
+			qel: '.queryBar',
+			form: new App.NoticeForm,
+			collection: new App.NoticeList,
+			toolbar: ['create']
+		});
+		App.noticeGrid = new App.NoticeGrid();
+	});
+</script>
 </head>
 <body>
-<div id="article">
-    <form class="queryBar">
-        <ul>
-            <li><label>标题：</label><input type="text" name="title"/></li>
-            <!-- <li><label>内容：</label><input type="text" name="content"/></li> -->
-            <li><label>状态：</label>
-                <select name="status" data-local="noticeStatus">
-                    <option value="">所有</option>
-                </select>
-            </li>
-            <li><label>消息类型：</label>
-                <select name="type" data-local="noticeType">
-                    <option value="">所有</option>
-                </select>
-            </li>
-            <li><label>发布日期：</label>
-                <input class="mindatepicker" name="startTime" size="10"/>
-                -
-                <input class="maxdatepicker" name="endTime" size="10"/>
-            </li>
-            <li>
-                <button class="search"><i></i>查询</button>
-                <!-- <button type="reset" class="reset"><i></i>清空</button> -->
-            </li>
-            <li class="toolBar"></li>
-        </ul>
-    </form>
-    <div class="dataGrid">
-        <table class="app"></table>
-    </div>
-    <div class="page"></div>
-</div>
+	<div id="article">
+		<form class="queryBar">
+			<ul>
+				<li>
+					<label>标题：</label>
+					<input type="text" name="title" />
+				</li>
+				<li>
+					<label>状态：</label>
+					<select name="status" data-local="noticeStatus">
+						<option value="">所有</option>
+					</select>
+				</li>
+				<li>
+					<label>消息类型：</label>
+					<select name="type" data-local="noticeType">
+						<option value="">所有</option>
+					</select>
+				</li>
+				<li>
+					<label>发布日期：</label>
+					<input class="mindatepicker" name="startTime" size="10" /> - <input class="maxdatepicker" name="endTime" size="10" />
+				</li>
+				<li>
+					<button class="search"><i></i>查询</button>
+				</li>
+				<li class="toolBar"></li>
+			</ul>
+		</form>
+		<div class="dataGrid">
+			<table class="app"></table>
+		</div>
+		<div class="page"></div>
+	</div>
 
-<div class="navPanel">
-    <div class="toolBar"></div>
-    <div class="editorPanel">
-        <form>
-            <ol class="left-align">
-                <li>
-                    <label>标题：
-                        <input name="title" type="text" placeholder="请输入新闻标题" required style="width:500px;"/>
-                    </label>
-                </li>
-                <li>
-                    <label>类型：
-                        <select name="type" data-local="noticeType" required></select>
-                    </label>
-                    <label>状态：
-                        <select name="status" data-local="noticeStatus"></select>
-                    </label>
-                    <label>点击量：
-                        <input name="readTimes" type="text" disabled />
-                    </label>
-                </li>
-                <li>
-                    <script type="text/plain" id="htmlEditor" style="width:750px;height:440px;"></script>
-                </li>
-            </ol>
-        </form>
-    </div>
-</div>
+	<div class="navPanel">
+		<div class="toolBar"></div>
+		<div class="editorPanel">
+			<form>
+				<ol class="left-align">
+					<li>
+						<label>标题： </label>
+						<input name="title" type="text" placeholder="请输入新闻标题" required style="width: 500px;" />
+					</li>
+					<li>
+						<label>类型：</label>
+						<select name="type" data-local="noticeType" required></select>
+					</li>
+					<li>	
+						<label>状态： </label>
+						<select name="status" data-local="noticeStatus"></select>
+					</li>
+					<li>
+						<label>点击量： </label>
+						<input name="readTimes" type="text" disabled />
+					</li>
+					<li><script type="text/plain" id="htmlEditor" style="width: 750px; height: 440px;"></script></li>
+				</ol>
+			</form>
+		</div>
+	</div>
 </body>
 </html>
-        
+

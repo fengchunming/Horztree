@@ -9,11 +9,11 @@
 		};
 		
 		App.Goods = App.Model.extend({
+			urlRoot: 'rest/mm/inventory',
 			idAttribute: 'remark'
 		});
 	
 		App.GoodsList = App.Collection.extend({
-			urlRoot: 'rest/mm/inventory',
 			model: App.Goods,
 			param: {own: true},
 			columns: [

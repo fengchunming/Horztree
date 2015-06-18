@@ -1,29 +1,26 @@
 package com.an.trade.entity;
 
-import com.an.base.entity.Address;
-import com.an.crm.entity.Member;
 import com.an.utils.JSONDateSerializer;
 import com.an.utils.JSONDateTimeSerializer;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
+import java.io.Serializable;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
-public class Trade {
-
+public class Trade implements Serializable {
+	private static final long serialVersionUID = 1L;
 	private Integer id;
 	private String billCode;
 	private String billType;
 	private String originBillCode;
-	private Member member;
 	private Integer memberId;
 	private String memberName;
 	private String target;
 	private Date billDate;
 	private String shipment;
-	private Address addr;
 	private String shipName;
 	private String shipRegion;
 	private String shipTel;
@@ -84,12 +81,6 @@ public class Trade {
 	public void setOriginBillCode(String originBillCode) {
 		this.originBillCode = originBillCode;
 	}
-	public Member getMember() {
-		return member;
-	}
-	public void setMember(Member member) {
-		this.member = member;
-	}
 	public Integer getMemberId() {
 		return memberId;
 	}
@@ -120,12 +111,6 @@ public class Trade {
 	}
 	public void setShipment(String shipment) {
 		this.shipment = shipment;
-	}
-	public Address getAddr() {
-		return addr;
-	}
-	public void setAddr(Address addr) {
-		this.addr = addr;
 	}
 	public String getShipName() {
 		return shipName;

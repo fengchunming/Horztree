@@ -22,313 +22,305 @@ import java.util.Map;
  */
 public class HttpClientUtil {
 
-    public static final String SunX509 = "SunX509";
-    public static final String JKS = "JKS";
-    public static final String PKCS12 = "PKCS12";
-    public static final String TLS = "TLS";
+	public static final String SunX509 = "SunX509";
+	public static final String JKS = "JKS";
+	public static final String PKCS12 = "PKCS12";
+	public static final String TLS = "TLS";
 
-    /**
-     * get HttpURLConnection
-     *
-     * @param strUrl url地址
-     * @return HttpURLConnection
-     * @throws java.io.IOException
-     */
-    public static HttpURLConnection getHttpURLConnection(String strUrl)
-            throws IOException {
-        URL url = new URL(strUrl);
-        return (HttpURLConnection) url.openConnection();
-    }
+	/**
+	 * get HttpURLConnection
+	 *
+	 * @param strUrl
+	 *            url地址
+	 * @return HttpURLConnection
+	 * @throws java.io.IOException
+	 */
+	public static HttpURLConnection getHttpURLConnection(String strUrl) throws IOException {
+		URL url = new URL(strUrl);
+		return (HttpURLConnection) url.openConnection();
+	}
 
-    /**
-     * get HttpsURLConnection
-     *
-     * @param strUrl url地址
-     * @return HttpsURLConnection
-     * @throws java.io.IOException
-     */
-    public static HttpsURLConnection getHttpsURLConnection(String strUrl)
-            throws IOException {
-        URL url = new URL(strUrl);
-        return (HttpsURLConnection) url.openConnection();
-    }
+	/**
+	 * get HttpsURLConnection
+	 *
+	 * @param strUrl
+	 *            url地址
+	 * @return HttpsURLConnection
+	 * @throws java.io.IOException
+	 */
+	public static HttpsURLConnection getHttpsURLConnection(String strUrl) throws IOException {
+		URL url = new URL(strUrl);
+		return (HttpsURLConnection) url.openConnection();
+	}
 
-    /**
-     * 获取不带查询串的url
-     *
-     * @param strUrl
-     * @return String
-     */
-    public static String getURL(String strUrl) {
+	/**
+	 * 获取不带查询串的url
+	 *
+	 * @param strUrl
+	 * @return String
+	 */
+	public static String getURL(String strUrl) {
+		if (null != strUrl) {
+			int indexOf = strUrl.indexOf("?");
+			if (-1 != indexOf) {
+				return strUrl.substring(0, indexOf);
+			}
 
-        if (null != strUrl) {
-            int indexOf = strUrl.indexOf("?");
-            if (-1 != indexOf) {
-                return strUrl.substring(0, indexOf);
-            }
+			return strUrl;
+		}
 
-            return strUrl;
-        }
+		return strUrl;
+	}
 
-        return strUrl;
+	/**
+	 * 获取查询串
+	 *
+	 * @param strUrl
+	 * @return String
+	 */
+	public static String getQueryString(String strUrl) {
+		if (null != strUrl) {
+			int indexOf = strUrl.indexOf("?");
+			if (-1 != indexOf) {
+				return strUrl.substring(indexOf + 1, strUrl.length());
+			}
 
-    }
+			return "";
+		}
 
-    /**
-     * 获取查询串
-     *
-     * @param strUrl
-     * @return String
-     */
-    public static String getQueryString(String strUrl) {
+		return strUrl;
+	}
 
-        if (null != strUrl) {
-            int indexOf = strUrl.indexOf("?");
-            if (-1 != indexOf) {
-                return strUrl.substring(indexOf + 1, strUrl.length());
-            }
+	/**
+	 * 查询字符串转换成Map<br/>
+	 * name1=key1&name2=key2&...
+	 *
+	 * @param queryString
+	 * @return
+	 */
+	public static Map<String, String> queryString2Map(String queryString) {
+		if (null == queryString || "".equals(queryString)) {
+			return null;
+		}
 
-            return "";
-        }
+		Map<String, String> m = new HashMap<String, String>();
+		String[] strArray = queryString.split("&");
+		for (int index = 0; index < strArray.length; index++) {
+			String pair = strArray[index];
+			HttpClientUtil.putMapByPair(pair, m);
+		}
 
-        return strUrl;
-    }
+		return m;
+	}
 
-    /**
-     * 查询字符串转换成Map<br/>
-     * name1=key1&name2=key2&...
-     *
-     * @param queryString
-     * @return
-     */
-    public static Map queryString2Map(String queryString) {
-        if (null == queryString || "".equals(queryString)) {
-            return null;
-        }
+	/**
+	 * 把键值添加至Map<br/>
+	 * pair:name=value
+	 *
+	 * @param pair
+	 *            name=value
+	 * @param m
+	 */
+	public static void putMapByPair(String pair, Map<String, String> m) {
+		if (null == pair || "".equals(pair)) {
+			return;
+		}
 
-        Map m = new HashMap();
-        String[] strArray = queryString.split("&");
-        for (int index = 0; index < strArray.length; index++) {
-            String pair = strArray[index];
-            HttpClientUtil.putMapByPair(pair, m);
-        }
+		int indexOf = pair.indexOf("=");
+		if (-1 != indexOf) {
+			String k = pair.substring(0, indexOf);
+			String v = pair.substring(indexOf + 1, pair.length());
+			if (null != k && !"".equals(k)) {
+				m.put(k, v);
+			}
+		} else {
+			m.put(pair, "");
+		}
+	}
 
-        return m;
+	/**
+	 * BufferedReader转换成String<br/>
+	 * 注意:流关闭需要自行处理
+	 *
+	 * @param reader
+	 * @return String
+	 * @throws java.io.IOException
+	 */
+	public static String bufferedReader2String(BufferedReader reader) throws IOException {
+		StringBuffer buf = new StringBuffer();
+		String line;
+		while ((line = reader.readLine()) != null) {
+			buf.append(line);
+			buf.append("\r\n");
+		}
 
-    }
+		return buf.toString();
+	}
 
-    /**
-     * 把键值添加至Map<br/>
-     * pair:name=value
-     *
-     * @param pair name=value
-     * @param m
-     */
-    public static void putMapByPair(String pair, Map m) {
+	/**
+	 * 处理输出<br/>
+	 * 注意:流关闭需要自行处理
+	 *
+	 * @param out
+	 * @param data
+	 * @param len
+	 * @throws java.io.IOException
+	 */
+	public static void doOutput(OutputStream out, byte[] data, int len) throws IOException {
+		int dataLen = data.length;
+		int off = 0;
+		while (off < data.length) {
+			if (len >= dataLen) {
+				out.write(data, off, dataLen);
+				off += dataLen;
+			} else {
+				out.write(data, off, len);
+				off += len;
+				dataLen -= len;
+			}
 
-        if (null == pair || "".equals(pair)) {
-            return;
-        }
+			// 刷新缓冲区
+			out.flush();
+		}
+	}
 
-        int indexOf = pair.indexOf("=");
-        if (-1 != indexOf) {
-            String k = pair.substring(0, indexOf);
-            String v = pair.substring(indexOf + 1, pair.length());
-            if (null != k && !"".equals(k)) {
-                m.put(k, v);
-            }
-        } else {
-            m.put(pair, "");
-        }
-    }
+	/**
+	 * 获取SSLContext
+	 *
+	 * @param trustFileInputStream
+	 * @param trustPasswd
+	 * @param keyFileInputStream
+	 * @param keyPasswd
+	 * @return
+	 * @throws java.security.NoSuchAlgorithmException
+	 * @throws java.security.KeyStoreException
+	 * @throws java.io.IOException
+	 * @throws java.security.cert.CertificateException
+	 * @throws java.security.UnrecoverableKeyException
+	 * @throws java.security.KeyManagementException
+	 */
+	public static SSLContext getSSLContext(
+			FileInputStream trustFileInputStream, String trustPasswd,
+			FileInputStream keyFileInputStream, String keyPasswd)
+			throws NoSuchAlgorithmException, KeyStoreException,
+			CertificateException, IOException, UnrecoverableKeyException,
+			KeyManagementException {
 
-    /**
-     * BufferedReader转换成String<br/>
-     * 注意:流关闭需要自行处理
-     *
-     * @param reader
-     * @return String
-     * @throws java.io.IOException
-     */
-    public static String bufferedReader2String(BufferedReader reader) throws IOException {
-        StringBuffer buf = new StringBuffer();
-        String line;
-        while ((line = reader.readLine()) != null) {
-            buf.append(line);
-            buf.append("\r\n");
-        }
+		// ca
+		TrustManagerFactory tmf = TrustManagerFactory.getInstance(HttpClientUtil.SunX509);
+		KeyStore trustKeyStore = KeyStore.getInstance(HttpClientUtil.JKS);
+		trustKeyStore.load(trustFileInputStream, HttpClientUtil.str2CharArray(trustPasswd));
+		tmf.init(trustKeyStore);
 
-        return buf.toString();
-    }
+		final char[] kp = HttpClientUtil.str2CharArray(keyPasswd);
+		KeyManagerFactory kmf = KeyManagerFactory.getInstance(HttpClientUtil.SunX509);
+		KeyStore ks = KeyStore.getInstance(HttpClientUtil.PKCS12);
+		ks.load(keyFileInputStream, kp);
+		kmf.init(ks, kp);
 
-    /**
-     * 处理输出<br/>
-     * 注意:流关闭需要自行处理
-     *
-     * @param out
-     * @param data
-     * @param len
-     * @throws java.io.IOException
-     */
-    public static void doOutput(OutputStream out, byte[] data, int len)
-            throws IOException {
-        int dataLen = data.length;
-        int off = 0;
-        while (off < data.length) {
-            if (len >= dataLen) {
-                out.write(data, off, dataLen);
-                off += dataLen;
-            } else {
-                out.write(data, off, len);
-                off += len;
-                dataLen -= len;
-            }
+		SecureRandom rand = new SecureRandom();
+		SSLContext ctx = SSLContext.getInstance(HttpClientUtil.TLS);
+		ctx.init(kmf.getKeyManagers(), tmf.getTrustManagers(), rand);
 
-            // 刷新缓冲区
-            out.flush();
-        }
+		return ctx;
+	}
 
-    }
+	/**
+	 * 获取CA证书信息
+	 *
+	 * @param cafile
+	 *            CA证书文件
+	 * @return Certificate
+	 * @throws java.security.cert.CertificateException
+	 * @throws java.io.IOException
+	 */
+	public static Certificate getCertificate(File cafile) throws CertificateException, IOException {
+		CertificateFactory cf = CertificateFactory.getInstance("X.509");
+		FileInputStream in = new FileInputStream(cafile);
+		Certificate cert = cf.generateCertificate(in);
+		in.close();
+		return cert;
+	}
 
-    /**
-     * 获取SSLContext
-     *
-     * @param trustFileInputStream
-     * @param trustPasswd
-     * @param keyFileInputStream
-     * @param keyPasswd
-     * @return
-     * @throws java.security.NoSuchAlgorithmException
-     * @throws java.security.KeyStoreException
-     * @throws java.io.IOException
-     * @throws java.security.cert.CertificateException
-     * @throws java.security.UnrecoverableKeyException
-     * @throws java.security.KeyManagementException
-     */
-    public static SSLContext getSSLContext(
-            FileInputStream trustFileInputStream, String trustPasswd,
-            FileInputStream keyFileInputStream, String keyPasswd)
-            throws NoSuchAlgorithmException, KeyStoreException,
-            CertificateException, IOException, UnrecoverableKeyException,
-            KeyManagementException {
+	/**
+	 * 字符串转换成char数组
+	 *
+	 * @param str
+	 * @return char[]
+	 */
+	public static char[] str2CharArray(String str) {
+		if (null == str)
+			return null;
 
-        // ca
-        TrustManagerFactory tmf = TrustManagerFactory.getInstance(HttpClientUtil.SunX509);
-        KeyStore trustKeyStore = KeyStore.getInstance(HttpClientUtil.JKS);
-        trustKeyStore.load(trustFileInputStream, HttpClientUtil
-                .str2CharArray(trustPasswd));
-        tmf.init(trustKeyStore);
+		return str.toCharArray();
+	}
 
-        final char[] kp = HttpClientUtil.str2CharArray(keyPasswd);
-        KeyManagerFactory kmf = KeyManagerFactory.getInstance(HttpClientUtil.SunX509);
-        KeyStore ks = KeyStore.getInstance(HttpClientUtil.PKCS12);
-        ks.load(keyFileInputStream, kp);
-        kmf.init(ks, kp);
+	/**
+	 * 存储ca证书成JKS格式
+	 *
+	 * @param cert
+	 * @param alias
+	 * @param password
+	 * @param out
+	 * @throws java.security.KeyStoreException
+	 * @throws java.security.NoSuchAlgorithmException
+	 * @throws java.security.cert.CertificateException
+	 * @throws java.io.IOException
+	 */
+	public static void storeCACert(Certificate cert, String alias,
+			String password, OutputStream out) throws KeyStoreException,
+			NoSuchAlgorithmException, CertificateException, IOException {
+		KeyStore ks = KeyStore.getInstance("JKS");
 
-        SecureRandom rand = new SecureRandom();
-        SSLContext ctx = SSLContext.getInstance(HttpClientUtil.TLS);
-        ctx.init(kmf.getKeyManagers(), tmf.getTrustManagers(), rand);
+		ks.load(null, null);
 
-        return ctx;
-    }
+		ks.setCertificateEntry(alias, cert);
 
-    /**
-     * 获取CA证书信息
-     *
-     * @param cafile CA证书文件
-     * @return Certificate
-     * @throws java.security.cert.CertificateException
-     * @throws java.io.IOException
-     */
-    public static Certificate getCertificate(File cafile)
-            throws CertificateException, IOException {
-        CertificateFactory cf = CertificateFactory.getInstance("X.509");
-        FileInputStream in = new FileInputStream(cafile);
-        Certificate cert = cf.generateCertificate(in);
-        in.close();
-        return cert;
-    }
+		// store keystore
+		ks.store(out, HttpClientUtil.str2CharArray(password));
 
-    /**
-     * 字符串转换成char数组
-     *
-     * @param str
-     * @return char[]
-     */
-    public static char[] str2CharArray(String str) {
-        if (null == str) return null;
+	}
 
-        return str.toCharArray();
-    }
+	public static InputStream String2Inputstream(String str) {
+		return new ByteArrayInputStream(str.getBytes());
+	}
 
-    /**
-     * 存储ca证书成JKS格式
-     *
-     * @param cert
-     * @param alias
-     * @param password
-     * @param out
-     * @throws java.security.KeyStoreException
-     * @throws java.security.NoSuchAlgorithmException
-     * @throws java.security.cert.CertificateException
-     * @throws java.io.IOException
-     */
-    public static void storeCACert(Certificate cert, String alias,
-                                   String password, OutputStream out) throws KeyStoreException,
-            NoSuchAlgorithmException, CertificateException, IOException {
-        KeyStore ks = KeyStore.getInstance("JKS");
+	/**
+	 * InputStream转换成Byte 注意:流关闭需要自行处理
+	 *
+	 * @param in
+	 * @return byte
+	 * @throws Exception
+	 */
+	public static byte[] InputStreamTOByte(InputStream in) throws IOException {
 
-        ks.load(null, null);
+		int BUFFER_SIZE = 4096;
+		ByteArrayOutputStream outStream = new ByteArrayOutputStream();
+		byte[] data = new byte[BUFFER_SIZE];
+		int count = -1;
 
-        ks.setCertificateEntry(alias, cert);
+		while ((count = in.read(data, 0, BUFFER_SIZE)) != -1)
+			outStream.write(data, 0, count);
 
-        // store keystore
-        ks.store(out, HttpClientUtil.str2CharArray(password));
+		data = null;
+		byte[] outByte = outStream.toByteArray();
+		outStream.close();
 
-    }
+		return outByte;
+	}
 
-    public static InputStream String2Inputstream(String str) {
-        return new ByteArrayInputStream(str.getBytes());
-    }
+	/**
+	 * InputStream转换成String 注意:流关闭需要自行处理
+	 *
+	 * @param in
+	 * @param encoding
+	 *            编码
+	 * @return String
+	 * @throws Exception
+	 */
+	public static String InputStreamTOString(InputStream in, String encoding) throws IOException {
+		return new String(InputStreamTOByte(in), encoding);
 
-    /**
-     * InputStream转换成Byte
-     * 注意:流关闭需要自行处理
-     *
-     * @param in
-     * @return byte
-     * @throws Exception
-     */
-    public static byte[] InputStreamTOByte(InputStream in) throws IOException {
-
-        int BUFFER_SIZE = 4096;
-        ByteArrayOutputStream outStream = new ByteArrayOutputStream();
-        byte[] data = new byte[BUFFER_SIZE];
-        int count = -1;
-
-        while ((count = in.read(data, 0, BUFFER_SIZE)) != -1)
-            outStream.write(data, 0, count);
-
-        data = null;
-        byte[] outByte = outStream.toByteArray();
-        outStream.close();
-
-        return outByte;
-    }
-
-    /**
-     * InputStream转换成String
-     * 注意:流关闭需要自行处理
-     *
-     * @param in
-     * @param encoding 编码
-     * @return String
-     * @throws Exception
-     */
-    public static String InputStreamTOString(InputStream in, String encoding) throws IOException {
-        return new String(InputStreamTOByte(in), encoding);
-
-    }
-
+	}
 
 }

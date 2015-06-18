@@ -33,6 +33,7 @@ public class SessionInterceptor implements Interceptor {
     private String generateSql(String sql, User user) {
         sql = sql.replaceAll("#userId", String.valueOf(user.getUserId()));
         sql = sql.replaceAll("#staffCode", String.valueOf(user.getStaffCode()));
+        sql = sql.replaceAll("#regionId", String.valueOf(user.getRegion().getId()));
         sql = sql.replaceAll("#regionCode", String.valueOf(user.getRegion().getCode()));
 
         StringBuilder groups = new StringBuilder();

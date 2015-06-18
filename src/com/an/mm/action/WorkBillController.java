@@ -2,11 +2,13 @@ package com.an.mm.action;
 
 import com.an.core.exception.BadRequestException;
 import com.an.core.exception.ErrorModelAndView;
+import com.an.core.service.SecurityFilter;
 import com.an.mm.dao.GoodsDao;
 import com.an.mm.dao.WorkBillDao;
 import com.an.mm.dao.WorkBillDetailDao;
 import com.an.mm.entity.WorkBill;
 import com.an.mm.entity.WorkBillDetail;
+import com.an.sys.entity.User;
 import com.an.utils.Util;
 
 import org.slf4j.Logger;
@@ -164,12 +166,17 @@ public class WorkBillController {
 		if ("1".equals(bill.getDealStatus())) {
 			throw new BadRequestException("入库单已确认，不可重复确认！");
 		}
+		User user = SecurityFilter.threadLocal.get();
+		if (!(user.getRegionId() != null && user.getRegionId().equals(bill.getToRegion()))) {
+			throw new BadRequestException("您不是本单据的收货仓管理员，无权完成入库确认！");
+		}
+		
 		List<WorkBillDetail> details = detailDao.selectByBill(id);
 		Integer from = bill.getFromRegion();
 		Integer to = bill.getToRegion();
 		for (WorkBillDetail detail : details) {
 			if (from != null) {
-				goodsDao.reduceStock(detail.getGoodsId(), from, detail.getQuantity().intValue());
+				goodsDao.reduceStock(detail.getGoodsId(), from, detail.getQuantity().intValue(), false);
 			}
 			if (to != null) {
 				goodsDao.addStock(detail.getGoodsId(), to, detail.getQuantity().intValue());
@@ -192,13 +199,17 @@ public class WorkBillController {
 		if ("1".equals(bill.getDealStatus())) {
 			throw new BadRequestException("出库单已确认，不可重复确认！");
 		}
+		User user = SecurityFilter.threadLocal.get();
+		if (!(user.getRegionId() != null && user.getRegionId().equals(bill.getFromRegion()))) {
+			throw new BadRequestException("您不是本单据的发货仓管理员，无权完成出库确认！");
+		}
 
 		List<WorkBillDetail> details = detailDao.selectByBill(billId);
 		Integer from = bill.getFromRegion();
 		Integer to = bill.getToRegion();
 		for (WorkBillDetail detail : details) {
 			if (from != null) {
-				goodsDao.reduceStock(detail.getGoodsId(), from, detail.getQuantity().intValue());
+				goodsDao.reduceStock(detail.getGoodsId(), from, detail.getQuantity().intValue(), false);
 			}
 			if (to != null) {
 				goodsDao.addStock(detail.getGoodsId(), to, detail.getQuantity().intValue());
@@ -222,13 +233,21 @@ public class WorkBillController {
 		if ("1".equals(bill.getDealStatus())) {
 			throw new BadRequestException("调拨单已确认，不可重复确认！");
 		}
+		
+		User user = SecurityFilter.threadLocal.get();
+		if (!(user.getRegionId() != null && (user.getRegionId().equals(bill.getFromRegion()) || user.getRegionId().equals(bill.getToRegion())))) {
+			throw new BadRequestException("您不是本单据的发货仓或收货仓管理员，无权完成调拨确认！");
+		}
+		if (user.getRegionId() != null && user.getRegionId().equals(bill.getEnterBy())) {
+			throw new BadRequestException("调拨单不能由本人确认！");
+		}
 
 		List<WorkBillDetail> details = detailDao.selectByBill(billId);
 		Integer from = bill.getFromRegion();
 		Integer to = bill.getToRegion();
 		for (WorkBillDetail detail : details) {
 			if (from != null) {
-				goodsDao.reduceStock(detail.getGoodsId(), from, detail.getQuantity().intValue());
+				goodsDao.reduceStock(detail.getGoodsId(), from, detail.getQuantity().intValue(), false);
 			}
 			if (to != null) {
 				goodsDao.addStock(detail.getGoodsId(), to, detail.getQuantity().intValue());
