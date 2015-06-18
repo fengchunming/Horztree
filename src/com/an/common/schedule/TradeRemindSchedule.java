@@ -19,8 +19,5 @@ public class TradeRemindSchedule {
 		//service.scheduleAtFixedRate(runnable, 10, 1, TimeUnit.SECONDS);
 		service.scheduleAtFixedRate(runnable, 5, 10, TimeUnit.MINUTES);
 	}
-	
-	
-	
 
 }

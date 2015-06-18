@@ -51,8 +51,8 @@
 
 		$.get('rest/mm/inventory/low', function(data) {
 			var html = "";
-			if (data.count > 0) {
-				html += '<dd><span class="title"><a href="#mm/inventory.html">您有 ' + data.count + ' 种商品库存量低于安全库存量，请及时补货。</a></span><span class="date"></span></dd>';
+			if (data > 0) {
+				html += '<dd><span class="title"><a href="#mm/inventory.html">您有 ' + data + ' 种商品库存量低于安全库存，请及时补货。</a></span><span class="date"></span></dd>';
 				$('#warning').append(html);
 			}
 		});
@@ -67,8 +67,8 @@
 		
 		$.get('rest/trade/bill/waitSend', function(data) {
 			var html = "";
-			if (data.count > 0) {
-				html += '<dd><span class="title"><a href="#trade/trade.html">您有 ' + data.count + ' 条订单未发货，请及时处理。</a></span><span class="date"></span></dd>';
+			if (count > 0) {
+				html += '<dd><span class="title"><a href="#trade/trade.html">您有 ' + count + ' 条订单未发货，请及时处理。</a></span><span class="date"></span></dd>';
 				$('#warning').append(html);
 			}
 		});
@@ -98,9 +98,6 @@
 	<div style="margin: 10px;">
 		<dl id="task" class="list">
 			<dt>待办事项</dt>
-			<dd>
-				<span></span><span></span>
-			</dd>
 		</dl>
 
 		<dl id="notice" class="list">
@@ -115,7 +112,6 @@
 
 		<dl id="warning" class="list">
 			<dt>系统提醒</dt>
-			<dd></dd>
 		</dl>
 	</div>
 	<div style="clear:both"></div>

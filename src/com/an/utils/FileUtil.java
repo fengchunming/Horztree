@@ -58,15 +58,10 @@ public class FileUtil{
 	public static void downloadExcel(Map<String, Object> beans,
 			HttpServletRequest request, HttpServletResponse response,
 			String templatePath) throws Exception {
-		String projectBasePath = request.getSession().getServletContext().getRealPath("/") ;//物理路径 绝对路径;
-		System.out.println("-----------------"+projectBasePath);
 		String currentTime = Period.getSystemTime();
 		String exportFileName = currentTime + ".xls";
-		//String templateFileName = projectBasePath + templatePath;
-		String templateFileName =  projectBasePath+templatePath;
-		System.out.println("------------------------"+templateFileName);
 		XLSTransformer transformer = new XLSTransformer();
-		transformer.transformXLS(templateFileName, beans, exportFileName);
+		transformer.transformXLS(templatePath, beans, exportFileName);
 		response.reset();
 		response.setHeader("Content-Disposition", "attachment; filename="
 				+ URLEncoder.encode(exportFileName, "UTF-8"));
@@ -88,7 +83,6 @@ public class FileUtil{
 	 */
 	public static List importData(HttpServletRequest request,
 			String configFilePath) throws Exception {
-		FileOutputStream fos;
 		InputStream is = null;
 		String filename = request.getHeader("X-File-Name");
 		try {
