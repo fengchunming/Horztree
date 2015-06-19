@@ -34,6 +34,7 @@
 		<result column="enter_at" property="enterAt" jdbcType="TIMESTAMP" />
 
 		<result column="region_id" property="regionId" jdbcType="INTEGER" />
+		<result column="region_code" property="regionCode" jdbcType="VARCHAR" />
 		<result column="stock_sum" property="stockSum" jdbcType="INTEGER" />
 		<result column="stock_locked" property="stockLocked" jdbcType="INTEGER" />
 		<result column="safe_line" property="safeLine" jdbcType="INTEGER" />
@@ -62,6 +63,7 @@
 			<if test="categoryId != null and categoryId > 0">
 				and category_id = #{categoryId}
 			</if>
+			
 			<if test="categoryCode != null and categoryCode !=''">
 				and category_code like concat(#{categoryCode}, '%')
 			</if>
@@ -258,5 +260,36 @@
 		enter_by = #userId,
 		enter_at = now()		
 	</insert>
+	
+	<!-- 查询在code 集合里面的id 列表 -->
+	<select id="selectGoodsIdList" resultMap="BaseResultMap" parameterType="java.util.List">
+	   select id,code from mm_goods where  code in 
+		<foreach collection="list" item="item" index="index" separator="," open="(" close=")" >  
+           #{item.code}  
+        </foreach>  
+	</select>
+	
+	<!-- 查询在regioncode 对应的regionid 列表 -->
+	<select id="selectRegionIdList" resultMap="BaseResultMap" parameterType="java.util.List">
+	   select id as region_id,code as region_code from sys_region where  code in 
+		<foreach collection="list" item="item" index="index" separator="," open="(" close=")" >  
+           #{item.regionCode}  
+        </foreach>  
+	</select>
+	
+	
+	<!-- 批量导入库存 -->
+	<insert id="batchInsertOrUpdateInventory" parameterType="java.util.List"> 
+	   insert into mm_goods_region
+	   (goods_id,region_id,stock_sum,stock_locked,enter_by,enter_at) values  
+	    <foreach collection="list" item="item" index="index" separator="," >  
+	        (#{item.id},#{item.regionId},#{item.stockSum},0,#userId, now())  
+	    </foreach>  
+	        on duplicate key update 
+			stock_sum = values(stock_sum), 
+			stock_locked = values(stock_locked), 
+			enter_by = values(enter_by),
+			enter_at = values(enter_at)	
+	</insert>  
 
 </mapper>

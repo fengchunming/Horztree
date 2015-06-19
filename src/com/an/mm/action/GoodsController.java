@@ -1,5 +1,7 @@
 package com.an.mm.action;
 
+import com.an.base.dao.RegionDao;
+import com.an.base.entity.Region;
 import com.an.core.exception.BadRequestException;
 import com.an.core.exception.ErrorModelAndView;
 import com.an.mm.dao.CategoryDao;
@@ -7,6 +9,7 @@ import com.an.mm.dao.GoodsDao;
 import com.an.mm.entity.Goods;
 import com.an.mm.entity.Picture;
 import com.an.sys.entity.Setting;
+import com.an.utils.FileUtil;
 import com.an.utils.ImageUtil;
 import com.an.utils.Upload;
 import com.an.utils.Util;
@@ -22,8 +25,11 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.ModelAndView;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
+import java.io.File;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -40,6 +46,9 @@ public class GoodsController {
 
 	@Autowired
 	private GoodsDao goodsDao;
+	
+	@Autowired
+	private RegionDao regionDao;
 	
 	@Autowired
 	private CategoryDao categoryDao;
@@ -198,7 +207,57 @@ public class GoodsController {
 			return goods;
 		}
 	}
+    /**
+     * 批量导入库存
+     * @param request
+     * @return
+     * @throws Exception
+     */
+	@RequestMapping(value = "/inventory/import", method = RequestMethod.POST)
+	@Transactional
+	public Map<String,Object> saveBatchInventory(HttpServletRequest request) throws Exception {
+		String realPath = request.getServletContext().getRealPath("");
+        String configFilePath = realPath + File.separator + "template" + File.separator + "GoodsRegionConfig.xml";
+		List<Goods> list=FileUtil.importData(request, configFilePath);
+		
+		list = getIdByCode(list);
+		Map<String,Object> map = new HashMap<String,Object>();
+        int count = goodsDao.batchUpdateGoodsInventory(list);	
+		if (count < 1) {//可能为2
+			throw new BadRequestException("保存失败！");
+		} else {
+			map.put("msg","导入成功") ;
+			return map;
+		}
+	}
 
+	/**
+	 * 导出现有库存
+	 * @param request
+	 * @param webRequest
+	 * @param response
+	 * @throws Exception
+	 */
+	@RequestMapping(value = "/inventory/export", method = RequestMethod.GET)
+	@Transactional
+	public void exportInventory(HttpServletRequest request,WebRequest webRequest ,HttpServletResponse response) throws Exception {
+		String realPath = request.getServletContext().getRealPath("");
+		
+        String templatePath = realPath + File.separator + "template" + File.separator + "inventory_template.xlsx";
+        Map<String, Object> beans = new HashMap<>();
+        Map<String, Object> mParam = Util.GetRequestMap(webRequest);
+        List<Goods> list = goodsDao.selectInventory(mParam);
+        Integer regionId = Integer.parseInt( mParam.get("regionId").toString());
+        Region region =  regionDao.selectOne(regionId);
+		for (Goods goods : list) {
+			goods.setRegionCode(region.getCode());
+			goods.setRegionName(region.getFullName());
+		}
+		beans.put("title",region.getFullName());
+		beans.put("date",Util.CurrentTime("yyyy-MM-dd"));
+		beans.put("list", list);
+        FileUtil.downloadExcel(beans, request, response, templatePath);
+	}
 	/**
 	 * 异常处理
 	 */
@@ -214,6 +273,33 @@ public class GoodsController {
 	public ModelAndView otherException(Exception e) {
 		logger.warn(e.getMessage(), e);
 		return new ErrorModelAndView(e);
+	}
+	
+	private List<Goods> getIdByCode(List<Goods> list) {
+		for (Goods goods : list) {
+			goods.setCode(goods.getCode().trim());
+			goods.setRegionCode(goods.getRegionCode().trim());
+		}
+		List<Goods> goodsIdList = goodsDao.selectGoodsIdList(list);
+		// 查出goods 表中 code对应的id 放入list
+		for (Goods i : list) {
+			for (Goods j : goodsIdList) {
+				if (i.getCode().equals(j.getCode())) {
+					i.setId(j.getId());
+					break;
+				}
+			}
+		}
+		List<Goods> regionIdList = goodsDao.selectRegionIdList(list);
+		for (Goods i : list) {
+			for (Goods j : regionIdList) {
+				if (i.getRegionCode().equals(j.getRegionCode())) {
+					i.setRegionId(j.getRegionId());
+					break;
+				}
+			}
+		}
+		return list;
 	}
 
 }

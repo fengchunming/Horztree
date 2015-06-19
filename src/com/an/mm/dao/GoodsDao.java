@@ -1,6 +1,7 @@
 package com.an.mm.dao;
 
 import com.an.base.dao.RegionDao;
+import com.an.base.entity.Region;
 import com.an.core.exception.BadRequestException;
 import com.an.core.model.BaseDao;
 import com.an.mm.entity.Goods;
@@ -51,9 +52,35 @@ public class GoodsDao extends BaseDao<Goods, Integer> {
     	mParam.put("regionId", regionId);
 		return sqlSession.selectOne(namespace + ".selectInventory", mParam);
 	}
-
+	
+	/**
+	 * 查出goods表中在集合code里面的id列表
+	 * @param list
+	 * @return
+	 */
+	public List<Goods> selectGoodsIdList(List<Goods> list) {
+		return sqlSession.selectList(namespace + ".selectGoodsIdList", list);
+	}
+	
+	/**
+	 * 查出region表中在集合code里面的id列表
+	 * @param list
+	 * @return
+	 */
+	public List<Goods> selectRegionIdList(List<Goods> list) {
+		return sqlSession.selectList(namespace + ".selectRegionIdList", list);
+	}
+	/**
+	 * 批量导入库存数据，存在更新，不存在插入
+	 * @param goods
+	 * @return
+	 */
 	public int updateGoodsInventory(Goods goods) {
 		return sqlSession.update(namespace + ".insertOrUpdateInventory", goods);
+	}
+	
+	public int batchUpdateGoodsInventory(List<Goods> list) {
+		return sqlSession.update(namespace + ".batchInsertOrUpdateInventory", list);
 	}
 
 	public int reduceStock(int goodsId, int regionId, int amount, boolean changeSoldVolume) {

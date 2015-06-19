@@ -43,7 +43,23 @@ public class Goods implements Serializable {
 	private Date enterAt;
 
 	private Integer regionId;
+	private String regionCode;
+	private String regionName;
 	private Integer stockSum;
+	
+	
+	public String getRegionName() {
+		return regionName;
+	}
+	public void setRegionName(String regionName) {
+		this.regionName = regionName;
+	}
+	public String getRegionCode() {
+		return regionCode;
+	}
+	public void setRegionCode(String regionCode) {
+		this.regionCode = regionCode;
+	}
 	private Integer stockLocked;
 	private Integer safeLine;
 
