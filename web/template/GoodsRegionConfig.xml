@@ -9,6 +9,7 @@
 	    <mapping row="2" col="2">goods.regionCode</mapping> 	
         <mapping row="2" col="3">goods.regionName</mapping> 
 	    <mapping row="2" col="4">goods.stockSum</mapping> 	   
+	    <mapping row="2" col="5">goods.isReserved</mapping> 	   
       </section>
       <loopbreakcondition>
         <rowcheck offset="0">

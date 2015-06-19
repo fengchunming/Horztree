@@ -109,6 +109,8 @@
 		set status = 'd', enter_by = #userId, enter_at = now()
 		where id = #{value,jdbcType=INTEGER}
 	</delete>
+	
+	
 
 	<insert id="insert" parameterType="com.an.mm.entity.Goods">
 		insert into MM_GOODS (code, barcode, name, title, tips,
@@ -291,5 +293,15 @@
 			enter_by = values(enter_by),
 			enter_at = values(enter_at)	
 	</insert>  
+	
+	<!--导入库存时 删除 不保留 的 商品  -->
+	<delete id="batchDeleteInventory" parameterType="java.util.List">
+		delete from  mm_goods_region  where 	
+		<foreach collection="list" item="goods" index="index" separator=" or "  >  
+           (goods_id = #{goods.id} and region_id = #{goods.regionId})  
+        </foreach>  
+	</delete>
+	
+	
 
 </mapper>

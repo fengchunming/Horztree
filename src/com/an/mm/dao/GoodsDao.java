@@ -70,18 +70,28 @@ public class GoodsDao extends BaseDao<Goods, Integer> {
 	public List<Goods> selectRegionIdList(List<Goods> list) {
 		return sqlSession.selectList(namespace + ".selectRegionIdList", list);
 	}
-	/**
-	 * 批量导入库存数据，存在更新，不存在插入
-	 * @param goods
-	 * @return
-	 */
+	
 	public int updateGoodsInventory(Goods goods) {
 		return sqlSession.update(namespace + ".insertOrUpdateInventory", goods);
 	}
-	
+	/**
+	 * 批量导入库存数据，存在更新，不存在插入
+	 * @param list
+	 * @return
+	 */
 	public int batchUpdateGoodsInventory(List<Goods> list) {
 		return sqlSession.update(namespace + ".batchInsertOrUpdateInventory", list);
 	}
+	
+	/**
+	 * 批量导入库存数据，存在更新，不存在插入
+	 * @param list
+	 * @return
+	 */
+	public int batchDeleteGoodsInventory(List<Goods> list) {
+		return sqlSession.delete(namespace + ".batchDeleteInventory", list);
+	}
+	
 
 	public int reduceStock(int goodsId, int regionId, int amount, boolean changeSoldVolume) {
 		if (amount == 0) return 0;

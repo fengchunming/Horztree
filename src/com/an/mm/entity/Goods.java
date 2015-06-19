@@ -47,7 +47,16 @@ public class Goods implements Serializable {
 	private String regionName;
 	private Integer stockSum;
 	
+	private String isReserved;
 	
+	
+	
+	public String getIsReserved() {
+		return isReserved;
+	}
+	public void setIsReserved(String isReserved) {
+		this.isReserved = isReserved;
+	}
 	public String getRegionName() {
 		return regionName;
 	}

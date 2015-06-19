@@ -28,6 +28,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -219,12 +220,29 @@ public class GoodsController {
 		String realPath = request.getServletContext().getRealPath("");
         String configFilePath = realPath + File.separator + "template" + File.separator + "GoodsRegionConfig.xml";
 		List<Goods> list=FileUtil.importData(request, configFilePath);
-		
+		List<Goods> delList = new ArrayList<Goods>();
+		List<Goods> reservedList = new ArrayList<Goods>();
 		list = getIdByCode(list);
+		// 删除保留位 是 “否” 的记录，更新保留位是 “是” 的记录
+		for (Goods goods : list) {
+			if("否".equals(goods.getIsReserved().trim())){
+				delList.add(goods);
+			}else{
+				reservedList.add(goods);
+			}
+		}
+				
 		Map<String,Object> map = new HashMap<String,Object>();
-        int count = goodsDao.batchUpdateGoodsInventory(list);	
-		if (count < 1) {//可能为2
-			throw new BadRequestException("保存失败！");
+		int result1 =2;
+		int result2 = 2 ;
+		if(reservedList.size()>0){
+			 result1 = goodsDao.batchUpdateGoodsInventory(reservedList);
+		}
+		if(delList.size()>0){
+			 result2 = goodsDao.batchDeleteGoodsInventory(delList);
+		}
+		if ( result1< 1||result2<1) {
+			throw new BadRequestException("导入失败！");
 		} else {
 			map.put("msg","导入成功") ;
 			return map;
@@ -256,6 +274,7 @@ public class GoodsController {
 		beans.put("title",region.getFullName());
 		beans.put("date",Util.CurrentTime("yyyy-MM-dd"));
 		beans.put("list", list);
+		beans.put("isReserved", "是");
         FileUtil.downloadExcel(beans, request, response, templatePath);
 	}
 	/**
