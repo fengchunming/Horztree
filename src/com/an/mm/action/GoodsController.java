@@ -11,9 +11,14 @@ import com.an.mm.entity.Picture;
 import com.an.sys.entity.Setting;
 import com.an.utils.FileUtil;
 import com.an.utils.ImageUtil;
+import com.an.utils.Period;
 import com.an.utils.Upload;
 import com.an.utils.Util;
 
+import net.sf.jxls.transformer.XLSTransformer;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +33,10 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
 import java.io.File;
-import java.util.ArrayList;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -260,7 +268,6 @@ public class GoodsController {
 	@Transactional
 	public void exportInventory(HttpServletRequest request,WebRequest webRequest ,HttpServletResponse response) throws Exception {
 		String realPath = request.getServletContext().getRealPath("");
-		
         String templatePath = realPath + File.separator + "template" + File.separator + "inventory_template.xlsx";
         Map<String, Object> beans = new HashMap<>();
         Map<String, Object> mParam = Util.GetRequestMap(webRequest);
@@ -274,8 +281,21 @@ public class GoodsController {
 		beans.put("title",region.getFullName());
 		beans.put("date",Util.CurrentTime("yyyy-MM-dd"));
 		beans.put("list", list);
-		beans.put("isReserved", "是");
-        FileUtil.downloadExcel(beans, request, response, templatePath);
+		String currentTime = Period.getSystemTime();
+		String exportFileName = "【"+beans.get("title")+"】"+"仓库库存统计表_"+currentTime + ".xlsx";
+		XLSTransformer transformer = new XLSTransformer();
+		Workbook workbook = transformer.transformXLS(new FileInputStream(new File(templatePath)), beans);
+		
+		response.reset();
+		response.setHeader("Content-Disposition", "attachment; filename="
+				+ URLEncoder.encode(exportFileName, "UTF-8"));
+		response.setContentType("application/octet-stream; charset=utf-8");
+		OutputStream outputStream = response.getOutputStream();
+		workbook.write(outputStream);
+		outputStream.flush();
+		outputStream.close();
+		
+		
 	}
 	/**
 	 * 异常处理
