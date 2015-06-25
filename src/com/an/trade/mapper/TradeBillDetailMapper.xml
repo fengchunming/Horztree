@@ -71,21 +71,9 @@
 	</select>
 
 	<select id="deleteByBill" parameterType="int">
-		update MM_GOODS_GROUPS set stock_locked =
-		stock_locked - (select sum(quantity) from TRADE_BILL_DETAIL
-		where TRADE_BILL_DETAIL.goods_id = MM_GOODS_GROUPS.goods_id
-		and TRADE_BILL_DETAIL.group_id = MM_GOODS_GROUPS.group_id
-		and TRADE_BILL_DETAIL.bill_id = #{value}
-		and TRADE_BILL_DETAIL.status != '5')
-		where exists (select 1 from TRADE_BILL_DETAIL
-		where TRADE_BILL_DETAIL.goods_id = MM_GOODS_GROUPS.goods_id
-		and TRADE_BILL_DETAIL.group_id = MM_GOODS_GROUPS.group_id
-		and TRADE_BILL_DETAIL.bill_id = #{value} and TRADE_BILL_DETAIL.status !=
-		'5');
-
 		update TRADE_BILL_DETAIL
-		set status = '5'
-		where bill_id = #{value} and status != '5';
+		set status = '5',enter_at = now()
+		where bill_id = #{value,jdbcType=INTEGER}
 	</select>
 
 	<delete id="deleteByPrimaryKey" parameterType="int">

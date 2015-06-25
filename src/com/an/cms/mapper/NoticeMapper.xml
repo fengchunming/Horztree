@@ -40,12 +40,17 @@
 		<if test="_BY == null">order by ID desc</if>
 	</select>
 
-	<select id="selectByPrimaryKey" resultMap="noticeMap" parameterType="map">
+	<select id="selectByPrimaryKey" resultMap="noticeMap" parameterType="int">
 		select
 		<include refid="Base_Column_List" />, CONTENT
 		from CMS_NOTICE
-		where ID = #{id,jdbcType=INTEGER}
+		where ID = #{value,jdbcType=INTEGER}
 	</select>
+
+	<delete id="deleteByPrimaryKey" parameterType="int">
+		update CMS_NOTICE set status = 'd'
+		where id = #{value,jdbcType=INTEGER}
+	</delete>
 
 	<insert id="insert" parameterType="com.an.cms.entity.Notice">
 		insert into CMS_NOTICE (TITLE, TYPE, READ_TIMES, STATUS, CREATE_BY, CREATE_AT, CONTENT)

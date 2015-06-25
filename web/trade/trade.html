@@ -320,6 +320,10 @@
 					<input type="text" class="mindatepicker" name="sdate"> - <input type="text" class="maxdatepicker" name="edate">
 				</li>
 				<li>
+					<label>订单信息：</label>
+					<input type="text" name="receiver">
+				</li>
+				<li>
 					<label>渠道类型：</label>
 					<select name="type" data-local="tradeType">
 						<option></option>
@@ -377,29 +381,25 @@
 							</li>
 							<li>
 								<label>会员:</label>
-								<input type="text" name="member.id" readonly >
+								<input type="text" name="memberId" readonly >
 							</li>
 							<li>
 								<label class="required">收货人:</label>
-								<input type="text" name="addr.linkman"></li>
+								<input type="text" name="shipName"></li>
 							<li>
 								<label class="required">联系电话:</label>
-								<input type="text" name="addr.tel"></li>
+								<input type="text" name="shipTel"></li>
 							<li>
 								<label>手机:</label>
-								<input type="text" name="addr.mobile">
+								<input type="text" name="shipMobile">
 							</li>
 							<li>
 								<label>收货地区:</label>
-								<input type="text" name="addr.region">
-							</li>
-							<li>
-								<label>收货邮编:</label>
-								<input type="text" name="addr.zip">
+								<input type="text" name="shipRegion">
 							</li>
 							<li>
 								<label>收货地址:</label>
-								<textarea name="addr.addr" required style="height: 40px;"></textarea>
+								<textarea name="shipAddr" required style="height: 40px;"></textarea>
 							</li>
 							<li>
 								<label>备注:</label>

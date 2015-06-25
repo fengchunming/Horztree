@@ -45,6 +45,18 @@
 		<result column="region_id" property="regionId" jdbcType="INTEGER" />
 		<result column="region_code" property="regionCode" jdbcType="VARCHAR" />
 	</resultMap>
+
+	<resultMap id="TradeReportResultMap" type="com.an.trade.entity.TradeReport">
+		<id column="id" property="id" jdbcType="INTEGER" />
+		<result column="region_id" property="regionId" jdbcType="INTEGER" />
+		<result column="region_code" property="regionCode" jdbcType="VARCHAR" />
+		<result column="bill_date" property="billDate" jdbcType="DATE" />
+		<result column="payment" property="payment" jdbcType="VARCHAR" />
+		<result column="bill_type" property="billType" jdbcType="VARCHAR" />
+		<result column="amount" property="amount" jdbcType="NUMERIC" />
+		<result column="billCount" property="billCount" jdbcType="INTEGER" />
+	</resultMap>
+
 	<sql id="Example_Where_Clause">
 		<where>
 			<if test="own">
@@ -61,6 +73,12 @@
 			</if>
 			<if test="billType != null and billType != ''">
 				and bill_type = #{billType,jdbcType=VARCHAR}
+			</if>
+			<if test="receiver != null and receiver != ''">
+				and (ship_name like concat('%', #{receiver,jdbcType=VARCHAR}, '%')
+				or ship_addr like concat('%', #{receiver,jdbcType=VARCHAR}, '%')
+				or ship_region like concat('%', #{receiver,jdbcType=VARCHAR}, '%')
+				or ship_mobile like concat('%', #{receiver,jdbcType=VARCHAR}, '%'))
 			</if>
 			<if test="shipName != null and shipName != ''">and (
 				and ship_name like concat('%', #{shipName,jdbcType=VARCHAR}, '%')
@@ -230,81 +248,27 @@
 		where id = #{id,jdbcType=INTEGER}
 	</update>
 
-	<select id="selectReport" resultType="java.util.HashMap"
-		parameterType="java.util.HashMap">
+	<select id="selectReport" resultMap="TradeReportResultMap" parameterType="map">
 		select
-		<if test="org_group == 'org'">c.group_id as org,</if>
-		<if test="goods_group == 'category'">g.category,</if>
-		<if test="goods_group == 'goods'">d.goods_id as goods,</if>
-		<if test="goods_group == 'supplier'">g.supplier,</if>
-		<if test="time_group == 'year'">extract(year from c.bill_date) as year,</if>
-		<if test="time_group == 'quarter'">extract(quarter from c.bill_date) as quarter,</if>
-		<if test="time_group == 'month'">extract(month from c.bill_date) as month,</if>
-		<if test="time_group == 'week'">extract(week from c.bill_date) as week,</if>
-		<if test="time_group == 'dow'">
-			to_char(c.bill_date,'DY') as dow,
-			extract(dow from c.bill_date) as ndow,
+		<if test="groupBy == 'region'.toString()">region_id,</if>
+		<if test="groupBy == 'billDate'.toString()">bill_date,</if>
+		<if test="groupBy == 'payment'.toString()">payment,</if>
+		<if test="groupBy == 'billType'.toString()">bill_type,</if>
+		sum(amount) amount, count(id) billCount from TRADE_BILL
+		where status = '3'
+		<if test="sdate != null and sdate != ''">
+			and bill_date >= #{sdate,jdbcType=DATE}
 		</if>
-		<if test="time_group == 'day'">c.bill_date as day,</if>
-		<if test="time_group == 'hour'">extract(hour from c.sale_stamp) as hour,</if>
-		<if test="quantity != null">sum(d.plan_quantity) as quantity,</if>
-		<if test="weight != null">sum(d.weight) as weight,</if>
-		<if test="amount != null">sum(c.amount * d.sub_total / c.total) as amount,</if>
-		<if test="total != null">sum(d.sub_total) as total,</if>
-		<if test="payable != null">sum(case when replace(d.seq_no,c.bill_code,'') = '1' then
-			c.amount else 0 end)
-			payable,
+		<if test="edate != null and edate != ''">
+			and bill_date &lt;= #{edate,jdbcType=DATE}
 		</if>
-		<if test="visit_count != null">count(distinct c.bill_code) as visit_count,</if>
-		1 as rownum
-		from TRADE_BILL_DETAIL d, MM_GOODS g,
-		(select
-		m.group_id,m.bill_code,m.bill_date,m.deal_stamp,m.amount,sum(n.sub_total)
-		total
-		from TRADE_BILL m, TRADE_BILL_DETAIL n
-		where m.bill_code = n.bill_code
-		<if test="org_filter != ''">and m.group_id = #{org_filter}</if>
-		<if test="sdate_filter != ''"> and m.bill_date &gt;= #{sdate_filter,jdbcType=DATE} </if>
-		<if test="edate_filter != ''"> and m.bill_date &lt;= #{edate_filter,jdbcType=DATE}</if>
-		group by m.group_id,m.bill_date,m.amount,m.bill_code,m.deal_stamp
-		) c
-		<where>
-			d.goods_id = g.goods_id and d.bill_code = c.bill_code
-			<if test="org_filter != ''">and c.group_id = #{org_filter}</if>
-			<if test="sdate_filter != ''"><![CDATA[  and c.bill_date >= #{sdate_filter,jdbcType=DATE}]]></if>
-			<if test="edate_filter != ''"><![CDATA[  and c.bill_date <= #{edate_filter,jdbcType=DATE}]]></if>
-			<if test="goods_filter != ''">and d.goods_id = #{goods_filter}</if>
-			<if test="category_filter != ''">and g.category = #{category_filter}</if>
-		</where>
-		<trim prefix="group by" suffixOverrides=",">
-			<if test="org_group == 'org'">org,</if>
-			<if test="goods_group == 'category'">g.category,</if>
-			<if test="goods_group == 'goods'">goods,</if>
-			<if test="goods_group == 'supplier'">supplier,</if>
-			<if test="time_group == 'year'">year,</if>
-			<if test="time_group == 'quarter'">quarter,</if>
-			<if test="time_group == 'month'">month,</if>
-			<if test="time_group == 'week'">week,</if>
-			<if test="time_group == 'dow'">dow,ndow,</if>
-			<if test="time_group == 'day'">day,</if>
-			<if test="time_group == 'hour'">hour</if>
-		</trim>
-		<if test="_BY != null">order by ${_BY}</if>
-		<if test="_BY == null">
-			<trim prefix="order by" suffixOverrides=",">
-				<if test="goods_group == 'smallCate'">category,</if>
-				<if test="goods_group == 'goods'">goods,</if>
-				<if test="goods_group == 'supplier'">supplier,</if>
-				<if test="time_group == 'year'">year,</if>
-				<if test="time_group == 'quarter'">quarter,</if>
-				<if test="time_group == 'month'">month,</if>
-				<if test="time_group == 'week'">week,</if>
-				<if test="time_group == 'dow'">ndow,</if>
-				<if test="time_group == 'day'">day,</if>
-				<if test="time_group == 'hour'">hour,</if>
-				<if test="org_group == 'org'">org</if>
-			</trim>
+		<if test="regionCode != null and regionCode != ''">
+			and region_code like concat(#{regionCode,jdbcType=VARCHAR}, '%')
 		</if>
+		<if test="groupBy == 'region'.toString()">group by region_id order by sum(amount) desc</if>
+		<if test="groupBy == 'billDate'.toString()">group by bill_date order by bill_date</if>
+		<if test="groupBy == 'payment'.toString()">group by payment order by count(id) desc</if>
+		<if test="groupBy == 'billType'.toString()">group by bill_type order by count(id) desc</if>
 	</select>
 
 </mapper>

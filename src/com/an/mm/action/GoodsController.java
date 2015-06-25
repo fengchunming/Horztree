@@ -17,7 +17,6 @@ import com.an.utils.Util;
 
 import net.sf.jxls.transformer.XLSTransformer;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,9 +33,9 @@ import javax.servlet.http.HttpServletResponse;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URLEncoder;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -224,35 +223,35 @@ public class GoodsController {
      */
 	@RequestMapping(value = "/inventory/import", method = RequestMethod.POST)
 	@Transactional
-	public Map<String,Object> saveBatchInventory(HttpServletRequest request) throws Exception {
+	public Map<String, Object> saveBatchInventory(HttpServletRequest request) throws Exception {
 		String realPath = request.getServletContext().getRealPath("");
-        String configFilePath = realPath + File.separator + "template" + File.separator + "GoodsRegionConfig.xml";
-		List<Goods> list=FileUtil.importData(request, configFilePath);
+		String configFilePath = realPath + File.separator + "template" + File.separator + "GoodsRegionConfig.xml";
+		List<Goods> list = FileUtil.importData(request, configFilePath);
 		List<Goods> delList = new ArrayList<Goods>();
 		List<Goods> reservedList = new ArrayList<Goods>();
 		list = getIdByCode(list);
 		// 删除保留位 是 “否” 的记录，更新保留位是 “是” 的记录
 		for (Goods goods : list) {
-			if("否".equals(goods.getIsReserved().trim())){
+			if ("否".equals(goods.getIsReserved().trim())) {
 				delList.add(goods);
-			}else{
+			} else {
 				reservedList.add(goods);
 			}
 		}
-				
-		Map<String,Object> map = new HashMap<String,Object>();
-		int result1 =2;
-		int result2 = 2 ;
-		if(reservedList.size()>0){
-			 result1 = goodsDao.batchUpdateGoodsInventory(reservedList);
+
+		Map<String, Object> map = new HashMap<String, Object>();
+		int result1 = 2;
+		int result2 = 2;
+		if (reservedList.size() > 0) {
+			result1 = goodsDao.batchUpdateGoodsInventory(reservedList);
 		}
-		if(delList.size()>0){
-			 result2 = goodsDao.batchDeleteGoodsInventory(delList);
+		if (delList.size() > 0) {
+			result2 = goodsDao.batchDeleteGoodsInventory(delList);
 		}
-		if ( result1< 1||result2<1) {
+		if (result1 < 1 || result2 < 1) {
 			throw new BadRequestException("导入失败！");
 		} else {
-			map.put("msg","导入成功") ;
+			map.put("msg", "导入成功");
 			return map;
 		}
 	}
@@ -266,36 +265,35 @@ public class GoodsController {
 	 */
 	@RequestMapping(value = "/inventory/export", method = RequestMethod.GET)
 	@Transactional
-	public void exportInventory(HttpServletRequest request,WebRequest webRequest ,HttpServletResponse response) throws Exception {
+	public void exportInventory(HttpServletRequest request, WebRequest webRequest, HttpServletResponse response) throws Exception {
 		String realPath = request.getServletContext().getRealPath("");
-        String templatePath = realPath + File.separator + "template" + File.separator + "inventory_template.xlsx";
-        Map<String, Object> beans = new HashMap<>();
-        Map<String, Object> mParam = Util.GetRequestMap(webRequest);
-        List<Goods> list = goodsDao.selectInventory(mParam);
-        Integer regionId = Integer.parseInt( mParam.get("regionId").toString());
-        Region region =  regionDao.selectOne(regionId);
+		String templatePath = realPath + File.separator + "template" + File.separator + "inventory_template.xlsx";
+		Map<String, Object> beans = new HashMap<>();
+		Map<String, Object> mParam = Util.GetRequestMap(webRequest);
+		List<Goods> list = goodsDao.selectInventory(mParam);
+		Integer regionId = Integer.parseInt(mParam.get("regionId").toString());
+		Region region = regionDao.selectOne(regionId);
 		for (Goods goods : list) {
 			goods.setRegionCode(region.getCode());
 			goods.setRegionName(region.getFullName());
 		}
-		beans.put("title",region.getFullName());
-		beans.put("date",Util.CurrentTime("yyyy-MM-dd"));
+		beans.put("title", region.getFullName());
+		beans.put("date", Util.CurrentTime("yyyy-MM-dd"));
 		beans.put("list", list);
+		beans.put("isReserved", "是");
 		String currentTime = Period.getSystemTime();
-		String exportFileName = "【"+beans.get("title")+"】"+"仓库库存统计表_"+currentTime + ".xlsx";
+		String exportFileName = "【" + beans.get("title") + "】" + "仓库库存统计表_" + currentTime + ".xlsx";
 		XLSTransformer transformer = new XLSTransformer();
 		Workbook workbook = transformer.transformXLS(new FileInputStream(new File(templatePath)), beans);
-		
+
 		response.reset();
-		response.setHeader("Content-Disposition", "attachment; filename="
-				+ URLEncoder.encode(exportFileName, "UTF-8"));
+		response.setHeader("Content-Disposition", "attachment; filename=" + URLEncoder.encode(exportFileName, "UTF-8"));
 		response.setContentType("application/octet-stream; charset=utf-8");
 		OutputStream outputStream = response.getOutputStream();
 		workbook.write(outputStream);
 		outputStream.flush();
 		outputStream.close();
-		
-		
+
 	}
 	/**
 	 * 异常处理

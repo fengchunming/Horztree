@@ -1,0 +1,111 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<script>
+	$(function () {
+		_LocalKV.groupByType = {
+			"region": "销售网点",
+			"billDate": "订单日期",
+			"payment": "支付方式",
+			"billType": "订单渠道"
+		};
+		
+		_LocalKV.paymentType = {
+			"WX": "微信",
+			"cod": "现金",
+			"online": "",
+			"alipay": "支付宝"
+		};
+
+		App.Trade = App.Model.extend({
+			urlRoot: 'rest/trade/report',
+			defaults: {amount: 0, billCount: 0},
+			idAttribute: 'id'
+		});
+
+		App.Trades = App.Collection.extend({
+			model: App.Trade,
+			pageSize: 0,
+			columns: [
+				{label: '<span id="groupByTH">销售网点</span>', key: 'regionId', local: 'base/kv/region', thcss: 'width:200px'},
+				{label: '销售金额', key: 'amount', thcss: 'width:80px'},
+				{label: '订单数量', key: 'billCount', thcss: 'width:60px'}
+			]
+		});
+
+		App.TradeGrid = App.Grid.extend({
+			collection: new App.Trades,
+			form: new App.FormView,
+			toolbar: [{'export': '导出'}],
+			qel: '.queryBar',
+			search: function () { // 查询列表
+				this.collection.currentPage = 0;
+				if (this.querybar) {
+					_.extend(this.collection.param, this.querybar.serializeObject());
+				}
+			   
+				if (this.collection.param.groupBy === 'region') {
+					this.collection.columns.splice(0, 1, {label: '销售网点', key: 'regionId', local: 'base/kv/region', thcss: 'width:200px'});
+					$("#groupByTH").html('销售网点');
+				} else if (this.collection.param.groupBy === 'billDate') {
+					this.collection.columns.splice(0, 1, {label: '订单日期', key: 'billDate', thcss: 'width:120px'});
+					$("#groupByTH").html('订单日期');
+				} else if (this.collection.param.groupBy === 'payment') {
+					this.collection.columns.splice(0, 1, {label: '支付方式', key: 'payment', local: 'fm/kv/payment', thcss: 'width:60px'});
+					$("#groupByTH").html('支付方式');
+				} else if (this.collection.param.groupBy === 'billType') {
+					this.collection.columns.splice(0, 1, {label: '订单渠道', key: 'billType', local: 'tradeType', thcss: 'width:60px'});
+					$("#groupByTH").html('订单渠道');
+				}
+				
+				this.collection.load();
+			},
+			
+			export: function() { 
+	            var form1 = document.getElementById("form1")
+	            form1.action="rest/trade/report/export";
+	            form1.method="GET";
+	            form1.submit();
+	        }
+
+		});
+		new App.TradeGrid();
+
+	});
+</script>
+</head>
+<body>
+	<div id="article">
+		<form id="form1" class="queryBar">
+			<ul>
+				<li>
+					<label>订单日期：</label>
+					<input type="text" class="mindatepicker" name="sdate"> - <input type="text" class="maxdatepicker" name="edate">
+				</li>
+				<li>
+					<label>网点区域：</label>
+					<select name="regionId" data-local="base/kv/ownRegion"></select>
+				</li>
+				<li>
+					<label>统计方式：</label>
+					<select name="groupBy" data-local="groupByType"></select>
+				</li>
+				<li>
+					<button class="search"><i></i>查询</button>
+				</li>
+				<li class="toolBar"></li>
+			</ul>
+		</form>
+		<div class="dataGrid">
+			<table class="app"></table>
+		</div>
+		<div class="page"></div>
+	</div>
+
+	<div class="navPanel">
+		<div class="toolBar"></div>
+		<div class="editorPanel">
+		</div>
+	</div>
+</body>
+</html>

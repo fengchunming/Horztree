@@ -96,6 +96,11 @@ public class Util {
 		SimpleDateFormat outFormat = new SimpleDateFormat(format);
 		return outFormat.format(now);
 	}
+	
+	public static String formatDate(Date date, String format) {
+		SimpleDateFormat outFormat = new SimpleDateFormat(format);
+		return outFormat.format(date);
+	}
 
 	/**
 	 * 取Unix时间

@@ -12,11 +12,16 @@ import com.an.trade.dao.TradeBillDetailDao;
 import com.an.trade.dao.TradeDao;
 import com.an.trade.entity.Trade;
 import com.an.trade.entity.TradeBillDetail;
+import com.an.trade.entity.TradeReport;
 import com.an.utils.HttpInvoker;
+import com.an.utils.Period;
 import com.an.utils.Util;
 import com.an.mm.dao.WorkBillDao;
 import com.an.mm.dao.WorkBillDetailDao;
 
+import net.sf.jxls.transformer.XLSTransformer;
+
+import org.apache.poi.ss.usermodel.Workbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,12 +32,19 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.ModelAndView;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.math.BigDecimal;
+import java.net.URLEncoder;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 /**
  * 订单管理
@@ -323,13 +335,96 @@ public class TradeController {
      * @return
      * @throws BadRequestException
      */
-    @RequestMapping(value = "/report", method = RequestMethod.GET)
+    @RequestMapping(value = "/report/list", method = RequestMethod.GET)
     public Map<?, ?> saleReport(WebRequest request) throws BadRequestException {
         Map<String, Object> params = Util.GetRequestMap(request);
+        String regionId = params.get("regionId").toString();
+        String regionCode = regionDao.selectOne(Integer.valueOf(regionId)).getCode();
+        params.put("regionCode", regionCode);
+        params.remove("regionId");
         Map<String, Object> result = new HashMap<>();
         result.put("list", tradeDao.report(params));
         result.put("count", "");
         return result;
+    }
+    
+    /**
+     * 销售分析报告导出
+     * @param request
+     * @return
+     * @throws BadRequestException
+     */
+    @RequestMapping(value = "/report/export", method = RequestMethod.GET)
+    public void exportSaleReport(HttpServletRequest request, WebRequest webRequest, HttpServletResponse response) throws Exception {
+    	String realPath = request.getServletContext().getRealPath("");
+    	String templatePath = realPath + File.separator + "template" + File.separator + "trade_report_template.xlsx";
+        
+        Map<String, Object> params = Util.GetRequestMap(webRequest);
+        String regionId = params.get("regionId").toString();
+        String regionCode = regionDao.selectOne(Integer.valueOf(regionId)).getCode();
+        params.put("regionCode", regionCode);
+        params.remove("regionId");
+        Map<String, Object> result = new HashMap<>();
+        List<TradeReport> list = tradeDao.report(params);
+        
+        Map<String, String> billTypeMap = new HashMap<>();
+        billTypeMap.put("XS", "网站");
+        billTypeMap.put("OF", "线下");
+        billTypeMap.put("WX", "微信");
+        billTypeMap.put("MO", "手机");
+        
+        Map<String, String> paymentMap = new HashMap<>();
+        paymentMap.put("cod", "现金");
+        paymentMap.put("WX", "微信");
+        paymentMap.put("alipay", "支付宝");
+        paymentMap.put("online", "");
+        paymentMap.put("CASH", "");
+        
+        Map<String, String> groupMap = new HashMap<>();
+        groupMap.put("region", "销售网点");
+        groupMap.put("billDate", "订单日期");
+        groupMap.put("payment", "支付方式");
+        groupMap.put("billType", "订单渠道");
+
+        Map<String, Object> regionParams = new HashMap<>();
+        params.put("own", true);
+        params.put("type", "sm");
+		List<Map<String,Object>> regionList = regionDao.selectKV(regionParams);
+		
+        for (TradeReport tradeReport : list) {
+			if ("region".equals(params.get("groupBy"))) {
+				for (Map<String, Object> map : regionList) {
+					if (map.get("k").equals(tradeReport.getRegionId())) {
+						tradeReport.setRegionCode(map.get("v").toString());
+						break;
+					}
+				}
+			} else if ("billDate".equals(params.get("groupBy"))) {
+				tradeReport.setRegionCode(Util.formatDate(tradeReport.getBillDate(), "yyyy-MM-dd"));
+			} else if ("payment".equals(params.get("groupBy"))) {
+				tradeReport.setRegionCode(paymentMap.get(tradeReport.getPayment()));
+			} else if ("billType".equals(params.get("groupBy"))) {
+				tradeReport.setRegionCode(billTypeMap.get(tradeReport.getBillType()));
+			}
+		}
+        result.put("header", groupMap.get(params.get("groupBy")));
+        result.put("sdate", params.get("sdate"));
+        result.put("edate", params.get("edate"));
+        result.put("list", list);
+        result.put("count", list.size());
+
+		String currentTime = Period.getSystemTime();
+		String exportFileName = "销售统计表_" + currentTime + ".xlsx";
+		XLSTransformer transformer = new XLSTransformer();
+		Workbook workbook = transformer.transformXLS(new FileInputStream(new File(templatePath)), result);
+
+		response.reset();
+		response.setHeader("Content-Disposition", "attachment; filename=" + URLEncoder.encode(exportFileName, "UTF-8"));
+		response.setContentType("application/octet-stream; charset=utf-8");
+		OutputStream outputStream = response.getOutputStream();
+		workbook.write(outputStream);
+		outputStream.flush();
+		outputStream.close();
     }
 
     /**
